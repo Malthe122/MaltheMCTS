@@ -230,19 +230,6 @@ public static class Utility
         return result;
     }
 
-    internal static List<Move> BuildUniqueMovesContainers(List<Move> possibleMoves)
-    {
-        var result = new List<Move>();
-
-        foreach(var currMove in possibleMoves) {
-            if (!result.Any(mc => mc.Move.IsIdentical(currMove))){
-                result.Add(new Move(currMove));
-            }
-        }
-
-        return result;
-    }
-
     /// <summary>
     /// Since we reuse identical states, our move will not be identical to the move in the official gamestate, since although gamestates are logically identical
     /// we might have a specific card on hand with ID 1 in our gamestate, while the official gamestate has an identical card in our hand but with a different id.

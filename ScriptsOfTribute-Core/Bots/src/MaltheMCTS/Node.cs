@@ -16,7 +16,7 @@ public class Node
     public Node(SeededGameState gameState, List<Move> possibleMoves, MaltheMCTS bot)
     {
         GameState = gameState;
-        PossibleMoves = Utility.BuildUniqueMovesContainers(possibleMoves);
+        PossibleMoves = possibleMoves;
         MoveToChildNode = new Dictionary<Move, Node>();
         ApplyAllDeterministicAndObviousMoves();
         Bot = bot;
@@ -140,7 +140,7 @@ public class Node
             }
 
             rolloutGameState = newGameState;
-            rolloutPossibleMoves = Utility.BuildUniqueMovesContainers(newPossibleMoves);
+            rolloutPossibleMoves = newPossibleMoves;
         }
 
         var stateScore = Utility.UseBestMCTS3Heuristic(rolloutGameState, true);
@@ -177,7 +177,7 @@ public class Node
 
                 var (newGameState, newPossibleMoves) = rolloutGameState.ApplyMove(moveToMake);
                 rolloutGameState = newGameState;
-                rolloutPossibleMoves = Utility.BuildUniqueMovesContainers(newPossibleMoves);
+                rolloutPossibleMoves = newPossibleMoves;
             }
 
             if (rolloutGameState.GameEndState.Winner != PlayerEnum.NO_PLAYER_SELECTED)
@@ -242,7 +242,7 @@ public class Node
                     // TODO consider if some of the choice cards are also obvious moves, since the choice will be a new move
                     // or how to handle this issue
                     (GameState, var possibleMoves) = GameState.ApplyMove(currMove, (ulong)Utility.Rng.Next());
-                    PossibleMoves = Utility.BuildUniqueMovesContainers(possibleMoves);
+                    PossibleMoves = possibleMoves;
                     ApplyAllDeterministicAndObviousMoves();
                     break;
                 }
@@ -252,7 +252,7 @@ public class Node
                 if (Utility.OBVIOUS_AGENT_EFFECTS.Contains(((SimpleCardMove)currMove).Card.CommonId))
                 {
                     (GameState, var possibleMoves) = GameState.ApplyMove(currMove, (ulong)Utility.Rng.Next());
-                    PossibleMoves = Utility.BuildUniqueMovesContainers(possibleMoves);
+                    PossibleMoves = possibleMoves;
                     ApplyAllDeterministicAndObviousMoves();
                     break;
                 }

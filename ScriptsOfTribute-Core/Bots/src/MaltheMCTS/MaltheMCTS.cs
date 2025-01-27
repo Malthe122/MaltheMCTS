@@ -102,7 +102,7 @@ public class MaltheMCTS : AI
                 .FirstOrDefault()
                 .Key;
 
-            if (!CheckMoveLegality(bestMove.Move, rootNode, gameState, possibleMoves)) {
+            if (!CheckMoveLegality(bestMove, rootNode, gameState, possibleMoves)) {
                 string errorMessage = "Tried to play illegal move\n";
                 errorMessage += "Environment was:\n";
                 errorMessage += "ITERATION_COMPLETION_MILLISECONDS_BUFFER: " + Params.ITERATION_COMPLETION_MILLISECONDS_BUFFER + "\n";
@@ -118,7 +118,7 @@ public class MaltheMCTS : AI
                 SaveErrorLog(errorMessage);
             }
 
-            return Utility.FindOfficialMove(bestMove.Move, possibleMoves);
+            return Utility.FindOfficialMove(bestMove, possibleMoves);
         }
         catch (Exception e)
         {
@@ -189,7 +189,7 @@ public class MaltheMCTS : AI
             Console.WriteLine("@@@@@@@ But available moves were:");
             officialPossiblemoves.ForEach(m => m.Log());
             Console.WriteLine("@@@@@@ But we thought moves were:");
-            rootNode.PossibleMoves.ForEach(m => m.Move.Log());
+            rootNode.PossibleMoves.ForEach(m => m.Log());
 
             return false;
         }
