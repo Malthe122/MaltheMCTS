@@ -398,3 +398,5 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+ScriptsOfTribute-Core/GameRunner/Error.txt
+ScriptsOfTribute-Core/GameRunner/patronsMCTSBot.txt
