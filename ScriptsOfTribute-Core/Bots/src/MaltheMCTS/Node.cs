@@ -5,19 +5,19 @@ namespace MaltheMCTS;
 
 public class Node
 {
-    public Dictionary<MoveContainer, Node> MoveToChildNode;
+    public Dictionary<Move, Node> MoveToChildNode;
     public int VisitCount = 0;
     public double TotalScore = 0;
     public int GameStateHash { get; private set; }
     public SeededGameState GameState { get; private set; }
-    public List<MoveContainer> PossibleMoves;
+    public List<Move> PossibleMoves;
     internal MaltheMCTS Bot;
 
     public Node(SeededGameState gameState, List<Move> possibleMoves, MaltheMCTS bot)
     {
         GameState = gameState;
         PossibleMoves = Utility.BuildUniqueMovesContainers(possibleMoves);
-        MoveToChildNode = new Dictionary<MoveContainer, Node>();
+        MoveToChildNode = new Dictionary<Move, Node>();
         ApplyAllDeterministicAndObviousMoves();
         Bot = bot;
     }
@@ -71,23 +71,23 @@ public class Node
 
     internal Node Expand()
     {
-        foreach (var moveContainer in PossibleMoves)
+        foreach (var currMove in PossibleMoves)
         {
-            if (!MoveToChildNode.Keys.Any(mc => mc.Move.IsIdentical(moveContainer.Move)))
+            if (!MoveToChildNode.Keys.Any(m => m.IsIdentical(currMove)))
             {
-                if ((Bot.Params.INCLUDE_PLAY_MOVE_CHANCE_NODES && moveContainer.Move.IsNonDeterministic())
-                    || Bot.Params.INCLUDE_END_TURN_CHANCE_NODES && moveContainer.Move.Command == CommandEnum.END_TURN)
+                if ((Bot.Params.INCLUDE_PLAY_MOVE_CHANCE_NODES && currMove.IsNonDeterministic())
+                    || Bot.Params.INCLUDE_END_TURN_CHANCE_NODES && currMove.Command == CommandEnum.END_TURN)
                 {
-                    var newChild = new ChanceNode(GameState, this, moveContainer.Move, Bot);
-                    MoveToChildNode.Add(new MoveContainer(moveContainer.Move), newChild);
+                    var newChild = new ChanceNode(GameState, this, currMove, Bot);
+                    MoveToChildNode.Add(currMove, newChild);
                     return newChild;
                 }
                 else
                 {
                     ulong randomSeed = (ulong)Utility.Rng.Next();
-                    var (newGameState, newPossibleMoves) = GameState.ApplyMove(moveContainer.Move, randomSeed);
+                    var (newGameState, newPossibleMoves) = GameState.ApplyMove(currMove, randomSeed);
                     var newChild = Utility.FindOrBuildNode(newGameState, this, newPossibleMoves, Bot);
-                    MoveToChildNode.Add(new MoveContainer(moveContainer.Move), newChild);
+                    MoveToChildNode.Add(currMove, newChild);
                     return newChild;
                 }
             }
@@ -124,14 +124,14 @@ public class Node
             {
                 if (rolloutPossibleMoves.Count > 1)
                 {
-                    rolloutPossibleMoves.RemoveAll(moveContainer => moveContainer.Move.Command == CommandEnum.END_TURN);
+                    rolloutPossibleMoves.RemoveAll(Move => Move.Command == CommandEnum.END_TURN);
                 }
             }
 
             var chosenIndex = Utility.Rng.Next(rolloutPossibleMoves.Count);
             var moveToMake = rolloutPossibleMoves[chosenIndex];
 
-            var (newGameState, newPossibleMoves) = rolloutGameState.ApplyMove(moveToMake.Move);
+            var (newGameState, newPossibleMoves) = rolloutGameState.ApplyMove(moveToMake);
 
             if (newGameState.CurrentPlayer != rolloutPlayer)
             {
@@ -158,31 +158,30 @@ public class Node
         double result = 0;
         var rolloutGameState = GameState;
         var rolloutPlayerId = rolloutGameState.CurrentPlayer.PlayerID;
-        var rolloutPossibleMoves = new List<MoveContainer>(PossibleMoves);
+        var rolloutPossibleMoves = new List<Move>(PossibleMoves);
 
         for (int i = 0; i < Bot.Params.NUMBER_OF_ROLLOUTS; i++)
         {
-            // TODO also apply the playing obvious moves in here
+            // TODO also apply the playing obvious moves in here, possibly
             while (rolloutGameState.GameEndState == null)
             {
-                // Choosing here to remove the "end turn" move before its the last move. This is done to make the random plays a bit more realistic
                 if (Bot.Params.FORCE_DELAY_TURN_END_IN_ROLLOUT)
                 {
                     if (rolloutPossibleMoves.Count > 1)
                     {
-                        rolloutPossibleMoves.RemoveAll(moveContainer => moveContainer.Move.Command == CommandEnum.END_TURN);
+                        rolloutPossibleMoves.RemoveAll(Move => Move.Command == CommandEnum.END_TURN);
                     }
                 }
                 var chosenIndex = Utility.Rng.Next(rolloutPossibleMoves.Count);
                 var moveToMake = rolloutPossibleMoves[chosenIndex];
 
-                var (newGameState, newPossibleMoves) = rolloutGameState.ApplyMove(moveToMake.Move);
+                var (newGameState, newPossibleMoves) = rolloutGameState.ApplyMove(moveToMake);
                 rolloutGameState = newGameState;
                 rolloutPossibleMoves = Utility.BuildUniqueMovesContainers(newPossibleMoves);
             }
 
             if (rolloutGameState.GameEndState.Winner != PlayerEnum.NO_PLAYER_SELECTED)
-            { //TODO here i assume that winner = NO_PLAYER_SELECTED is how they show a draw. Need to confirm this
+            {
                 if (rolloutGameState.GameEndState.Winner == rolloutPlayerId)
                 {
                     result += 1;
@@ -236,23 +235,23 @@ public class Node
     {
         foreach (var currMove in PossibleMoves)
         {
-            if (currMove.Move.Command == CommandEnum.PLAY_CARD)
+            if (currMove.Command == CommandEnum.PLAY_CARD)
             {
-                if (Utility.OBVIOUS_ACTION_PLAYS.Contains(((SimpleCardMove)currMove.Move).Card.CommonId))
+                if (Utility.OBVIOUS_ACTION_PLAYS.Contains(((SimpleCardMove)currMove).Card.CommonId))
                 {
                     // TODO consider if some of the choice cards are also obvious moves, since the choice will be a new move
                     // or how to handle this issue
-                    (GameState, var possibleMoves) = GameState.ApplyMove(currMove.Move, (ulong)Utility.Rng.Next());
+                    (GameState, var possibleMoves) = GameState.ApplyMove(currMove, (ulong)Utility.Rng.Next());
                     PossibleMoves = Utility.BuildUniqueMovesContainers(possibleMoves);
                     ApplyAllDeterministicAndObviousMoves();
                     break;
                 }
             }
-            else if (currMove.Move.Command == CommandEnum.ACTIVATE_AGENT)
+            else if (currMove.Command == CommandEnum.ACTIVATE_AGENT)
             {
-                if (Utility.OBVIOUS_AGENT_EFFECTS.Contains(((SimpleCardMove)currMove.Move).Card.CommonId))
+                if (Utility.OBVIOUS_AGENT_EFFECTS.Contains(((SimpleCardMove)currMove).Card.CommonId))
                 {
-                    (GameState, var possibleMoves) = GameState.ApplyMove(currMove.Move, (ulong)Utility.Rng.Next());
+                    (GameState, var possibleMoves) = GameState.ApplyMove(currMove, (ulong)Utility.Rng.Next());
                     PossibleMoves = Utility.BuildUniqueMovesContainers(possibleMoves);
                     ApplyAllDeterministicAndObviousMoves();
                     break;

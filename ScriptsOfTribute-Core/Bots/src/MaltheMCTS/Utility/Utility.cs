@@ -230,13 +230,13 @@ public static class Utility
         return result;
     }
 
-    internal static List<MoveContainer> BuildUniqueMovesContainers(List<Move> possibleMoves)
+    internal static List<Move> BuildUniqueMovesContainers(List<Move> possibleMoves)
     {
-        var result = new List<MoveContainer>();
+        var result = new List<Move>();
 
         foreach(var currMove in possibleMoves) {
             if (!result.Any(mc => mc.Move.IsIdentical(currMove))){
-                result.Add(new MoveContainer(currMove));
+                result.Add(new Move(currMove));
             }
         }
 
