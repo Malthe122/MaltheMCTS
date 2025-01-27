@@ -27,7 +27,7 @@ public class MCTSHyperparameters
     public bool REUSE_TREE { get; set; }
 
 
-    public MCTSHyperparameters(string filePath = "environment")
+    public MCTSHyperparameters(string filePath = "MaltheMCTSSettings")
     {
         var config = new ConfigurationBuilder()
         .AddIniFile(filePath, optional: false, reloadOnChange: false)
