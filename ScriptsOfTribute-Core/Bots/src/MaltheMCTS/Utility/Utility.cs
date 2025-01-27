@@ -231,6 +231,23 @@ public static class Utility
     }
 
     /// <summary>
+    /// Transforms SoT framework moves into, what MaltheMCTS considers unique moves
+    /// SoT framework handles moves equal moves like different moves if they refer to different card ids of the same type.
+    /// I consider playing "Gold" card with Id 1 and playing "Gold" card with Id 2 as the same move, and only want to create a single edge from a node with this action.
+    /// </summary>
+    internal static List<Move> GetUniqueMoves(List<Move> possibleMoves)
+    {
+        var result = new List<Move>();
+
+        foreach(var currMove in possibleMoves) {
+            if (!result.Any(m => m.IsIdentical(currMove))){
+                result.Add(currMove);
+            }
+        }
+
+        return result;
+    }
+    /// <summary>
     /// Since we reuse identical states, our move will not be identical to the move in the official gamestate, since although gamestates are logically identical
     /// we might have a specific card on hand with ID 1 in our gamestate, while the official gamestate has an identical card in our hand but with a different id.
     /// Becuase of this, we need to find the offical move that is logically identcal to our move
