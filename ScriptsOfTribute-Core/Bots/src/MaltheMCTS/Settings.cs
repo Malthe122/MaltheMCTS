@@ -26,16 +26,12 @@ public class MCTSHyperparameters
     public bool EQUAL_CHANCE_NODE_DISTRIBUTION { get; set; }
     public bool REUSE_TREE { get; set; }
 
-    public int MAX_TREE_TRAVELS = 100_000; // HARDCODED now for debugging. TODO make a better solution, with a hashmap as an argument 
-
 
     public MCTSHyperparameters(string filePath = "environment")
     {
-        var envVariables = Settings.LoadEnvFile(filePath);
-
-        var builder = new ConfigurationBuilder()
-            .AddInMemoryCollection(envVariables);
-        var config = builder.Build();
+        var config = new ConfigurationBuilder()
+        .AddIniFile(filePath, optional: false, reloadOnChange: false)
+        .Build();
 
         ITERATIONS = config.GetValue("ITERATIONS", 0);
         ITERATION_COMPLETION_MILLISECONDS_BUFFER = config.GetValue("ITERATION_COMPLETION_MILLISECONDS_BUFFER", 100.0);
