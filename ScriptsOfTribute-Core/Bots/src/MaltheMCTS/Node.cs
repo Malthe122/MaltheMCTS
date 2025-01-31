@@ -18,7 +18,7 @@ public class Node
         GameState = gameState;
         PossibleMoves = Utility.GetUniqueMoves(possibleMoves);
         MoveToChildNode = new Dictionary<Move, Node>();
-        ApplyAllDeterministicAndObviousMoves();
+        ApplyInstantMoves();
         Bot = bot;
     }
 
@@ -40,7 +40,7 @@ public class Node
         {
             if (VisitCount == 0)
             {
-                ApplyAllDeterministicAndObviousMoves();
+                ApplyInstantMoves();
                 score = Score();
             }
             else if (PossibleMoves.Count > MoveToChildNode.Count)
@@ -160,36 +160,33 @@ public class Node
         var rolloutPlayerId = rolloutGameState.CurrentPlayer.PlayerID;
         var rolloutPossibleMoves = new List<Move>(PossibleMoves);
 
-        for (int i = 0; i < Bot.Params.NUMBER_OF_ROLLOUTS; i++)
+        // TODO also apply the playing obvious moves in here, possibly
+        while (rolloutGameState.GameEndState == null)
         {
-            // TODO also apply the playing obvious moves in here, possibly
-            while (rolloutGameState.GameEndState == null)
+            if (Bot.Params.FORCE_DELAY_TURN_END_IN_ROLLOUT)
             {
-                if (Bot.Params.FORCE_DELAY_TURN_END_IN_ROLLOUT)
+                if (rolloutPossibleMoves.Count > 1)
                 {
-                    if (rolloutPossibleMoves.Count > 1)
-                    {
-                        rolloutPossibleMoves.RemoveAll(Move => Move.Command == CommandEnum.END_TURN);
-                    }
+                    rolloutPossibleMoves.RemoveAll(Move => Move.Command == CommandEnum.END_TURN);
                 }
-                var chosenIndex = Utility.Rng.Next(rolloutPossibleMoves.Count);
-                var moveToMake = rolloutPossibleMoves[chosenIndex];
-
-                var (newGameState, newPossibleMoves) = rolloutGameState.ApplyMove(moveToMake);
-                rolloutGameState = newGameState;
-                rolloutPossibleMoves = Utility.GetUniqueMoves(newPossibleMoves);
             }
+            var chosenIndex = Utility.Rng.Next(rolloutPossibleMoves.Count);
+            var moveToMake = rolloutPossibleMoves[chosenIndex];
 
-            if (rolloutGameState.GameEndState.Winner != PlayerEnum.NO_PLAYER_SELECTED)
+            var (newGameState, newPossibleMoves) = rolloutGameState.ApplyMove(moveToMake);
+            rolloutGameState = newGameState;
+            rolloutPossibleMoves = Utility.GetUniqueMoves(newPossibleMoves);
+        }
+
+        if (rolloutGameState.GameEndState.Winner != PlayerEnum.NO_PLAYER_SELECTED)
+        {
+            if (rolloutGameState.GameEndState.Winner == rolloutPlayerId)
             {
-                if (rolloutGameState.GameEndState.Winner == rolloutPlayerId)
-                {
-                    result += 1;
-                }
-                else
-                {
-                    result -= 1;
-                }
+                result += 1;
+            }
+            else
+            {
+                result -= 1;
             }
         }
 
@@ -231,31 +228,16 @@ public class Node
         }
     }
 
-    internal void ApplyAllDeterministicAndObviousMoves()
+    internal void ApplyInstantMoves()
     {
         foreach (var currMove in PossibleMoves)
         {
-            if (currMove.Command == CommandEnum.PLAY_CARD)
+            if (currMove.IsInstantPlay())
             {
-                if (Utility.OBVIOUS_ACTION_PLAYS.Contains(((SimpleCardMove)currMove).Card.CommonId))
-                {
-                    // TODO consider if some of the choice cards are also obvious moves, since the choice will be a new move
-                    // or how to handle this issue
-                    (GameState, var possibleMoves) = GameState.ApplyMove(currMove, (ulong)Utility.Rng.Next());
-                    PossibleMoves = Utility.GetUniqueMoves(possibleMoves);
-                    ApplyAllDeterministicAndObviousMoves();
-                    break;
-                }
-            }
-            else if (currMove.Command == CommandEnum.ACTIVATE_AGENT)
-            {
-                if (Utility.OBVIOUS_AGENT_EFFECTS.Contains(((SimpleCardMove)currMove).Card.CommonId))
-                {
-                    (GameState, var possibleMoves) = GameState.ApplyMove(currMove, (ulong)Utility.Rng.Next());
-                    PossibleMoves = Utility.GetUniqueMoves(possibleMoves);
-                    ApplyAllDeterministicAndObviousMoves();
-                    break;
-                }
+                (GameState, var possibleMoves) = GameState.ApplyMove(currMove, (ulong)Utility.Rng.Next());
+                PossibleMoves = Utility.GetUniqueMoves(possibleMoves);
+                ApplyInstantMoves();
+                break;
             }
         }
 
