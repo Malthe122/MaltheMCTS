@@ -22,4 +22,9 @@
       <PackageReference Include="Microsoft.Extensions.Configuration.Ini" Version="8.0.0" />
     </ItemGroup>
 
+    <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <DebugType>portable</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    </PropertyGroup>
+
 </Project>
