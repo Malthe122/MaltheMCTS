@@ -30,7 +30,7 @@ public class MaltheMCTS : AI
 
     public override void GameEnd(EndGameState state, FullGameState? finalBoardState)
     {
-        state.ComputationsPerTurn = 0;
+        state.ComputationsPerTurn = computationsCompleted/turnsCompleted;
         Console.WriteLine("@@@ Game ended because of " + state.Reason + " @@@");
         Console.WriteLine("@@@ Winner was " + state.Winner + " @@@");
     }
@@ -68,6 +68,7 @@ public class MaltheMCTS : AI
             double millisecondsForMove = (remainingTime.TotalMilliseconds / estimatedRemainingMovesInTurn) - Params.ITERATION_COMPLETION_MILLISECONDS_BUFFER;
             while (moveTimer.ElapsedMilliseconds < millisecondsForMove)
             {
+                computationsCompleted++;
                 // var iterationTimer = new Stopwatch();
                 // iterationTimer.Start();
                 // iterationCounter++;
