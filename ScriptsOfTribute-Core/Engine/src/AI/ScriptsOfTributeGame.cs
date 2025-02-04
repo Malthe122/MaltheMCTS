@@ -35,6 +35,7 @@ public class ScriptsOfTributeGame
             var stopwatch = new Stopwatch();
             stopwatch.Start();
             var result = CurrentPlayer.Play(state, moves, CurrentTurnTimeRemaining);
+            state.TurnCount = _api.TurnCount;
             stopwatch.Stop();
             _currentTurnTimeElapsed += stopwatch.Elapsed;
             return result;

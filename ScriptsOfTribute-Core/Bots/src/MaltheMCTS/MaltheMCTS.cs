@@ -12,6 +12,11 @@ public class MaltheMCTS : AI
     public Dictionary<int, List<Node>> NodeGameStateHashMap = new Dictionary<int, List<Node>>();
     public MCTSHyperparameters? Params { get; set; }
 
+    // FOR COMPUTATION BENCHMARK
+    private int currentTurn = -1;
+    private int computationsCompleted = 0;
+    private int turnsCompleted = -1;
+
     public override void PregamePrepare()
     {
         if (Params == null)
@@ -26,6 +31,7 @@ public class MaltheMCTS : AI
 
     public override void GameEnd(EndGameState state, FullGameState? finalBoardState)
     {
+        state.ComputationsPerTurn = 0;
         Console.WriteLine("@@@ Game ended because of " + state.Reason + " @@@");
         Console.WriteLine("@@@ Winner was " + state.Winner + " @@@");
 
@@ -45,10 +51,18 @@ public class MaltheMCTS : AI
 
                 SaveErrorLog(errorMessage);
         }
+    
     }
 
     public override Move Play(GameState gameState, List<Move> possibleMoves, TimeSpan remainingTime)
     {
+
+        if (currentTurn != gameState.TurnCount)
+        {
+            turnsCompleted++;
+            currentTurn = gameState.TurnCount;
+        }
+
         try
         {
             var obviousMove = FindObviousMove(possibleMoves);

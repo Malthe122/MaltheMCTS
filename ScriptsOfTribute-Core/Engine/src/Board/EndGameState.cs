@@ -5,6 +5,7 @@ public class EndGameState
     public readonly PlayerEnum Winner;
     public readonly GameEndReason Reason;
     public string AdditionalContext;
+    public float ComputationsPerTurn;
 
     public EndGameState(PlayerEnum winner, GameEndReason reason, string additionalContext = "")
     {

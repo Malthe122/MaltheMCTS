@@ -16,6 +16,7 @@ public class GameState
     public List<UniqueBaseEffect> UpcomingEffects => _board.UpcomingEffects;
     public List<UniqueBaseEffect> StartOfNextTurnEffects => _board.StartOfNextTurnEffects;
     public EndGameState? GameEndState => _board.GameEndState;
+    public int TurnCount = 0;
 
     // Bot shouldn't have access to hand etc of enemy player.
     // Furthermore, when he simulates end turn (Move.EndTurn) he shouldn't have access to any information
