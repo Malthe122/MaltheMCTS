@@ -19,12 +19,11 @@ public class MaltheMCTS : AI
 
     public override void PregamePrepare()
     {
+        Utility.CategorizeCards();
         if (Params == null)
         {
             Params = new MCTSHyperparameters();
         }
-        // Console.WriteLine(Params);
-        base.PregamePrepare();
         rootNode = null;
         NodeGameStateHashMap = new Dictionary<int, List<Node>>();
     }
@@ -34,24 +33,6 @@ public class MaltheMCTS : AI
         state.ComputationsPerTurn = 0;
         Console.WriteLine("@@@ Game ended because of " + state.Reason + " @@@");
         Console.WriteLine("@@@ Winner was " + state.Winner + " @@@");
-
-        if (state.Reason == GameEndReason.INCORRECT_MOVE) {
-            string errorMessage = state.Winner == PlayerEnum.PLAYER1 ? PlayerEnum.PLAYER2.ToString() : PlayerEnum.PLAYER1.ToString() + " played illegal move\n";
-                errorMessage += "Environment was:\n";
-                errorMessage += "ITERATION_COMPLETION_MILLISECONDS_BUFFER: " + Params.ITERATION_COMPLETION_MILLISECONDS_BUFFER + "\n";
-                errorMessage += "UCT_EXPLORATION_CONSTANT: " + Params.UCT_EXPLORATION_CONSTANT + "\n";
-                errorMessage += "FORCE_DELAY_TURN_END_IN_ROLLOUT: " + Params.FORCE_DELAY_TURN_END_IN_ROLLOUT + "\n";
-                errorMessage += "INCLUDE_PLAY_MOVE_CHANCE_NODES: " + Params.INCLUDE_PLAY_MOVE_CHANCE_NODES + "\n";
-                errorMessage += "INCLUDE_END_TURN_CHANCE_NODES: " + Params.INCLUDE_END_TURN_CHANCE_NODES + "\n";
-                errorMessage += "CHOSEN_SCORING_METHOD: " + Params.CHOSEN_SCORING_METHOD + "\n";
-                errorMessage += "ROLLOUT_TURNS_BEFORE_HEURSISTIC: " + Params.ROLLOUT_TURNS_BEFORE_HEURSISTIC + "\n";
-                errorMessage += "EQUAL_CHANCE_NODE_DISTRIBUTION: " + Params.EQUAL_CHANCE_NODE_DISTRIBUTION + "\n";
-                errorMessage += "REUSE_TREE: " + Params.REUSE_TREE + "\n";
-                errorMessage += "Additional context:\n" + state.AdditionalContext; 
-
-                SaveErrorLog(errorMessage);
-        }
-    
     }
 
     public override Move Play(GameState gameState, List<Move> possibleMoves, TimeSpan remainingTime)
@@ -65,10 +46,10 @@ public class MaltheMCTS : AI
 
         try
         {
-            var obviousMove = FindObviousMove(possibleMoves);
-            if (obviousMove != null)
+            var instantPlay = FindInstantPlayMove(possibleMoves);
+            if (instantPlay != null)
             {
-                return obviousMove;
+                return instantPlay;
             }
 
             if (possibleMoves.Count == 1)
@@ -81,28 +62,18 @@ public class MaltheMCTS : AI
 
             var rootNode = Utility.FindOrBuildNode(seededGameState, null, possibleMoves, this);
 
-            if (Params.ITERATIONS > 0)
+            var moveTimer = new Stopwatch();
+            moveTimer.Start();
+            int estimatedRemainingMovesInTurn = EstimateRemainingMovesInTurn(gameState, possibleMoves);
+            double millisecondsForMove = (remainingTime.TotalMilliseconds / estimatedRemainingMovesInTurn) - Params.ITERATION_COMPLETION_MILLISECONDS_BUFFER;
+            while (moveTimer.ElapsedMilliseconds < millisecondsForMove)
             {
-                for (int i = 0; i < Params.ITERATIONS; i++)
-                {
-                    rootNode.Visit(out double score, new HashSet<Node>());
-                }
-            }
-            else
-            {
-                var moveTimer = new Stopwatch();
-                moveTimer.Start();
-                int estimatedRemainingMovesInTurn = EstimateRemainingMovesInTurn(gameState, possibleMoves);
-                double millisecondsForMove = (remainingTime.TotalMilliseconds / estimatedRemainingMovesInTurn) - Params.ITERATION_COMPLETION_MILLISECONDS_BUFFER;
-                while (moveTimer.ElapsedMilliseconds < millisecondsForMove)
-                {
-                    // var iterationTimer = new Stopwatch();
-                    // iterationTimer.Start();
-                    // iterationCounter++;
-                    rootNode.Visit(out double score, new HashSet<Node>());
-                    // iterationTimer.Stop();
-                    // Console.WriteLine("Iteration took: " + iterationTimer.ElapsedMilliseconds + " milliseconds");
-                }
+                // var iterationTimer = new Stopwatch();
+                // iterationTimer.Start();
+                // iterationCounter++;
+                rootNode.Visit(out double score, new HashSet<Node>());
+                // iterationTimer.Stop();
+                // Console.WriteLine("Iteration took: " + iterationTimer.ElapsedMilliseconds + " milliseconds");
             }
 
             if (rootNode.MoveToChildNode.Count == 0)
@@ -126,7 +97,6 @@ public class MaltheMCTS : AI
                 errorMessage += "INCLUDE_END_TURN_CHANCE_NODES: " + Params.INCLUDE_END_TURN_CHANCE_NODES + "\n";
                 errorMessage += "CHOSEN_SCORING_METHOD: " + Params.CHOSEN_SCORING_METHOD + "\n";
                 errorMessage += "ROLLOUT_TURNS_BEFORE_HEURSISTIC: " + Params.ROLLOUT_TURNS_BEFORE_HEURSISTIC + "\n";
-                errorMessage += "EQUAL_CHANCE_NODE_DISTRIBUTION: " + Params.EQUAL_CHANCE_NODE_DISTRIBUTION + "\n";
                 errorMessage += "REUSE_TREE: " + Params.REUSE_TREE + "\n";
 
                 SaveErrorLog(errorMessage);
@@ -164,7 +134,6 @@ public class MaltheMCTS : AI
                 errorMessage += "INCLUDE_END_TURN_CHANCE_NODES: " + Params.INCLUDE_END_TURN_CHANCE_NODES + "\n";
                 errorMessage += "CHOSEN_SCORING_METHOD: " + Params.CHOSEN_SCORING_METHOD + "\n";
                 errorMessage += "ROLLOUT_TURNS_BEFORE_HEURSISTIC: " + Params.ROLLOUT_TURNS_BEFORE_HEURSISTIC + "\n";
-                errorMessage += "EQUAL_CHANCE_NODE_DISTRIBUTION: " + Params.EQUAL_CHANCE_NODE_DISTRIBUTION + "\n";
                 errorMessage += "REUSE_TREE: " + Params.REUSE_TREE + "\n";
 
             SaveErrorLog(errorMessage);
@@ -235,15 +204,13 @@ public class MaltheMCTS : AI
         while (currentPossibleMoves.Count > 0)
         {
 
-            var obviousMove = FindObviousMove(currentPossibleMoves);
-            if (obviousMove != null)
+            var instantPlay = FindInstantPlayMove(currentPossibleMoves);
+            if (instantPlay != null)
             {
-                (currentState, currentPossibleMoves) = currentState.ApplyMove(obviousMove);
+                (currentState, currentPossibleMoves) = currentState.ApplyMove(instantPlay);
             }
             else if (currentPossibleMoves.Count == 1)
             {
-                // TODO add this to ovious moves instead
-                // we already checked that its not end turn, so this is make choice in cases where there is only one choice
                 (currentState, currentPossibleMoves) = currentState.ApplyMove(currentPossibleMoves[0]);
             }
             else
@@ -258,23 +225,19 @@ public class MaltheMCTS : AI
         return result;
     }
 
-    private Move FindObviousMove(List<Move> possibleMoves)
+    private Move FindInstantPlayMove(List<Move> possibleMoves)
     {
+        if (possibleMoves.Count == 1)
+        {
+            // This can be different than "END_TURN" in cases where a choice needs to be made (between agents for example)
+            // while there is only one agent available.
+            return possibleMoves[0];
+        }
+
         foreach (Move currMove in possibleMoves)
         {
-            if (currMove.Command == CommandEnum.PLAY_CARD)
-            {
-                if (Utility.OBVIOUS_ACTION_PLAYS.Contains(((SimpleCardMove)currMove).Card.CommonId))
-                {
-                    return currMove;
-                }
-            }
-            else if (currMove.Command == CommandEnum.ACTIVATE_AGENT)
-            {
-                if (Utility.OBVIOUS_AGENT_EFFECTS.Contains(((SimpleCardMove)currMove).Card.CommonId))
-                {
-                    return currMove;
-                }
+            if (currMove.IsInstantPlay()) {
+                return currMove;
             }
         }
 
