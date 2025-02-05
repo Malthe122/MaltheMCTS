@@ -400,3 +400,7 @@ FodyWeavers.xsd
 *.sln.iml
 ScriptsOfTribute-Core/GameRunner/Error.txt
 ScriptsOfTribute-Core/GameRunner/patronsMCTSBot.txt
+/ScriptsOfTribute-Core/benchmarking/ComputationBenchmarking/gamerunner-image.tar
+/ScriptsOfTribute-Core/benchmarking/ComputationBenchmarking/gamerunner-image.tar
+/ScriptsOfTribute-Core/GameRunner/gamerunner-image.tar
+/ScriptsOfTribute-Core/Benchmarking/ComputationBenchmarking/gamerunner-image.tar

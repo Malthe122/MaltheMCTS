@@ -8,6 +8,7 @@ using Bots;
 using ScriptsOfTribute.AI;
 using Docker.DotNet;
 using System.Threading;
+using BenchmarkingUtility;
 
 namespace ComputationBenchmarking
 {
@@ -82,15 +83,23 @@ namespace ComputationBenchmarking
 
             // Sequential
 
-            List<float> sequentialAverageComputations = PlaySequential();
-
-            // parallel using new method
-
-            List<float> seperateMemoryParallelAverageComputations = new List<float>();
+            List<float> sequentialAverageComputations = PlaySequential(numberOfMatchups, timeout, matchups);
 
             // parallel with shared memory
 
             var sharedMemoryParallelAverageComputations = PlayParallelWithSharedMemory(numberOfMatchups, timeout, threads, matchups);
+
+            // parallel using new method
+
+            List<float> seperateMemoryParallelAverageComputations = PlayParallelWithSeperatedMemory(numberOfMatchups, timeout, threads, matchups);
+        }
+
+        private static List<float> PlayParallelWithSeperatedMemory(int numberOfMatchups, int timeout, int threads, List<(AI, AI)> matchups)
+        {
+            DockerUtility.LoadGamerunnerImage("./gamerunner-image.tar");
+            List<string> containers = DockerUtility.CreateContainers("gamerunner-image", threads);
+
+            var parallalelOptions = new ParallelOptions { MaxDegreeOfParallelism = threads };
         }
 
         private static List<float> PlaySequential(int numberOfMatchups, int timeout, List<(AI, AI)> matchups)
@@ -110,7 +119,7 @@ namespace ComputationBenchmarking
             return res;
         }
 
-        private static new List<float> PlayParallelWithSharedMemory(int numberOfMatchups, int timeout, int threads, List<(AI, AI)> matchups)
+        private static List<float> PlayParallelWithSharedMemory(int numberOfMatchups, int timeout, int threads, List<(AI, AI)> matchups)
         {
             List<float> res = new List<float>();
 
