@@ -13,7 +13,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Engine\TalesOfTribute.csproj" />
+    <ProjectReference Include="..\..\Bots\Bots.csproj" />
+    <ProjectReference Include="..\..\Engine\TalesOfTribute.csproj" />
   </ItemGroup>
 
 </Project>

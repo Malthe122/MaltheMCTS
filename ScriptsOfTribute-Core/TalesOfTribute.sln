@@ -15,7 +15,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ModuleTests", "ModuleTests\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GameRunner", "GameRunner\GameRunner.csproj", "{B5C321A7-CAFC-4AD0-B513-DBD565E0BDE3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Benchmarking", "Benchmarking\Benchmarking.csproj", "{3B019811-6536-4644-BAE1-89DB5D28D503}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BenchmarkingUtility", "Benchmarking\BenchmarkingUtility\BenchmarkingUtility.csproj", "{3B019811-6536-4644-BAE1-89DB5D28D503}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Benchmarking", "Benchmarking", "{10194C46-C150-4727-8CE9-59BE284BB913}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ComputationBenchmarking", "benchmarking\ComputationBenchmarking\ComputationBenchmarking.csproj", "{DBFE016F-06D1-463A-8759-06F6A7212FB2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,9 +55,17 @@ Global
 		{3B019811-6536-4644-BAE1-89DB5D28D503}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3B019811-6536-4644-BAE1-89DB5D28D503}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3B019811-6536-4644-BAE1-89DB5D28D503}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DBFE016F-06D1-463A-8759-06F6A7212FB2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DBFE016F-06D1-463A-8759-06F6A7212FB2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DBFE016F-06D1-463A-8759-06F6A7212FB2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DBFE016F-06D1-463A-8759-06F6A7212FB2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{3B019811-6536-4644-BAE1-89DB5D28D503} = {10194C46-C150-4727-8CE9-59BE284BB913}
+		{DBFE016F-06D1-463A-8759-06F6A7212FB2} = {10194C46-C150-4727-8CE9-59BE284BB913}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A6363FC4-713D-4EC9-BE61-AF5206216F1D}
