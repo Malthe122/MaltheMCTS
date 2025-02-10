@@ -15,7 +15,7 @@ namespace ComputationBenchmarking
 {
     internal class Program
     {
-        static async void Main(string[] args)
+        static async Task Main(string[] args)
         {
             var botsOption = new Option<List<string>>(
                 aliases: new[] { "--bots", "-b" },
@@ -23,7 +23,8 @@ namespace ComputationBenchmarking
                 parseArgument: result => result.Tokens.Select(t => t.Value).ToList()
             )
             {
-                IsRequired = true
+                IsRequired = true,
+                AllowMultipleArgumentsPerToken = true
             };
 
             var numberOfMatchupsOption = new Option<int>(
@@ -49,7 +50,7 @@ namespace ComputationBenchmarking
             };
 
             var nameOption = new Option<string>(
-                aliases: new[] { "--benchmark-name", "-l" },
+                aliases: new[] { "--benchmark-name", "-bm" },
                 description: "Name of benchmark"
             )
             {
@@ -74,11 +75,11 @@ namespace ComputationBenchmarking
             var threads = arguments.GetValueForOption(threadsOption);
             var benchmarkName = arguments.GetValueForOption(nameOption);
 
-            BenchmarkComputation(bots, numberOfMatchups, timeout, threads, benchmarkName);
+            await BenchmarkComputation(bots, numberOfMatchups, timeout, threads, benchmarkName);
         }
 
 
-        private static async void BenchmarkComputation(List<string> bots, int numberOfMatchups, int timeout, int threads, string benchmarkName)
+        private static async Task BenchmarkComputation(List<string> bots, int numberOfMatchups, int timeout, int threads, string benchmarkName)
         {
             Console.WriteLine("Starting computation benchmark...");
 

@@ -15,7 +15,7 @@ namespace BenchmarkingUtility
     {
         public async static Task<List<string>> CreateContainers(string imageName, int amount)
         {
-            using var client = new DockerClientConfiguration(new Uri("unix:///var/run/docker.sock")).CreateClient();
+            using var client = new DockerClientConfiguration(new Uri("http://localhost:2375")).CreateClient();
 
             List<string> containerNames = new List<string>();
 
@@ -23,9 +23,28 @@ namespace BenchmarkingUtility
             {
                 string containerName = $"gamerunner_worker_{i}";
 
+                // Delete container if exists
+
+                var existingContainers = await client.Containers.ListContainersAsync(new ContainersListParameters
+                {
+                    All = true // List stopped containers too
+                });
+
+                var existingContainer = existingContainers.FirstOrDefault(c => c.Names.Contains($"/{containerName}"));
+                if (existingContainer != null)
+                {
+                    Console.WriteLine($"Container {containerName} already exists. Removing...");
+                    await client.Containers.RemoveContainerAsync(containerName, new ContainerRemoveParameters
+                    {
+                        Force = true // Ensure it gets removed even if running
+                    });
+                }
+
+                // Create container
+
                 var response = await client.Containers.CreateContainerAsync(new CreateContainerParameters
                 {
-                    Image = "your-docker-image",
+                    Image = imageName,
                     Name = containerName,
                     HostConfig = new HostConfig
                     {

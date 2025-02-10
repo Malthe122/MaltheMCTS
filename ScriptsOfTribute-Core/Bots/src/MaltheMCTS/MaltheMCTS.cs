@@ -30,7 +30,7 @@ public class MaltheMCTS : AI
 
     public override void GameEnd(EndGameState state, FullGameState? finalBoardState)
     {
-        state.AverageComputationsPerTurn = computationsCompleted/turnsCompleted;
+        state.AverageComputationsPerTurn = Utility.SaveDivision(computationsCompleted, turnsCompleted);
         Console.WriteLine("@@@ Game ended because of " + state.Reason + " @@@");
         Console.WriteLine("@@@ Winner was " + state.Winner + " @@@");
     }
@@ -68,11 +68,11 @@ public class MaltheMCTS : AI
             double millisecondsForMove = (remainingTime.TotalMilliseconds / estimatedRemainingMovesInTurn) - Params.ITERATION_COMPLETION_MILLISECONDS_BUFFER;
             while (moveTimer.ElapsedMilliseconds < millisecondsForMove)
             {
-                computationsCompleted++;
                 // var iterationTimer = new Stopwatch();
                 // iterationTimer.Start();
                 // iterationCounter++;
                 rootNode.Visit(out double score, new HashSet<Node>());
+                computationsCompleted++;
                 // iterationTimer.Stop();
                 // Console.WriteLine("Iteration took: " + iterationTimer.ElapsedMilliseconds + " milliseconds");
             }
@@ -155,7 +155,7 @@ public class MaltheMCTS : AI
         using (var writer = new StreamWriter(filePath, true))
         {
             writer.Write("\n");
-            writer.Write(errorMessage);
+            writer.Write(errorMessage); // TODO make separate files to handle multiple games running at once
         }
     }
 

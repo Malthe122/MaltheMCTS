@@ -276,4 +276,14 @@ public static class Utility
     {
         return possibleMoves.First(m => m.IsIdentical(move));
     }
+
+    internal static float SaveDivision(int arg1, int arg2)
+    {
+        if (arg1 == 0 || arg2 == 0)
+        {
+            return 0;
+        }
+
+        return arg1 / arg2;
+    }
 }

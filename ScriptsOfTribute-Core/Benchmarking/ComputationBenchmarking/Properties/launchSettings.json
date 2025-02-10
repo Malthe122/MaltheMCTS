@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "ComputationBenchmarking": {
+      "commandName": "Project",
+      "commandLineArgs": "-b MaltheMCTS RandomBot -n 2 -to 10 -t 4 -bm TestBenchmark"
+    }
+  }
+}
