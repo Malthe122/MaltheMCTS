@@ -9,6 +9,7 @@ using ScriptsOfTribute.AI;
 using Docker.DotNet;
 using System.Threading;
 using BenchmarkingUtility;
+using System.Collections.Concurrent;
 
 namespace ComputationBenchmarking
 {
@@ -47,9 +48,9 @@ namespace ComputationBenchmarking
                 IsRequired = true
             };
 
-            var logFileOption = new Option<string>(
-                aliases: new[] { "--log-file", "-l" },
-                description: "Path to the log file"
+            var nameOption = new Option<string>(
+                aliases: new[] { "--benchmark-name", "-l" },
+                description: "Name of benchmark"
             )
             {
                 IsRequired = true
@@ -62,7 +63,7 @@ namespace ComputationBenchmarking
             numberOfMatchupsOption,
             timeoutOption,
             threadsOption,
-            logFileOption,
+            nameOption,
         };
 
             var arguments = rootCommand.Parse(args);
@@ -71,35 +72,90 @@ namespace ComputationBenchmarking
             var numberOfMatchups = arguments.GetValueForOption(numberOfMatchupsOption);
             var timeout = arguments.GetValueForOption(timeoutOption);
             var threads = arguments.GetValueForOption(threadsOption);
-            var logFilePath = arguments.GetValueForOption(logFileOption);
+            var benchmarkName = arguments.GetValueForOption(nameOption);
 
-            BenchmarkComputation(bots, numberOfMatchups, timeout, threads, logFilePath);
+            BenchmarkComputation(bots, numberOfMatchups, timeout, threads, benchmarkName);
         }
 
 
-        private static async void BenchmarkComputation(List<string> bots, int numberOfMatchups, int timeout, int threads, string? logFilePath)
+        private static async void BenchmarkComputation(List<string> bots, int numberOfMatchups, int timeout, int threads, string benchmarkName)
         {
+            Console.WriteLine("Starting computation benchmark...");
+
             var matchups = Utility.BuildMatchups(bots);
+
+            Directory.CreateDirectory(benchmarkName);
 
             // Sequential
 
+            Console.WriteLine("Starting sequential benchmark");
+
             List<float> sequentialAverageComputations = PlaySequential(numberOfMatchups, timeout, matchups);
+            await File.WriteAllLinesAsync(Path.Combine(benchmarkName, "sequential.txt"), sequentialAverageComputations.ConvertAll(x => x.ToString()));
+
+            Console.WriteLine("Finished sequential benchmark");
 
             // parallel with shared memory
 
-            var sharedMemoryParallelAverageComputations = PlayParallelWithSharedMemory(numberOfMatchups, timeout, threads, matchups);
+            Console.WriteLine("Starting parallel with shared memory benchmark");
 
-            // parallel using new method
+            List<float> sharedMemoryParallelAverageComputations = PlayParallelWithSharedMemory(numberOfMatchups, timeout, threads, matchups);
+            await File.WriteAllLinesAsync(Path.Combine(benchmarkName, "parallel_shared_memory.txt"), sharedMemoryParallelAverageComputations.ConvertAll(x => x.ToString()));
 
-            List<float> seperateMemoryParallelAverageComputations = PlayParallelWithSeperatedMemory(numberOfMatchups, timeout, threads, matchups);
+            Console.WriteLine("Finished parallel with shared memory benchmark");
+
+            // parallel using containers with seperated memory
+
+            Console.WriteLine("Starting parallel using containers with seperated memory benchmark");
+
+            List<float> seperateMemoryParallelAverageComputations = await PlayParallelWithSeperatedMemory(numberOfMatchups, timeout, threads, matchups);
+            await File.WriteAllLinesAsync(Path.Combine(benchmarkName, "parallel_separate_memory.txt"), seperateMemoryParallelAverageComputations.ConvertAll(x => x.ToString()));
+
+            Console.WriteLine("Finished parallel using containers with seperated memory benchmark");
+
+            // Summary
+            var sequentialAverageAcrossGames = sequentialAverageComputations.Sum() / sequentialAverageComputations.Count;
+            var parallelSharedMemoryAcrossGames = sharedMemoryParallelAverageComputations.Sum() / sharedMemoryParallelAverageComputations.Count;
+            var seperateMemoryParralelAcrossGames = seperateMemoryParallelAverageComputations.Sum() / seperateMemoryParallelAverageComputations.Count;
+
+            var summaryLog = "Bots: " + bots[0] + " vs " + bots[1]
+                + "\nMatches: " + numberOfMatchups
+                + "\nTimeout: " + timeout
+                + "\nThreads: " + threads
+                + "\n"
+                + "\nAverage computations per turn:"
+                + "\nSequential: \t" + sequentialAverageAcrossGames
+                + "\nShared memory: \t" + parallelSharedMemoryAcrossGames
+                + "\nSeperate memory: \t" + seperateMemoryParralelAcrossGames;
+
+            await File.WriteAllTextAsync(Path.Combine(benchmarkName, "summary.txt"), summaryLog);
+
+            Console.WriteLine("Benchmark complete. Results logged in folder: " + benchmarkName);
         }
 
-        private static List<float> PlayParallelWithSeperatedMemory(int numberOfMatchups, int timeout, int threads, List<(AI, AI)> matchups)
+        private async static Task<List<float>> PlayParallelWithSeperatedMemory(int numberOfMatchups, int timeout, int threads, List<(AI, AI)> matchups)
         {
+            List<float> computationAverages = new List<float>();
             DockerUtility.LoadGamerunnerImage("./gamerunner-image.tar");
-            List<string> containers = DockerUtility.CreateContainers("gamerunner-image", threads);
+            List<string> containers = await DockerUtility.CreateContainers("gamerunner-image", threads);
+
+            // creates the desired amount of matchups (matches) for each matchup
+            var totalMatches = Enumerable.Repeat(matchups, numberOfMatchups).SelectMany(list => list).ToList();
+            var gameQueue = new ConcurrentQueue<(AI, AI)>(totalMatches);
 
             var parallalelOptions = new ParallelOptions { MaxDegreeOfParallelism = threads };
+
+            Parallel.ForEach(containers, parallalelOptions, containerName =>
+            {
+                while (gameQueue.TryDequeue(out (AI, AI) matchup))
+                {
+                    var output = DockerUtility.PlayMatchOnContainer(containerName, matchup, timeout);
+                    var averageTurnComputationCount = DockerUtility.ExtractAverageComputationCount(output);
+                    computationAverages.Add(averageTurnComputationCount);
+                }
+            });
+
+            return computationAverages;
         }
 
         private static List<float> PlaySequential(int numberOfMatchups, int timeout, List<(AI, AI)> matchups)
@@ -112,7 +168,7 @@ namespace ComputationBenchmarking
                 {
                     var match = new ScriptsOfTribute.AI.ScriptsOfTribute(matchup.Item1, matchup.Item2, TimeSpan.FromSeconds(timeout));
                     var matchResult = match.Play();
-                    res.Add(matchResult.Item1.ComputationsPerTurn);
+                    res.Add(matchResult.Item1.AverageComputationsPerTurn);
                 }
             }
 
@@ -138,7 +194,7 @@ namespace ComputationBenchmarking
             Parallel.ForEach(matches, options, match =>
             {
                 var matchResult = match.Play();
-                res.Add(matchResult.Item1.ComputationsPerTurn);
+                res.Add(matchResult.Item1.AverageComputationsPerTurn);
             });
 
             return res;

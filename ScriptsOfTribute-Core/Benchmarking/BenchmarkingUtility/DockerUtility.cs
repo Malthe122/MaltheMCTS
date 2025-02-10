@@ -1,4 +1,8 @@
-﻿using System;
+﻿using Docker.DotNet;
+using Docker.DotNet.Models;
+using ScriptsOfTribute.AI;
+using ScriptsOfTribute.Board;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -9,12 +13,68 @@ namespace BenchmarkingUtility
 {
     public static class DockerUtility
     {
-        public static void CreateContainer(string imageName, string containerName, string arguments)
+        public async static Task<List<string>> CreateContainers(string imageName, int amount)
+        {
+            using var client = new DockerClientConfiguration(new Uri("unix:///var/run/docker.sock")).CreateClient();
+
+            List<string> containerNames = new List<string>();
+
+            for (int i = 0; i < amount; i++)
+            {
+                string containerName = $"gamerunner_worker_{i}";
+
+                var response = await client.Containers.CreateContainerAsync(new CreateContainerParameters
+                {
+                    Image = "your-docker-image",
+                    Name = containerName,
+                    HostConfig = new HostConfig
+                    {
+                        Memory = 2L * 1024L * 1024L * 1024L,  // 2 GB in bytes
+                        MemorySwap = 2L * 1024L * 1024L * 1024L, // Prevent swap usage
+                        OomKillDisable = false // Allow Docker to kill if it exceeds memory
+                    },
+                    Cmd = new List<string> { "sleep", "infinity" } // Keep container running
+                });
+
+                await client.Containers.StartContainerAsync(response.ID, new ContainerStartParameters());
+                Console.WriteLine($"Started container {containerName}");
+            }
+
+            return containerNames;
+        }
+
+        public static string PlayMatchOnContainer(string containerName, (AI, AI) bots, int timeout)
+        {
+            Console.WriteLine($"Starting match on container '{containerName}' between {bots.Item1} and {bots.Item2}");
+
+            // Step 1: Start the container if it's not already running
+            if (!RunDockerCommand($"start {containerName}", out _))
+            {
+                throw new Exception($"Failed to start container '{containerName}'.");
+            }
+
+            // Step 2: Execute the game inside the running container
+            string bot1 = bots.Item1.GetType().Name;
+            string bot2 = bots.Item2.GetType().Name;
+            string gameCommand = $"exec {containerName} dotnet run -- {bot1} {bot2} -n 1 -to {timeout}";
+
+            if (RunDockerCommand(gameCommand, out string output))
+            {
+                Console.WriteLine($"Match completed on '{containerName}':\n{output}");
+                return output;
+            }
+            else
+            {
+                throw new Exception($"Match execution failed in container '{containerName}'.");
+            }
+        }
+
+        private static bool RunDockerCommand(string arguments, out string output)
         {
             var processInfo = new ProcessStartInfo
             {
                 FileName = "docker",
-                Arguments = $"create --name {containerName} {imageName} {arguments}",
+                Arguments = arguments,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false,
@@ -23,25 +83,40 @@ namespace BenchmarkingUtility
 
             using (var process = Process.Start(processInfo))
             {
-                string output = process.StandardOutput.ReadToEnd();
+                output = process.StandardOutput.ReadToEnd();
                 string error = process.StandardError.ReadToEnd();
                 process.WaitForExit();
 
                 if (process.ExitCode == 0)
-                {
-                    Console.WriteLine($"Container '{containerName}' created successfully (ID: {output.Trim()})");
-                }
-                else
-                {
-                    Console.WriteLine($"Error creating container '{containerName}':\n{error}");
-                }
+                    return true;
+
+                Console.WriteLine($"Docker command error:\n{error}");
+                return false;
             }
         }
 
-        public static List<string> CreateContainers(string imageName, int amount)
+        public static float ExtractAverageComputationCount(string output)
         {
-            //TODO
-            throw new NotImplementedException();
+            // Split the output into lines
+            string[] lines = output.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+
+            // Iterate backward to find the desired line (starting from the last line)
+            for (int i = lines.Length - 1; i >= 0; i--)
+            {
+                string line = lines[i].Trim(); // Trim spaces in case of formatting issues
+
+                if (line.StartsWith("Average computation count per turn:"))
+                {
+                    string valuePart = line.Replace("Average computation count per turn:", "").Trim();
+
+                    if (float.TryParse(valuePart, out float result))
+                    {
+                        return result; // Successfully extracted the value
+                    }
+                }
+            }
+
+            throw new Exception("Failed to extract AverageComputationCount from output.");
         }
 
         public static void LoadGamerunnerImage(string imageTarFilePath)
