@@ -151,7 +151,7 @@ namespace ScriptsOfTribute
             return this.Tavern.GetAffordableCards(coinAmount);
         }
 
-        public EndGameState? CheckAndGetWinner()
+        public EndGameState? CheckAndGetWinner(int turnsTaken)
         {
             /*
              * ALWAYS USE THIS AFTER EndTurn()
@@ -162,7 +162,7 @@ namespace ScriptsOfTribute
              */
             if (EnemyPlayer.PrestigeAmount >= 80) 
             {
-                return new EndGameState(EnemyPlayer.ID, GameEndReason.PRESTIGE_OVER_80);
+                return new EndGameState(EnemyPlayer.ID, GameEndReason.PRESTIGE_OVER_80, turnsTaken);
             }
 
             var favorWin = Patrons.Where(patron => patron.PatronID != PatronId.TREASURY)
@@ -170,7 +170,7 @@ namespace ScriptsOfTribute
 
             if (favorWin)
             {
-                return new EndGameState(EnemyPlayer.ID, GameEndReason.PATRON_FAVOR);
+                return new EndGameState(EnemyPlayer.ID, GameEndReason.PATRON_FAVOR, turnsTaken);
             }
 
             // If CurrentPlayer is over prestige threshold, that means EnemyPlayer (the one that played last round)
@@ -180,7 +180,7 @@ namespace ScriptsOfTribute
                 // That means EnemyPlayer didn't match the threshold, so CurrentPlayer wins.
                 if (EnemyPlayer.PrestigeAmount < CurrentPlayer.PrestigeAmount)
                 {
-                    return new EndGameState(CurrentPlayer.ID, GameEndReason.PRESTIGE_OVER_40_NOT_MATCHED);
+                    return new EndGameState(CurrentPlayer.ID, GameEndReason.PRESTIGE_OVER_40_NOT_MATCHED, turnsTaken);
                 }
             }
 

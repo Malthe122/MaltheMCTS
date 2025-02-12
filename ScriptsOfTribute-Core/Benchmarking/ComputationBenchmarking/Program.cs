@@ -83,7 +83,7 @@ namespace ComputationBenchmarking
         {
             Console.WriteLine("Starting computation benchmark...");
 
-            var matchups = Utility.BuildMatchups(bots);
+            var totalMatchups = Utility.BuildMatchups(bots, numberOfMatchups);
 
             Directory.CreateDirectory(benchmarkName);
 
@@ -91,7 +91,7 @@ namespace ComputationBenchmarking
 
             Console.WriteLine("Starting sequential benchmark");
 
-            List<float> sequentialAverageComputations = PlaySequential(numberOfMatchups, timeout, matchups);
+            List<float> sequentialAverageComputations = PlaySequential(timeout, totalMatchups);
             await File.WriteAllLinesAsync(Path.Combine(benchmarkName, "sequential.txt"), sequentialAverageComputations.ConvertAll(x => x.ToString()));
 
             Console.WriteLine("Finished sequential benchmark");
@@ -100,19 +100,21 @@ namespace ComputationBenchmarking
 
             Console.WriteLine("Starting parallel with shared memory benchmark");
 
-            List<float> sharedMemoryParallelAverageComputations = PlayParallelWithSharedMemory(numberOfMatchups, timeout, threads, matchups);
+            List<float> sharedMemoryParallelAverageComputations = PlayParallelWithSharedMemory(timeout, threads, totalMatchups);
             await File.WriteAllLinesAsync(Path.Combine(benchmarkName, "parallel_shared_memory.txt"), sharedMemoryParallelAverageComputations.ConvertAll(x => x.ToString()));
 
             Console.WriteLine("Finished parallel with shared memory benchmark");
 
-            // parallel using containers with seperated memory
+            // parallel using containers with seperated memory (SKIPPED FOR NOW)
 
-            Console.WriteLine("Starting parallel using containers with seperated memory benchmark");
+                //Console.WriteLine("Starting parallel using containers with seperated memory benchmark");
 
-            List<float> seperateMemoryParallelAverageComputations = await PlayParallelWithSeperatedMemory(numberOfMatchups, timeout, threads, matchups);
-            await File.WriteAllLinesAsync(Path.Combine(benchmarkName, "parallel_separate_memory.txt"), seperateMemoryParallelAverageComputations.ConvertAll(x => x.ToString()));
+                List<float> seperateMemoryParallelAverageComputations = new();
+                //List<float> seperateMemoryParallelAverageComputations = await PlayParallelWithSeperatedMemory(timeout, threads, totalMatchups);
+            
+                //await File.WriteAllLinesAsync(Path.Combine(benchmarkName, "parallel_separate_memory.txt"), seperateMemoryParallelAverageComputations.ConvertAll(x => x.ToString()));
 
-            Console.WriteLine("Finished parallel using containers with seperated memory benchmark");
+                //Console.WriteLine("Finished parallel using containers with seperated memory benchmark");
 
             // Summary
             var sequentialAverageAcrossGames = sequentialAverageComputations.Sum() / sequentialAverageComputations.Count;
@@ -134,15 +136,14 @@ namespace ComputationBenchmarking
             Console.WriteLine("Benchmark complete. Results logged in folder: " + benchmarkName);
         }
 
-        private async static Task<List<float>> PlayParallelWithSeperatedMemory(int numberOfMatchups, int timeout, int threads, List<(AI, AI)> matchups)
+        private async static Task<List<float>> PlayParallelWithSeperatedMemory(int timeout, int threads, List<(AI, AI)> matchups)
         {
             List<float> computationAverages = new List<float>();
             DockerUtility.LoadGamerunnerImage("./gamerunner-image.tar");
             List<string> containers = await DockerUtility.CreateContainers("gamerunner-image", threads);
 
             // creates the desired amount of matchups (matches) for each matchup
-            var totalMatches = Enumerable.Repeat(matchups, numberOfMatchups).SelectMany(list => list).ToList();
-            var gameQueue = new ConcurrentQueue<(AI, AI)>(totalMatches);
+            var gameQueue = new ConcurrentQueue<(AI, AI)>(matchups);
 
             var parallalelOptions = new ParallelOptions { MaxDegreeOfParallelism = threads };
 
@@ -159,24 +160,21 @@ namespace ComputationBenchmarking
             return computationAverages;
         }
 
-        private static List<float> PlaySequential(int numberOfMatchups, int timeout, List<(AI, AI)> matchups)
+        private static List<float> PlaySequential(int timeout, List<(AI, AI)> matchups)
         {
             var res = new List<float>();
 
             foreach (var matchup in matchups)
             {
-                for (int i = 0; i < numberOfMatchups; i++)
-                {
-                    var match = new ScriptsOfTribute.AI.ScriptsOfTribute(matchup.Item1, matchup.Item2, TimeSpan.FromSeconds(timeout));
-                    var matchResult = match.Play();
-                    res.Add(matchResult.Item1.AverageComputationsPerTurn);
-                }
+                var match = new ScriptsOfTribute.AI.ScriptsOfTribute(matchup.Item1, matchup.Item2, TimeSpan.FromSeconds(timeout));
+                var matchResult = match.Play();
+                res.Add(matchResult.Item1.AverageComputationsPerTurn);
             }
 
             return res;
         }
 
-        private static List<float> PlayParallelWithSharedMemory(int numberOfMatchups, int timeout, int threads, List<(AI, AI)> matchups)
+        private static List<float> PlayParallelWithSharedMemory(int timeout, int threads, List<(AI, AI)> matchups)
         {
             List<float> res = new List<float>();
 
@@ -184,11 +182,8 @@ namespace ComputationBenchmarking
 
             foreach (var matchup in matchups)
             {
-                for (int i = 0; i < numberOfMatchups; i++)
-                {
-                    var match = new ScriptsOfTribute.AI.ScriptsOfTribute(matchup.Item1, matchup.Item2, TimeSpan.FromSeconds(timeout));
-                    matches.Add(match);
-                }
+                var match = new ScriptsOfTribute.AI.ScriptsOfTribute(matchup.Item1, matchup.Item2, TimeSpan.FromSeconds(timeout));
+                matches.Add(match);
             }
 
             var options = new ParallelOptions { MaxDegreeOfParallelism = threads };

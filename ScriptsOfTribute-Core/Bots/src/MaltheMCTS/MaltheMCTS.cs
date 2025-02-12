@@ -12,13 +12,20 @@ public class MaltheMCTS : AI
     public Dictionary<int, List<Node>> NodeGameStateHashMap = new Dictionary<int, List<Node>>();
     public MCTSHyperparameters? Params { get; set; }
 
+    private string instanceName;
+
     // FOR COMPUTATION BENCHMARK
-    private int currentTurn = -1;
     private int computationsCompleted = 0;
-    private int turnsCompleted = -1;
+
+    public MaltheMCTS(string instanceName = "MaltheMCTS") : base()
+    {
+        this.instanceName = instanceName;
+    }
 
     public override void PregamePrepare()
     {
+        computationsCompleted = 0;
+
         Utility.CategorizeCards();
         if (Params == null)
         {
@@ -30,19 +37,13 @@ public class MaltheMCTS : AI
 
     public override void GameEnd(EndGameState state, FullGameState? finalBoardState)
     {
-        state.AverageComputationsPerTurn = Utility.SaveDivision(computationsCompleted, turnsCompleted);
+        state.AverageComputationsPerTurn = Utility.SaveDivision(computationsCompleted, state.TurnsTaken / 2);
         Console.WriteLine("@@@ Game ended because of " + state.Reason + " @@@");
         Console.WriteLine("@@@ Winner was " + state.Winner + " @@@");
     }
 
     public override Move Play(GameState gameState, List<Move> possibleMoves, TimeSpan remainingTime)
     {
-
-        if (currentTurn != gameState.TurnCount)
-        {
-            turnsCompleted++;
-            currentTurn = gameState.TurnCount;
-        }
 
         try
         {
@@ -144,7 +145,7 @@ public class MaltheMCTS : AI
 
     private void SaveErrorLog(string errorMessage)
     {
-        var filePath = "Error.txt";
+        var filePath = instanceName + "_Error.txt";
 
         string directoryPath = Path.GetDirectoryName(filePath);
         if (!string.IsNullOrEmpty(directoryPath))

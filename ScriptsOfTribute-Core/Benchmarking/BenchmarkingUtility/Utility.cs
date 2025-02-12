@@ -10,7 +10,7 @@ using ScriptsOfTribute.AI;
 public static class Utility
 {
 
-    public static List<(AI, AI)> BuildMatchups(List<string> bots)
+    public static List<(AI, AI)> BuildMatchups(List<string> bots, int amount)
     {
         List<(AI, AI)> matchups = new List<(AI, AI)>();
 
@@ -18,7 +18,10 @@ public static class Utility
         {
             for (int j = i + 1; j < bots.Count; j++)
             {
-                matchups.Add((CreateBot(bots[i]), CreateBot(bots[j])));
+                for(int k = 0; k < amount; k++)
+                {
+                    matchups.Add((CreateBot(bots[i]), CreateBot(bots[j])));
+                }
             }
         }
 
@@ -42,7 +45,7 @@ public static class Utility
             case "MCTSBot":
                 return new MCTSBot();
             case "MaltheMCTS":
-                return new MaltheMCTS.MaltheMCTS();
+                return new MaltheMCTS.MaltheMCTS(Guid.NewGuid().ToString());
             case "PatronFavorsBot":
                 return new PatronFavorsBot();
             case "PatronSelectionTimeoutBot":

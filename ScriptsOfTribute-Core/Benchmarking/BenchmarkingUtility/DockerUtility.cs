@@ -55,6 +55,7 @@ namespace BenchmarkingUtility
                     Cmd = new List<string> { "sleep", "infinity" } // Keep container running
                 });
 
+                containerNames.Add(containerName);
                 await client.Containers.StartContainerAsync(response.ID, new ContainerStartParameters());
                 Console.WriteLine($"Started container {containerName}");
             }
@@ -75,7 +76,7 @@ namespace BenchmarkingUtility
             // Step 2: Execute the game inside the running container
             string bot1 = bots.Item1.GetType().Name;
             string bot2 = bots.Item2.GetType().Name;
-            string gameCommand = $"exec {containerName} dotnet run -- {bot1} {bot2} -n 1 -to {timeout}";
+            string gameCommand = $"exec {containerName} GameRunner.dll -- {bot1} {bot2} -n 1 -to {timeout}";
 
             if (RunDockerCommand(gameCommand, out string output))
             {
@@ -130,7 +131,7 @@ namespace BenchmarkingUtility
 
                     if (float.TryParse(valuePart, out float result))
                     {
-                        return result; // Successfully extracted the value
+                        return result;
                     }
                 }
             }

@@ -5,13 +5,16 @@ public class EndGameState
     public readonly PlayerEnum Winner;
     public readonly GameEndReason Reason;
     public string AdditionalContext;
-    public float AverageComputationsPerTurn; // TODO fix this always being 0
+    public float AverageComputationsPerTurn;
 
-    public EndGameState(PlayerEnum winner, GameEndReason reason, string additionalContext = "")
+    public int TurnsTaken { get; internal set; }
+
+    public EndGameState(PlayerEnum winner, GameEndReason reason, int turnsTaken, string additionalContext = "")
     {
         Winner = winner;
         Reason = reason;
         AdditionalContext = additionalContext;
+        TurnsTaken = turnsTaken;
     }
 
     public override string ToString()
