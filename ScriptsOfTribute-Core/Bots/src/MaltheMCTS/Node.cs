@@ -13,6 +13,12 @@ public class Node
     public List<Move> PossibleMoves;
     internal MaltheMCTS Bot;
 
+    /// <summary>
+    /// Only used when SimulateMultipleTurns is disabled. It is a copy of this node, but representing the current score/visits of the node if end_turn is played, but without
+    /// affecting the state with the card draws that happens on end_turn, since with this feature disabled, we do not want this to be part of our simulations.
+    /// </summary>
+    private Node? endNode;
+
     public Node(SeededGameState gameState, List<Move> possibleMoves, MaltheMCTS bot)
     {
         GameState = gameState;
@@ -75,8 +81,14 @@ public class Node
         {
             if (!MoveToChildNode.Keys.Any(m => m.IsIdentical(currMove)))
             {
-                if ((Bot.Params.INCLUDE_PLAY_MOVE_CHANCE_NODES && currMove.IsNonDeterministic())
-                    || Bot.Params.INCLUDE_END_TURN_CHANCE_NODES && currMove.Command == CommandEnum.END_TURN)
+                if (!Bot.Settings.SIMULATE_MULTIPLE_TURNS && currMove.Command == CommandEnum.END_TURN)
+                {
+                    var newChild = new EndNode(GameState, PossibleMoves, Bot);
+                    MoveToChildNode.Add(currMove, newChild);
+                    return newChild;
+                }
+                else if ((Bot.Settings.INCLUDE_PLAY_MOVE_CHANCE_NODES && currMove.IsNonDeterministic())
+                    || Bot.Settings.INCLUDE_END_TURN_CHANCE_NODES && currMove.Command == CommandEnum.END_TURN)
                 {
                     var newChild = new ChanceNode(GameState, this, currMove, Bot);
                     MoveToChildNode.Add(currMove, newChild);
@@ -96,22 +108,22 @@ public class Node
         throw new Exception("Expand was unexpectedly called on a node that was fully expanded");
     }
 
-    private double Score()
+    internal double Score()
     {
-        switch (Bot.Params.CHOSEN_SCORING_METHOD)
+        switch (Bot.Settings.CHOSEN_SCORING_METHOD)
         {
             case ScoringMethod.Rollout:
                 return Rollout();
             case ScoringMethod.Heuristic:
                 return Utility.UseBestMCTS3Heuristic(GameState, false);
             case ScoringMethod.RolloutTurnsCompletionsThenHeuristic:
-                return RolloutTillTurnsEndThenHeuristic(Bot.Params.ROLLOUT_TURNS_BEFORE_HEURSISTIC);
+                return RolloutTillTurnsEndThenHeuristic(Bot.Settings.ROLLOUT_TURNS_BEFORE_HEURSISTIC);
             default:
-                throw new NotImplementedException("Tried to applied non-implemented scoring method: " + Bot.Params.CHOSEN_SCORING_METHOD);
+                throw new NotImplementedException("Tried to applied non-implemented scoring method: " + Bot.Settings.CHOSEN_SCORING_METHOD);
         }
     }
 
-    private double RolloutTillTurnsEndThenHeuristic(int turnsToComplete)
+    private double RolloutTillTurnsEndThenHeuristic(int turnsToComplete) //TODO fix, so that rollout till end of turn, does not end turn
     {
         int rolloutTurnsCompleted = 0;
         var rolloutPlayer = GameState.CurrentPlayer;
@@ -120,7 +132,7 @@ public class Node
 
         while (rolloutTurnsCompleted < turnsToComplete && rolloutGameState.GameEndState == null)
         {
-            if (Bot.Params.FORCE_DELAY_TURN_END_IN_ROLLOUT)
+            if (Bot.Settings.FORCE_DELAY_TURN_END_IN_ROLLOUT)
             {
                 if (rolloutPossibleMoves.Count > 1)
                 {
@@ -163,7 +175,7 @@ public class Node
         // TODO also apply the playing obvious moves in here, possibly
         while (rolloutGameState.GameEndState == null)
         {
-            if (Bot.Params.FORCE_DELAY_TURN_END_IN_ROLLOUT)
+            if (Bot.Settings.FORCE_DELAY_TURN_END_IN_ROLLOUT)
             {
                 if (rolloutPossibleMoves.Count > 1)
                 {
@@ -215,11 +227,11 @@ public class Node
     /// <returns></returns>
     public double GetConfidenceScore(int parentVisitCount)
     {
-        switch (Bot.Params.CHOSEN_EVALUATION_METHOD)
+        switch (Bot.Settings.CHOSEN_EVALUATION_METHOD)
         {
             case EvaluationMethod.UCT:
                 double exploitation = TotalScore / VisitCount;
-                double exploration = Bot.Params.UCT_EXPLORATION_CONSTANT * Math.Sqrt(Math.Log(parentVisitCount) / VisitCount);
+                double exploration = Bot.Settings.UCT_EXPLORATION_CONSTANT * Math.Sqrt(Math.Log(parentVisitCount) / VisitCount);
                 return exploitation + exploration;
             case EvaluationMethod.Custom:
                 return TotalScore - VisitCount;
