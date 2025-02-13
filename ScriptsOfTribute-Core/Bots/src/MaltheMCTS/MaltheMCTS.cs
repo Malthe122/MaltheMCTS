@@ -8,9 +8,25 @@ namespace MaltheMCTS;
 
 public class MaltheMCTS : AI
 {
-    private Node? rootNode;
     public Dictionary<int, List<Node>> NodeGameStateHashMap = new Dictionary<int, List<Node>>();
-    public MCTSHyperparameters? Params { get; set; }
+    public Settings Settings { get; set; }
+
+    public MaltheMCTS()
+    {
+        Settings = new Settings(); // Hardcoded
+    }
+
+    public MaltheMCTS(Settings? settings = null) : base()
+    {
+        if (settings != null)
+        {
+            this.Settings = settings;
+        }
+        else
+        {
+            Settings = new Settings(); // Hardcoded
+        }
+    }
 
     private string instanceName;
 
@@ -27,11 +43,6 @@ public class MaltheMCTS : AI
         computationsCompleted = 0;
 
         Utility.CategorizeCards();
-        if (Params == null)
-        {
-            Params = new MCTSHyperparameters();
-        }
-        rootNode = null;
         NodeGameStateHashMap = new Dictionary<int, List<Node>>();
     }
 
@@ -66,7 +77,7 @@ public class MaltheMCTS : AI
             var moveTimer = new Stopwatch();
             moveTimer.Start();
             int estimatedRemainingMovesInTurn = EstimateRemainingMovesInTurn(gameState, possibleMoves);
-            double millisecondsForMove = (remainingTime.TotalMilliseconds / estimatedRemainingMovesInTurn) - Params.ITERATION_COMPLETION_MILLISECONDS_BUFFER;
+            double millisecondsForMove = (remainingTime.TotalMilliseconds / estimatedRemainingMovesInTurn) - Settings.ITERATION_COMPLETION_MILLISECONDS_BUFFER;
             while (moveTimer.ElapsedMilliseconds < millisecondsForMove)
             {
                 // var iterationTimer = new Stopwatch();
@@ -91,16 +102,7 @@ public class MaltheMCTS : AI
 
             if (!CheckMoveLegality(bestMove, rootNode, gameState, possibleMoves)) {
                 string errorMessage = "Tried to play illegal move\n";
-                errorMessage += "Environment was:\n";
-                errorMessage += "ITERATION_COMPLETION_MILLISECONDS_BUFFER: " + Params.ITERATION_COMPLETION_MILLISECONDS_BUFFER + "\n";
-                errorMessage += "UCT_EXPLORATION_CONSTANT: " + Params.UCT_EXPLORATION_CONSTANT + "\n";
-                errorMessage += "FORCE_DELAY_TURN_END_IN_ROLLOUT: " + Params.FORCE_DELAY_TURN_END_IN_ROLLOUT + "\n";
-                errorMessage += "INCLUDE_PLAY_MOVE_CHANCE_NODES: " + Params.INCLUDE_PLAY_MOVE_CHANCE_NODES + "\n";
-                errorMessage += "INCLUDE_END_TURN_CHANCE_NODES: " + Params.INCLUDE_END_TURN_CHANCE_NODES + "\n";
-                errorMessage += "CHOSEN_SCORING_METHOD: " + Params.CHOSEN_SCORING_METHOD + "\n";
-                errorMessage += "ROLLOUT_TURNS_BEFORE_HEURSISTIC: " + Params.ROLLOUT_TURNS_BEFORE_HEURSISTIC + "\n";
-                errorMessage += "REUSE_TREE: " + Params.REUSE_TREE + "\n";
-
+                errorMessage += "Settings:\n" + Settings.ToString();
                 SaveErrorLog(errorMessage);
             }
 
@@ -128,15 +130,7 @@ public class MaltheMCTS : AI
                 errorMessage += "Inner stacktrace: " + e.InnerException.StackTrace + "\n";
             }
 
-            errorMessage += "Environment was:\n";
-                errorMessage += "ITERATION_COMPLETION_MILLISECONDS_BUFFER: " + Params.ITERATION_COMPLETION_MILLISECONDS_BUFFER + "\n";
-                errorMessage += "UCT_EXPLORATION_CONSTANT: " + Params.UCT_EXPLORATION_CONSTANT + "\n";
-                errorMessage += "FORCE_DELAY_TURN_END_IN_ROLLOUT: " + Params.FORCE_DELAY_TURN_END_IN_ROLLOUT + "\n";
-                errorMessage += "INCLUDE_PLAY_MOVE_CHANCE_NODES: " + Params.INCLUDE_PLAY_MOVE_CHANCE_NODES + "\n";
-                errorMessage += "INCLUDE_END_TURN_CHANCE_NODES: " + Params.INCLUDE_END_TURN_CHANCE_NODES + "\n";
-                errorMessage += "CHOSEN_SCORING_METHOD: " + Params.CHOSEN_SCORING_METHOD + "\n";
-                errorMessage += "ROLLOUT_TURNS_BEFORE_HEURSISTIC: " + Params.ROLLOUT_TURNS_BEFORE_HEURSISTIC + "\n";
-                errorMessage += "REUSE_TREE: " + Params.REUSE_TREE + "\n";
+            errorMessage += "Settings was:\n" + Settings.ToString();
 
             SaveErrorLog(errorMessage);
             return possibleMoves[0];

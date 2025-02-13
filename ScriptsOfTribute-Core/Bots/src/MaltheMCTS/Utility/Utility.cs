@@ -216,7 +216,7 @@ public static class Utility
     {
         var result = new Node(seededGameState, possibleMoves, bot);
 
-        if (bot.Params.REUSE_TREE)
+        if (bot.Settings.REUSE_TREE)
         {
 
             if (bot.NodeGameStateHashMap.ContainsKey(result.GameStateHash))
