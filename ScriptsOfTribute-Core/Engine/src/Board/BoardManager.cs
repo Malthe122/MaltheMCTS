@@ -22,7 +22,6 @@ namespace ScriptsOfTribute
         {
             _rng = new SeededRandom(seed);
             this.Patrons = GetPatrons(patrons);
-            // TODO: This is actually not correct, as some cards should have multiple copies.
             Tavern = new Tavern(GlobalCardDatabase.Instance.GetCardsByPatron(patrons), _rng);
             _playerContext = new PlayerContext(new Player(PlayerEnum.PLAYER1, _rng), new Player(PlayerEnum.PLAYER2, _rng));
             CardActionManager = new CardActionManager(_playerContext, Tavern);

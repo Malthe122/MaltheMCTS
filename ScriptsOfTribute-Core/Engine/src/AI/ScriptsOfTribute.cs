@@ -64,7 +64,6 @@ public class ScriptsOfTribute
     private (EndGameState? ,PatronId[]?) PatronSelection()
     {
         List<PatronId> patrons = Enum.GetValues(typeof(PatronId)).Cast<PatronId>()
-            // TODO: Hardcoded banned patrons, improve this.
             .Where(patronId => patronId != PatronId.TREASURY && patronId != PatronId.PSIJIC).ToList();
 
         List<PatronId> patronsSelected = new List<PatronId>();

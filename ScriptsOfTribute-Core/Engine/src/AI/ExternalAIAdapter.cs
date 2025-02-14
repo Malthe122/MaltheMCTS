@@ -52,7 +52,6 @@ public class ExternalAIAdapter : AI
 
     public override void GameEnd(EndGameState state, FullGameState? finalBoardState)
     {
-        // TODO: parse EndGameSTate and FullGameState to JSON object and send it
         sw.WriteLine("FINISHED " + state.Winner.ToString() + " " + state.Reason.ToString() + " " + state.AdditionalContext.ToString());
         sw.WriteLine(EOT);
         Thread.Sleep(100);
@@ -100,7 +99,6 @@ public class ExternalAIAdapter : AI
 
         // We parse patron here because it uses string value as arg
         // Similar case with CHOICE which is choice of effect -> it has to be an OR so we can use args as LEFT or RIGHT to simplify things.
-        // TODO: Think if there's better way to parse effect choices
         if (tokens[0] == "PATRON" && tokens.Length == 2 && Enum.TryParse(tokens[1], out PatronId patron))
         {
             return Move.CallPatron(patron);
