@@ -134,7 +134,7 @@ namespace BotBenchmarking
 
             Parallel.ForEach(matchups, options, matchup =>
             {
-                var match = new ScriptsOfTribute.AI.ScriptsOfTribute(matchup.Item1, matchup.Item2, TimeSpan.FromSeconds(timeout));
+                var match = new ScriptsOfTribute.AI.ScriptsOfTribute(Utility.CreateBot(matchup.Item1), Utility.CreateBot(matchup.Item2), TimeSpan.FromSeconds(timeout));
                 var result = match.Play().Item1;
                 switch (result.Winner)
                 {

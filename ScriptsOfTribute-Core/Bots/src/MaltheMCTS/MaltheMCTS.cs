@@ -14,6 +14,7 @@ public class MaltheMCTS : AI
     public MaltheMCTS()
     {
         Settings = new Settings(); // Hardcoded
+        string instanceName = "MaltheMCTS";
     }
 
     public MaltheMCTS(Settings? settings = null) : base()
@@ -36,6 +37,7 @@ public class MaltheMCTS : AI
     public MaltheMCTS(string instanceName = "MaltheMCTS") : base()
     {
         this.instanceName = instanceName;
+        Settings = new Settings(); // Hardcoded
     }
 
     public override void PregamePrepare()

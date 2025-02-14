@@ -10,9 +10,9 @@ using ScriptsOfTribute.AI;
 public static class Utility
 {
 
-    public static List<(AI, AI)> BuildMatchups(List<string> bots, int amount, bool skipExternalMatches)
+    public static List<(string, string)> BuildMatchups(List<string> bots, int amount, bool skipExternalMatches)
     {
-        List<(AI, AI)> matchups = new List<(AI, AI)>();
+        List<(string, string)> matchups = new();
 
         for (int i = 0; i < bots.Count; i++)
         {
@@ -20,7 +20,7 @@ public static class Utility
             {
                 for(int k = 0; k < amount; k++)
                 {
-                    matchups.Add((CreateBot(bots[i]), CreateBot(bots[j])));
+                    matchups.Add((bots[i], bots[j]));
                 }
             }
         }
@@ -29,7 +29,7 @@ public static class Utility
         {
             matchups.RemoveAll(m => 
             {
-                return !(m.Item1 is MaltheMCTS.MaltheMCTS) && !(m.Item2 is MaltheMCTS.MaltheMCTS);
+                return !(m.Item1 != "MaltheMCTS") && !(m.Item2 != "MaltheMCTS");
             }
             );
         }
@@ -37,7 +37,7 @@ public static class Utility
         return matchups;
     }
 
-    private static AI CreateBot(string botName)
+    public static AI CreateBot(string botName)
     {
         switch (botName)
         {
@@ -122,21 +122,18 @@ public static class Utility
         return sb.ToString();
     }
 
-    public static void AddWinToResultContainer(AI winner, AI looser, Dictionary<string, Dictionary<string, int>> container)
+    public static void AddWinToResultContainer(string winner, string looser, Dictionary<string, Dictionary<string, int>> container)
     {
-        string winnerName = winner.GetType().Name;
-        string looserName = looser.GetType().Name;
-
-        if (!container.ContainsKey(winnerName))
+        if (!container.ContainsKey(winner))
         {
-            container.Add(winnerName, new Dictionary<string, int>());
+            container.Add(winner, new Dictionary<string, int>());
         }
 
-        if (!container[winnerName].ContainsKey(looserName))
+        if (!container[winner].ContainsKey(looser))
         {
-            container[winnerName].Add(looserName, 0);
+            container[winner].Add(looser, 0);
         }
 
-        container[winnerName][looserName]++;
+        container[winner][looser]++;
     }
 }

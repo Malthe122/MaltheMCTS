@@ -83,7 +83,7 @@ namespace ComputationBenchmarking
         {
             Console.WriteLine("Starting computation benchmark...");
 
-            var totalMatchups = Utility.BuildMatchups(bots, numberOfMatchups);
+            var totalMatchups = Utility.BuildMatchups(bots, numberOfMatchups, true);
 
             Directory.CreateDirectory(benchmarkName);
 
@@ -160,13 +160,15 @@ namespace ComputationBenchmarking
             return computationAverages;
         }
 
-        private static List<float> PlaySequential(int timeout, List<(AI, AI)> matchups)
+        private static List<float> PlaySequential(int timeout, List<(string, string)> matchups)
         {
             var res = new List<float>();
 
             foreach (var matchup in matchups)
             {
-                var match = new ScriptsOfTribute.AI.ScriptsOfTribute(matchup.Item1, matchup.Item2, TimeSpan.FromSeconds(timeout));
+                var bot1 = Utility.CreateBot(matchup.Item1);
+                var bot2 = Utility.CreateBot(matchup.Item2);
+                var match = new ScriptsOfTribute.AI.ScriptsOfTribute(bot1, bot2, TimeSpan.FromSeconds(timeout));
                 var matchResult = match.Play();
                 res.Add(matchResult.Item1.AverageComputationsPerTurn);
             }
@@ -174,7 +176,7 @@ namespace ComputationBenchmarking
             return res;
         }
 
-        private static List<float> PlayParallelWithSharedMemory(int timeout, int threads, List<(AI, AI)> matchups)
+        private static List<float> PlayParallelWithSharedMemory(int timeout, int threads, List<(string, string)> matchups)
         {
             List<float> res = new List<float>();
 
@@ -182,7 +184,9 @@ namespace ComputationBenchmarking
 
             foreach (var matchup in matchups)
             {
-                var match = new ScriptsOfTribute.AI.ScriptsOfTribute(matchup.Item1, matchup.Item2, TimeSpan.FromSeconds(timeout));
+                var bot1 = Utility.CreateBot(matchup.Item1);
+                var bot2 = Utility.CreateBot(matchup.Item2);
+                var match = new ScriptsOfTribute.AI.ScriptsOfTribute(bot1, bot2, TimeSpan.FromSeconds(timeout));
                 matches.Add(match);
             }
 
