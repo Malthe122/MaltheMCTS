@@ -75,7 +75,12 @@ namespace ComputationBenchmarking
             var threads = arguments.GetValueForOption(threadsOption);
             var benchmarkName = arguments.GetValueForOption(nameOption);
 
-            await BenchmarkComputation(bots, numberOfMatchups, timeout, threads, benchmarkName);
+            rootCommand.SetHandler(
+                BenchmarkComputation,
+                botsOption, numberOfMatchupsOption, timeoutOption, threadsOption, nameOption
+            );
+
+            await rootCommand.InvokeAsync(args);
         }
 
 
@@ -85,7 +90,6 @@ namespace ComputationBenchmarking
 
             var totalMatchups = Utility.BuildMatchups(bots, numberOfMatchups, true);
 
-            Directory.CreateDirectory(benchmarkName);
 
             // Sequential
 
@@ -120,6 +124,8 @@ namespace ComputationBenchmarking
             var sequentialAverageAcrossGames = sequentialAverageComputations.Sum() / sequentialAverageComputations.Count;
             var parallelSharedMemoryAcrossGames = sharedMemoryParallelAverageComputations.Sum() / sharedMemoryParallelAverageComputations.Count;
             var seperateMemoryParralelAcrossGames = seperateMemoryParallelAverageComputations.Sum() / seperateMemoryParallelAverageComputations.Count;
+
+            Directory.CreateDirectory(benchmarkName);
 
             var summaryLog = "Bots: " + bots[0] + " vs " + bots[1]
                 + "\nMatches: " + numberOfMatchups
