@@ -176,8 +176,6 @@ public static class Utility
 
         var result = strategy.Heuristic(gameState);
 
-        // TODO add flag for normalizing or not, if we want to do some benchmarking on it
-
         return NormalizeBestMCTS3Score(result, onlyEndOfTurns);
 
         // return result;
