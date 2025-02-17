@@ -63,27 +63,24 @@ namespace BotBenchmarking
                 getDefaultValue: () => true
             );
 
-            // Root command
             var rootCommand = new RootCommand
-        {
-            botsOption,
-            numberOfMatchupsOption,
-            timeoutOption,
-            threadsOption,
-            nameOption,
-            skipExternalOption
-        };
+            {
+                botsOption,
+                numberOfMatchupsOption,
+                timeoutOption,
+                threadsOption,
+                nameOption,
+                skipExternalOption
+            };
 
             var arguments = rootCommand.Parse(args);
 
-            var bots = arguments.GetValueForOption(botsOption);
-            var numberOfMatchups = arguments.GetValueForOption(numberOfMatchupsOption);
-            var timeout = arguments.GetValueForOption(timeoutOption);
-            var threads = arguments.GetValueForOption(threadsOption);
-            var benchmarkName = arguments.GetValueForOption(nameOption);
-            var skipExternalMatches = arguments.GetValueForOption(skipExternalOption);
+            rootCommand.SetHandler(
+                Benchmark,
+                botsOption, numberOfMatchupsOption, timeoutOption, threadsOption, nameOption, skipExternalOption
+            );
 
-            await Benchmark(bots, numberOfMatchups, timeout, threads, benchmarkName, skipExternalMatches);
+            await rootCommand.InvokeAsync(args);
         }
 
 
@@ -125,7 +122,7 @@ namespace BotBenchmarking
 
             var options = new ParallelOptions { MaxDegreeOfParallelism = threads };
 
-            if(concurrencyType != ConcurrencyType.ParallelWithSharedMemory)
+            if (concurrencyType != ConcurrencyType.ParallelWithSharedMemory)
             {
                 throw new NotImplementedException("Chosen concurrency type has not been implemented yet: " + concurrencyType.ToString());
             }
