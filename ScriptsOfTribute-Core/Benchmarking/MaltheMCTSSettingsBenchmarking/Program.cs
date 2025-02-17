@@ -144,8 +144,8 @@ namespace MaltheMCTSSettingsBenchmarking
 
             Parallel.For(0, numberOfMatchups, options, matchup =>
             {
-                var bot1 = new MaltheMCTS.MaltheMCTS(settings1);
-                var bot2 = new MaltheMCTS.MaltheMCTS(settings2);
+                var bot1 = new MaltheMCTS.MaltheMCTS(settings: settings1);
+                var bot2 = new MaltheMCTS.MaltheMCTS(settings: settings2);
 
                 var match = new ScriptsOfTribute.AI.ScriptsOfTribute(bot1, bot2, TimeSpan.FromSeconds(timeout));
                 var result = match.Play().Item1;
