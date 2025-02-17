@@ -69,6 +69,16 @@ public static class Utility
                 return new RandomWithoutEndTurnBot();
             case "TurnTimeoutBot":
                 return new TurnTimeoutBot();
+            case "BestMCTS3":
+                return new BestMCTS3.BestMCTS3();
+            case "HQL_BOT":
+                return new HQL_BOT.HQL_BOT();
+            case "Sakkiring":
+                return new Sakkirin.Sakkirin();
+            case "SOISMCTS":
+                return new SOISMCTS.SOISMCTS();
+            case "ToT-BoT":
+                throw new NotImplementedException("Benchmark does not include the feature of running python bots yet");
             default:
                 throw new ArgumentException($"Bot '{botName}' is not recognized.");
                 // TODO add tournament bots

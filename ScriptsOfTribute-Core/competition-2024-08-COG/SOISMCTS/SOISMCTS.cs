@@ -24,7 +24,7 @@ The exception is two enums located in GameStrategy.cs and GameStrategySOISMCTS.c
 they are identical for both implementations and used in many places.
 Therefore, this part of the code has been commented out for the contest to prevent errors.
 */
-namespace Bots;
+namespace SOISMCTS;
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////

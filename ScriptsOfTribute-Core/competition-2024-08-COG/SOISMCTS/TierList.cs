@@ -1,6 +1,6 @@
 using ScriptsOfTribute;
 
-namespace Bots;
+namespace SOISMCTS;
 
 
 public static class GPCardTierList

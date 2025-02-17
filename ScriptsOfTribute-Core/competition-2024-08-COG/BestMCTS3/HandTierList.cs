@@ -1,6 +1,6 @@
 using ScriptsOfTribute;
 
-namespace Bots;
+namespace BestMCTS3
 
 public static class HandTierList
 {
