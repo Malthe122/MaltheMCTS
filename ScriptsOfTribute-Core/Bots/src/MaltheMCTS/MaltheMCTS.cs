@@ -11,10 +11,16 @@ public class MaltheMCTS : AI
     public Dictionary<int, List<Node>> NodeGameStateHashMap = new Dictionary<int, List<Node>>();
     public Settings Settings { get; set; }
 
-    public MaltheMCTS()
+
+    private string instanceName;
+
+    // FOR COMPUTATION BENCHMARK
+    private int computationsCompleted = 0;
+
+    public MaltheMCTS(string? instanceName) : base()
     {
         Settings = new Settings(); // Hardcoded
-        string instanceName = "MaltheMCTS";
+        instanceName = instanceName ?? "MaltheMCTS_" + Guid.NewGuid();
     }
 
     public MaltheMCTS(Settings? settings = null) : base()
@@ -27,17 +33,6 @@ public class MaltheMCTS : AI
         {
             Settings = new Settings(); // Hardcoded
         }
-    }
-
-    private string instanceName;
-
-    // FOR COMPUTATION BENCHMARK
-    private int computationsCompleted = 0;
-
-    public MaltheMCTS(string instanceName = "MaltheMCTS") : base()
-    {
-        this.instanceName = instanceName;
-        Settings = new Settings(); // Hardcoded
     }
 
     public override void PregamePrepare()
@@ -152,7 +147,7 @@ public class MaltheMCTS : AI
         using (var writer = new StreamWriter(filePath, true))
         {
             writer.Write("\n");
-            writer.Write(errorMessage); // TODO make separate files to handle multiple games running at once
+            writer.Write(errorMessage);
         }
     }
 
