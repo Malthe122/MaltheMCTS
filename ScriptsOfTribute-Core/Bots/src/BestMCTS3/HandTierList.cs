@@ -1,6 +1,6 @@
 using ScriptsOfTribute;
 
-namespace BestMCTS3
+namespace BestMCTS3;
 
 public static class HandTierList
 {

@@ -6,7 +6,7 @@ using System.Diagnostics;
 using ScriptsOfTribute.Board.CardAction;
 using ScriptsOfTribute.Board.Cards;
 
-namespace BestMCTS3
+namespace BestMCTS3;
 
 public class GameStrategy
 {

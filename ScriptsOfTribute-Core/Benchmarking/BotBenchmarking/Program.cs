@@ -118,6 +118,11 @@ namespace BotBenchmarking
         {
             Dictionary<string, Dictionary<string, int>> botToWins = new();
 
+            foreach(var bot in bots)
+            {
+                botToWins.Add(bot, new Dictionary<string, int>());
+            }
+
             var matchups = Utility.BuildMatchups(bots, numberOfMatchups, skipExternalMatches);
 
             var options = new ParallelOptions { MaxDegreeOfParallelism = threads };
