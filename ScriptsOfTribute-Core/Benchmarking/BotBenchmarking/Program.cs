@@ -10,6 +10,7 @@ using System.Threading;
 using BenchmarkingUtility;
 using System.Collections.Concurrent;
 using System.Text;
+using MaltheMCTS;
 
 namespace BotBenchmarking
 {
@@ -108,6 +109,12 @@ namespace BotBenchmarking
             sb.AppendLine($"Timeout: {timeout}");
             sb.AppendLine($"Threads: {threads}");
             sb.AppendLine($"Skip External Matches: {skipExternalMatches}");
+
+            var MaltheSettings = new Settings(); // In this benchmark its using the default values given here
+            sb.AppendLine();
+            sb.AppendLine("MaltheMCTS Settings:");
+            sb.AppendLine(MaltheSettings.ToString());
+
             var benchmarkDetailsLog = sb.ToString();
             await File.WriteAllTextAsync(Path.Combine(benchmarkName, "benchmark_details.txt"), benchmarkDetailsLog);
 
