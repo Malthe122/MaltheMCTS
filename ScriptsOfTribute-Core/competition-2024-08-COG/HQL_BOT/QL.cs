@@ -3,7 +3,7 @@ using ScriptsOfTribute.Board;
 using ScriptsOfTribute.Board.Cards;
 using ScriptsOfTribute.Serializers;
 
-namespace Bots;
+namespace HQL_BOT;
 
 using QKey = Tuple<CardId, int>;
 

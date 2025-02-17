@@ -1,6 +1,6 @@
 using ScriptsOfTribute;
 
-namespace Bots;
+namespace BestMCTS3
 
 public record struct PatronTier(int favoured, int neutral, int unfavoured);
 
