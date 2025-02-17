@@ -31,51 +31,56 @@ public class Settings
 
     public override string ToString()
     {
-        return @$"ITERATION_COMPLETION_MILLISECONDS_BUFFER={ITERATION_COMPLETION_MILLISECONDS_BUFFER}
-                UCT_EXPLORATION_CONSTANT={UCT_EXPLORATION_CONSTANT}
-                FORCE_DELAY_TURN_END_IN_ROLLOUT={FORCE_DELAY_TURN_END_IN_ROLLOUT}
-                INCLUDE_PLAY_MOVE_CHANCE_NODES={INCLUDE_PLAY_MOVE_CHANCE_NODES}
-                INCLUDE_END_TURN_CHANCE_NODES={INCLUDE_END_TURN_CHANCE_NODES}
-                CHOSEN_EVALUATION_METHOD={CHOSEN_EVALUATION_METHOD}
-                CHOSEN_SCORING_METHOD={CHOSEN_SCORING_METHOD}
-                ROLLOUT_TURNS_BEFORE_HEURSISTIC={ROLLOUT_TURNS_BEFORE_HEURSISTIC}
-                SIMULATE_MULTIPLE_TURNS={SIMULATE_MULTIPLE_TURNS}
-                REUSE_TREE={REUSE_TREE}
-                ";
+        return $"ITERATION_COMPLETION_MILLISECONDS_BUFFER={ITERATION_COMPLETION_MILLISECONDS_BUFFER}\n" +
+                "UCT_EXPLORATION_CONSTANT={UCT_EXPLORATION_CONSTANT}\n" +
+                "FORCE_DELAY_TURN_END_IN_ROLLOUT={FORCE_DELAY_TURN_END_IN_ROLLOUT}\n" +
+                "INCLUDE_PLAY_MOVE_CHANCE_NODES={INCLUDE_PLAY_MOVE_CHANCE_NODES}\n" +
+                "INCLUDE_END_TURN_CHANCE_NODES={INCLUDE_END_TURN_CHANCE_NODES}\n" +
+                "CHOSEN_EVALUATION_METHOD={CHOSEN_EVALUATION_METHOD}\n" +
+                "CHOSEN_SCORING_METHOD={CHOSEN_SCORING_METHOD}\n" +
+                "ROLLOUT_TURNS_BEFORE_HEURSISTIC={ROLLOUT_TURNS_BEFORE_HEURSISTIC}\n" +
+                "SIMULATE_MULTIPLE_TURNS={SIMULATE_MULTIPLE_TURNS}\n" +
+                "REUSE_TREE={REUSE_TREE}";
     }
 
     public static Settings LoadSettingsFromFile(string filePath)
     {
-        // TODO
-        throw new NotImplementedException();
+        var result = new Settings();
+        var lines = File.ReadAllLines(filePath);
+
+        foreach (var line in lines)
+        {
+            var parts = line.Split('=');
+            if (parts.Length == 2)
+            {
+                var key = parts[0].Trim();
+                var value = parts[1].Trim();
+
+                // Use reflection to set the property dynamically
+                var property = typeof(Settings).GetProperty(key);
+                if (property != null)
+                {
+                    if (property.PropertyType == typeof(int))
+                    {
+                        property.SetValue(result, int.Parse(value));
+                    }
+                    else if (property.PropertyType == typeof(double))
+                    {
+                        property.SetValue(result, double.Parse(value));
+                    }
+                    else if (property.PropertyType == typeof(bool))
+                    {
+                        property.SetValue(result, bool.Parse(value));
+                    }
+                    else if (property.PropertyType.IsEnum)
+                    {
+                        var enumValue = Enum.Parse(property.PropertyType, value);
+                        property.SetValue(result, enumValue);
+                    }
+                }
+            }
+        }
+
+        return result;
     }
-
-    //public static Dictionary<string, string> LoadEnvFile(string filePath)
-    //{
-    //    if (!File.Exists(filePath))
-    //    {
-    //        Console.Error.WriteLine($"Env file '{filePath}' not found");
-    //        return new Dictionary<string, string>();
-    //    }
-
-    //    var envVariables = new Dictionary<string, string>();
-
-    //    foreach (var line in File.ReadAllLines(filePath))
-    //    {
-    //        if (string.IsNullOrWhiteSpace(line) || line.TrimStart().StartsWith("#"))
-    //            continue;
-
-    //        var parts = line.Split('=', 2);
-    //        if (parts.Length != 2)
-    //            continue;
-
-    //        var key = parts[0].Trim();
-    //        var value = parts[1].Trim().Trim('"');
-
-    //        envVariables[key] = value;
-    //    }
-
-    //    return envVariables;
-    //}
-
 }

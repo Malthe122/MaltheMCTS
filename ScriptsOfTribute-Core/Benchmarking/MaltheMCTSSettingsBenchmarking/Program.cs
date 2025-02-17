@@ -70,6 +70,7 @@ namespace MaltheMCTSSettingsBenchmarking
             var rootCommand = new RootCommand
         {
             file1Option,
+            file2Option,
             numberOfMatchupsOption,
             timeoutOption,
             threadsOption,
@@ -85,10 +86,15 @@ namespace MaltheMCTSSettingsBenchmarking
             var threads = arguments.GetValueForOption(threadsOption);
             var benchmarkName = arguments.GetValueForOption(nameOption);
 
-            var settings1 = Settings.LoadSettingsFromFile(file1);
-            var settings2 = Settings.LoadSettingsFromFile(file2);
+            rootCommand.SetHandler(async (file1, file2, numberOfMatchups, timeout, threads, benchmarkName) =>
+            {
+                var settings1 = Settings.LoadSettingsFromFile(file1);
+                var settings2 = Settings.LoadSettingsFromFile(file2);
 
-            await Benchmark(settings1, settings2, numberOfMatchups, timeout, threads, benchmarkName);
+                await Benchmark(settings1, settings2, numberOfMatchups, timeout, threads, benchmarkName);
+            }, file1Option, file2Option, numberOfMatchupsOption, timeoutOption, threadsOption, nameOption);
+
+            await rootCommand.InvokeAsync(args);
         }
 
 
@@ -107,8 +113,8 @@ namespace MaltheMCTSSettingsBenchmarking
                 + "\n\nSettings 2:\n"
                 + settings2.ToString()
                 + "\n\nResult:\n"
-                + "Setting 1 wins:\t" + results.Item1
-                + "Setting 2 wins:\t" + results.Item2
+                + "Setting 1 wins:\t" + results.Item1 + "\n"
+                + "Setting 2 wins:\t" + results.Item2 + "\n"
                 + "Draws:\t" + results.Item3;
             await File.WriteAllTextAsync(Path.Combine(benchmarkName, "results.txt"), resultLog);
 
