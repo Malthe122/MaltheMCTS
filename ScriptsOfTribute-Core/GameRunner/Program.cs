@@ -110,7 +110,6 @@ BotInfo? FindBot(string name, out string? errorMessage)
         errorMessage += string.Join('\n', allBots.Select(b => b.FullName));
         return null;
     }
-    // TODO: Support also specifying which file to use.
     else if (botCount > 1 && findByFullName)
     {
         errorMessage = "More than one bots with the same full name found. This means you have different DLLs with the same namespaces and bot names.\n" +

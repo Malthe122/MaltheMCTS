@@ -93,7 +93,6 @@ namespace ScriptsOfTribute
             return CurrentPlayer.PlayerID == id ? CurrentPlayer : EnemyPlayer;
         }
 
-        // TODO: Add EndGameState and exception handling, because now incorrect moves crash (also, what happens if player tries to make move on already ended game? Handle this edge case).
         public (FullGameState, List<Move>) ApplyMove(Move move)
         {
             var api = ScriptsOfTributeApi.FromSerializedBoard(this);

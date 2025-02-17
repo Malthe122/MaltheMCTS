@@ -10,7 +10,7 @@ public class ScriptsOfTributeGame
 {
     public const int TurnLimit = 500;
 
-    private IScriptsOfTributeApi _api;
+    public IScriptsOfTributeApi _api;
     private AI[] _players = new AI[2];
     private TimeSpan _currentTurnTimeElapsed = TimeSpan.Zero;
     public EndGameState? EndGameState { get; private set; }
@@ -68,13 +68,13 @@ public class ScriptsOfTributeGame
             if (e.InnerExceptions.Any())
             {
                 var message = string.Join('\n', e.InnerExceptions.Select(e => $"{e.Message}\n{e.StackTrace}\n\n"));
-                return (new EndGameState(_api.EnemyPlayerId, GameEndReason.BOT_EXCEPTION, message), null);
+                return (new EndGameState(_api.EnemyPlayerId, GameEndReason.BOT_EXCEPTION, _api.TurnCount, message), null);
             }
             
-            return (new EndGameState(PlayerEnum.NO_PLAYER_SELECTED, GameEndReason.INTERNAL_ERROR, $"{e.Message}\n{e.StackTrace}"), null);
+            return (new EndGameState(PlayerEnum.NO_PLAYER_SELECTED, GameEndReason.INTERNAL_ERROR, _api.TurnCount, $"{e.Message}\n{e.StackTrace}"), null);
         }
 
-        return (new EndGameState(_api.EnemyPlayerId, GameEndReason.TURN_TIMEOUT), null);
+        return (new EndGameState(_api.EnemyPlayerId, GameEndReason.TURN_TIMEOUT, _api.TurnCount), null);
     }
     
     public (EndGameState, FullGameState) Play()
@@ -132,7 +132,7 @@ public class ScriptsOfTributeGame
         _currentTurnTimeElapsed = TimeSpan.Zero;
         if (_api.TurnCount > TurnLimit)
         {
-            return new EndGameState(PlayerEnum.NO_PLAYER_SELECTED, GameEndReason.TURN_LIMIT_EXCEEDED);
+            return new EndGameState(PlayerEnum.NO_PLAYER_SELECTED, GameEndReason.TURN_LIMIT_EXCEEDED, _api.TurnCount);
         }
 
         return null;
@@ -177,7 +177,7 @@ public class ScriptsOfTributeGame
 
         if (playersChoice is not MakeChoiceMove<UniqueCard> makeChoiceMove)
         {
-            return new EndGameState(_api.EnemyPlayerId, GameEndReason.INCORRECT_MOVE, "Start of turn choice for now is always DESTROY, so should be of type Card.");
+            return new EndGameState(_api.EnemyPlayerId, GameEndReason.INCORRECT_MOVE, _api.TurnCount, "Start of turn choice for now is always DESTROY, so should be of type Card.");
         }
 
         return _api.MakeChoice(makeChoiceMove.Choices);
@@ -187,13 +187,13 @@ public class ScriptsOfTributeGame
     {
         if (!_api.IsMoveLegal(move))
         {
-            return new EndGameState(_api.EnemyPlayerId, GameEndReason.INCORRECT_MOVE, $"Illegal move - {move}.\nShould be one of:\n{string.Join('\n', _api.GetListOfPossibleMoves().Select(m => m.ToString()))}");
+            return new EndGameState(_api.EnemyPlayerId, GameEndReason.INCORRECT_MOVE, _api.TurnCount, $"Illegal move - {move}.\nShould be one of:\n{string.Join('\n', _api.GetListOfPossibleMoves().Select(m => m.ToString()))}");
         }
 
         // This should probably be handled above (this move is not in legal moves), but you can never be to careful...
         if (move.Command == CommandEnum.MAKE_CHOICE)
         {
-            return new EndGameState(_api.EnemyPlayerId, GameEndReason.INCORRECT_MOVE, "You don't have a pending choice.");
+            return new EndGameState(_api.EnemyPlayerId, GameEndReason.INCORRECT_MOVE, _api.TurnCount, "You don't have a pending choice.");
         }
 
         return move.Command switch
@@ -240,7 +240,7 @@ public class ScriptsOfTributeGame
         }
         catch (Exception e)
         {
-            return new EndGameState(_api.EnemyPlayerId, GameEndReason.INCORRECT_MOVE, $"{e.Message}\n{e.StackTrace}\n\n{e.Source}\n\n\n\n\n\n\n\n{e.ToString()}\n");
+            return new EndGameState(_api.EnemyPlayerId, GameEndReason.INCORRECT_MOVE, _api.TurnCount, $"{e.Message}\n{e.StackTrace}\n\n{e.Source}\n\n\n\n\n\n\n\n{e.ToString()}\n");
         }
 
         return null;
@@ -253,7 +253,7 @@ public class ScriptsOfTributeGame
     {
         if (!Enum.IsDefined(typeof(PatronId), move.PatronId))
         {
-            return new EndGameState(_api.EnemyPlayerId, GameEndReason.INCORRECT_MOVE, "Invalid patron selected.");
+            return new EndGameState(_api.EnemyPlayerId, GameEndReason.INCORRECT_MOVE, _api.TurnCount, "Invalid patron selected.");
         }
 
         return _api.PatronActivation(move.PatronId) ?? ConsumePotentialPendingMoves();
@@ -273,7 +273,7 @@ public class ScriptsOfTributeGame
 
                 if (move is not MakeChoiceMove<UniqueCard> c)
                 {
-                    return new EndGameState(_api.EnemyPlayerId, GameEndReason.INCORRECT_MOVE,
+                    return new EndGameState(_api.EnemyPlayerId, GameEndReason.INCORRECT_MOVE, _api.TurnCount,
                         "Choice of Card was required.");
                 }
 
@@ -295,7 +295,7 @@ public class ScriptsOfTributeGame
 
                 if (move is not MakeChoiceMove<UniqueEffect> c)
                 {
-                    return new EndGameState(_api.EnemyPlayerId, GameEndReason.INCORRECT_MOVE,
+                    return new EndGameState(_api.EnemyPlayerId, GameEndReason.INCORRECT_MOVE, _api.TurnCount,
                         "Choice of Effect was required.");
                 }
                 var potentialEndState = _api.MakeChoice(c.Choices.First());

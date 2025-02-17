@@ -15,7 +15,9 @@ public class GameEndStatsCounter
     private int _patronFavorEnds;
     private int _turnLimitEnds;
     private int _otherEnds;
+    private float _summedAverageComputationCounts = 0;
     
+    private float AverageComputationCount => _summedAverageComputationCounts / _statesChecked;
     public double P1WinPercentage => 100.0 * _p1Wins / _statesChecked;
     public double P2WinPercentage => 100.0 * _p2Wins / _statesChecked;
     public double DrawPercentage => 100.0 * _draws / _statesChecked;
@@ -63,6 +65,7 @@ public class GameEndStatsCounter
                 throw new ArgumentOutOfRangeException();
         }
 
+        _summedAverageComputationCounts += state.AverageComputationsPerTurn;
         _statesChecked++;
     }
 
@@ -77,6 +80,7 @@ public class GameEndStatsCounter
         sb.AppendLine($"Ends due to Patron Favor: {_patronFavorEnds}/{_statesChecked} ({100.0*_patronFavorEnds/_statesChecked}%)");
         sb.AppendLine($"Ends due to Turn Limit: {_turnLimitEnds}/{_statesChecked} ({100.0*_turnLimitEnds/_statesChecked}%)");
         sb.AppendLine($"Ends due to other factors: {_otherEnds}/{_statesChecked} ({100.0*_otherEnds/_statesChecked}%)");
+        sb.AppendLine($"Average computation count per turn: " + AverageComputationCount);
         return sb.ToString();
     }
 }

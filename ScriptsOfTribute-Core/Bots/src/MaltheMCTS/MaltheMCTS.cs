@@ -11,9 +11,16 @@ public class MaltheMCTS : AI
     public Dictionary<int, List<Node>> NodeGameStateHashMap = new Dictionary<int, List<Node>>();
     public Settings Settings { get; set; }
 
-    public MaltheMCTS()
+
+    private string instanceName;
+
+    // FOR COMPUTATION BENCHMARK
+    private int computationsCompleted = 0;
+
+    public MaltheMCTS(string? instanceName) : base()
     {
         Settings = new Settings(); // Hardcoded
+        instanceName = instanceName ?? "MaltheMCTS_" + Guid.NewGuid();
     }
 
     public MaltheMCTS(Settings? settings = null) : base()
@@ -30,18 +37,22 @@ public class MaltheMCTS : AI
 
     public override void PregamePrepare()
     {
+        computationsCompleted = 0;
+
         Utility.CategorizeCards();
         NodeGameStateHashMap = new Dictionary<int, List<Node>>();
     }
 
     public override void GameEnd(EndGameState state, FullGameState? finalBoardState)
     {
+        state.AverageComputationsPerTurn = Utility.SaveDivision(computationsCompleted, state.TurnsTaken / 2);
         Console.WriteLine("@@@ Game ended because of " + state.Reason + " @@@");
         Console.WriteLine("@@@ Winner was " + state.Winner + " @@@");
     }
 
     public override Move Play(GameState gameState, List<Move> possibleMoves, TimeSpan remainingTime)
     {
+
         try
         {
             var instantPlay = FindInstantPlayMove(possibleMoves);
@@ -70,6 +81,7 @@ public class MaltheMCTS : AI
                 // iterationTimer.Start();
                 // iterationCounter++;
                 rootNode.Visit(out double score, new HashSet<Node>());
+                computationsCompleted++;
                 // iterationTimer.Stop();
                 // Console.WriteLine("Iteration took: " + iterationTimer.ElapsedMilliseconds + " milliseconds");
             }
@@ -124,7 +136,7 @@ public class MaltheMCTS : AI
 
     private void SaveErrorLog(string errorMessage)
     {
-        var filePath = "Error.txt";
+        var filePath = instanceName + "_Error.txt";
 
         string directoryPath = Path.GetDirectoryName(filePath);
         if (!string.IsNullOrEmpty(directoryPath))

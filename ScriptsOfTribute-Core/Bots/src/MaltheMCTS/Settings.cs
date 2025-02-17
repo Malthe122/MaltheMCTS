@@ -43,4 +43,39 @@ public class Settings
                 REUSE_TREE={REUSE_TREE}
                 ";
     }
+
+    public static Settings LoadSettingsFromFile(string filePath)
+    {
+        // TODO
+        throw new NotImplementedException();
+    }
+
+    //public static Dictionary<string, string> LoadEnvFile(string filePath)
+    //{
+    //    if (!File.Exists(filePath))
+    //    {
+    //        Console.Error.WriteLine($"Env file '{filePath}' not found");
+    //        return new Dictionary<string, string>();
+    //    }
+
+    //    var envVariables = new Dictionary<string, string>();
+
+    //    foreach (var line in File.ReadAllLines(filePath))
+    //    {
+    //        if (string.IsNullOrWhiteSpace(line) || line.TrimStart().StartsWith("#"))
+    //            continue;
+
+    //        var parts = line.Split('=', 2);
+    //        if (parts.Length != 2)
+    //            continue;
+
+    //        var key = parts[0].Trim();
+    //        var value = parts[1].Trim().Trim('"');
+
+    //        envVariables[key] = value;
+    //    }
+
+    //    return envVariables;
+    //}
+
 }

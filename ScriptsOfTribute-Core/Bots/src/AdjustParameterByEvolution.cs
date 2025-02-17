@@ -57,7 +57,6 @@ public class AdjustParametersByEvolution
         }
         return (child1, child2);
     }
-    //TODO zrobić to dla dowolnego bota - problem z tworzeniem tablic dowolnego typu, musiałabym to robić na switchu
     public int[] Evolution(int sizeOfPopulation, int numberOfGenerations, int mutationRate, int minValue, int maxValue)
     {
         DecisionTreeBot[] population = new DecisionTreeBot[sizeOfPopulation];

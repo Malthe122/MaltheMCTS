@@ -176,8 +176,6 @@ public static class Utility
 
         var result = strategy.Heuristic(gameState);
 
-        // TODO add flag for normalizing or not, if we want to do some benchmarking on it
-
         return NormalizeBestMCTS3Score(result, onlyEndOfTurns);
 
         // return result;
@@ -275,5 +273,15 @@ public static class Utility
     internal static Move FindOfficialMove(Move move, List<Move> possibleMoves)
     {
         return possibleMoves.First(m => m.IsIdentical(move));
+    }
+
+    internal static float SaveDivision(int arg1, int arg2)
+    {
+        if (arg1 == 0 || arg2 == 0)
+        {
+            return 0;
+        }
+
+        return arg1 / arg2;
     }
 }

@@ -32,7 +32,7 @@ public static class LogExtensions{
     }
 
     public static void Log(this List<UniqueBaseEffect> list){
-        // TODO expand if neccessary
+        // Simplified for now. Expand if neccessary
         Console.WriteLine("Amount: " + list.Count);
     }
 
