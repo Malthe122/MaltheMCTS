@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Bots;
 using ScriptsOfTribute.AI;
-using SOISMCTS;
 
 public static class Utility
 {
