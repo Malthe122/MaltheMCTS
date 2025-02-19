@@ -65,7 +65,7 @@ namespace BotBenchmarking
             );
 
             var maltheMCTSSettingFileOption = new Option<string?>(
-               aliases: new[] { "--settingsFile -s" }
+               aliases: new[] { "--settingsFile", "-s" },
                description: "Optional settings file for MaltheMCTS bot. If not supplied, default values are used"
                );
 
