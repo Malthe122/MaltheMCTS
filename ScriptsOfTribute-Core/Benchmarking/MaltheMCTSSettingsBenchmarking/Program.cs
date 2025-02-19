@@ -88,8 +88,8 @@ namespace MaltheMCTSSettingsBenchmarking
 
             rootCommand.SetHandler(async (file1, file2, numberOfMatchups, timeout, threads, benchmarkName) =>
             {
-                var settings1 = Settings.LoadSettingsFromFile(file1);
-                var settings2 = Settings.LoadSettingsFromFile(file2);
+                var settings1 = Settings.LoadFromFile(file1);
+                var settings2 = Settings.LoadFromFile(file2);
 
                 await Benchmark(settings1, settings2, numberOfMatchups, timeout, threads, benchmarkName);
             }, file1Option, file2Option, numberOfMatchupsOption, timeoutOption, threadsOption, nameOption);

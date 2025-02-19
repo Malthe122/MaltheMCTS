@@ -10,6 +10,7 @@ using System.Threading;
 using BenchmarkingUtility;
 using System.Collections.Concurrent;
 using System.Text;
+using MaltheMCTS;
 
 namespace BotBenchmarking
 {
@@ -63,6 +64,11 @@ namespace BotBenchmarking
                 getDefaultValue: () => true
             );
 
+            var maltheMCTSSettingFileOption = new Option<string?>(
+               aliases: new[] { "--settingsFile", "-s" },
+               description: "Optional settings file for MaltheMCTS bot. If not supplied, default values are used"
+               );
+
             var rootCommand = new RootCommand
             {
                 botsOption,
@@ -70,21 +76,22 @@ namespace BotBenchmarking
                 timeoutOption,
                 threadsOption,
                 nameOption,
-                skipExternalOption
+                skipExternalOption,
+                maltheMCTSSettingFileOption,
             };
 
             var arguments = rootCommand.Parse(args);
 
             rootCommand.SetHandler(
                 Benchmark,
-                botsOption, numberOfMatchupsOption, timeoutOption, threadsOption, nameOption, skipExternalOption
+                botsOption, numberOfMatchupsOption, timeoutOption, threadsOption, nameOption, skipExternalOption, maltheMCTSSettingFileOption
             );
 
             await rootCommand.InvokeAsync(args);
         }
 
 
-        private static async Task Benchmark(List<string> bots, int numberOfMatchups, int timeout, int threads, string benchmarkName, bool skipExternalMatches)
+        private static async Task Benchmark(List<string> bots, int numberOfMatchups, int timeout, int threads, string benchmarkName, bool skipExternalMatches, string? maltheMCTSSettingsFile)
         {
             // TODO update to parallel with seperate memory, if i manage to implement that
 
@@ -92,7 +99,10 @@ namespace BotBenchmarking
 
             Directory.CreateDirectory(benchmarkName);
 
-            var results = PlayMatches(bots, numberOfMatchups, timeout, threads, skipExternalMatches, ConcurrencyType.ParallelWithSharedMemory);
+            var maltheMCTSSettings = maltheMCTSSettingsFile != null ? Settings.LoadFromFile(maltheMCTSSettingsFile) : null;
+
+
+            var results = PlayMatches(bots, numberOfMatchups, timeout, threads, skipExternalMatches, ConcurrencyType.ParallelWithSharedMemory, maltheMCTSSettings);
 
             var matchupWinrates = Utility.MatchResultsToCsv(results, numberOfMatchups);
             await File.WriteAllTextAsync(Path.Combine(benchmarkName, "matchup_winrate.csv"), matchupWinrates);
@@ -108,15 +118,26 @@ namespace BotBenchmarking
             sb.AppendLine($"Timeout: {timeout}");
             sb.AppendLine($"Threads: {threads}");
             sb.AppendLine($"Skip External Matches: {skipExternalMatches}");
+
+            var MaltheSettings = new Settings(); // In this benchmark its using the default values given here
+            sb.AppendLine();
+            sb.AppendLine("MaltheMCTS Settings:");
+            sb.AppendLine(MaltheSettings.ToString());
+
             var benchmarkDetailsLog = sb.ToString();
             await File.WriteAllTextAsync(Path.Combine(benchmarkName, "benchmark_details.txt"), benchmarkDetailsLog);
 
             Console.WriteLine("Benchmark complete. Results logged in folder: " + benchmarkName);
         }
 
-        private static Dictionary<string, Dictionary<string, int>> PlayMatches(List<string> bots, int numberOfMatchups, int timeout, int threads, bool skipExternalMatches, ConcurrencyType concurrencyType)
+        private static Dictionary<string, Dictionary<string, int>> PlayMatches(List<string> bots, int numberOfMatchups, int timeout, int threads, bool skipExternalMatches, ConcurrencyType concurrencyType, Settings? maltheMCTSSettings = null)
         {
             Dictionary<string, Dictionary<string, int>> botToWins = new();
+
+            foreach(var bot in bots)
+            {
+                botToWins.Add(bot, new Dictionary<string, int>());
+            }
 
             var matchups = Utility.BuildMatchups(bots, numberOfMatchups, skipExternalMatches);
 
@@ -129,6 +150,19 @@ namespace BotBenchmarking
 
             Parallel.ForEach(matchups, options, matchup =>
             {
+                var bot1 = Utility.CreateBot(matchup.Item1);
+                var bot2 = Utility.CreateBot(matchup.Item2);
+
+                if (bot1 is MaltheMCTS.MaltheMCTS && maltheMCTSSettings != null)
+                {
+                    (bot1 as MaltheMCTS.MaltheMCTS).Settings = maltheMCTSSettings;
+                }
+
+                if (bot2 is MaltheMCTS.MaltheMCTS && maltheMCTSSettings != null)
+                {
+                    (bot2 as MaltheMCTS.MaltheMCTS).Settings = maltheMCTSSettings;
+                }
+
                 var match = new ScriptsOfTribute.AI.ScriptsOfTribute(Utility.CreateBot(matchup.Item1), Utility.CreateBot(matchup.Item2), TimeSpan.FromSeconds(timeout));
                 var result = match.Play().Item1;
                 switch (result.Winner)

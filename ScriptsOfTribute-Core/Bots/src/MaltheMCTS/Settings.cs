@@ -43,7 +43,7 @@ public class Settings
                 $"REUSE_TREE={REUSE_TREE}";
     }
 
-    public static Settings LoadSettingsFromFile(string filePath)
+    public static Settings LoadFromFile(string filePath)
     {
         var result = new Settings();
         var lines = File.ReadAllLines(filePath);

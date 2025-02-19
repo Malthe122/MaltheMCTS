@@ -90,10 +90,10 @@ public static class Utility
         var bots = results.Keys.ToList();
         var sb = new System.Text.StringBuilder();
 
-        sb.Append("vs.");
+        sb.Append("vs");
         foreach (var bot in bots)
         {
-            sb.Append(",").Append(bot);
+            sb.Append(";").Append(bot);
         }
         sb.AppendLine();
 
@@ -105,11 +105,11 @@ public static class Utility
                 if (results[bot1].TryGetValue(bot2, out int wins))
                 {
                     double winRate = (double)wins / matchesPerMatchup * 100.0;
-                    sb.Append(",").Append(winRate.ToString("F2"));
+                    sb.Append(";").Append(winRate.ToString("F2"));
                 }
                 else
                 {
-                    sb.Append(",0");
+                    sb.Append(";0");
                 }
             }
             sb.AppendLine();
