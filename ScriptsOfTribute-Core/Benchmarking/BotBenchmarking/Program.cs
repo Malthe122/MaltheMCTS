@@ -99,8 +99,7 @@ namespace BotBenchmarking
 
             Directory.CreateDirectory(benchmarkName);
 
-            var maltheMCTSSettings = maltheMCTSSettingsFile != null ? Settings.LoadFromFile(maltheMCTSSettingsFile) : null;
-
+            var maltheMCTSSettings = maltheMCTSSettingsFile != null ? Settings.LoadFromFile(maltheMCTSSettingsFile) : new Settings();
 
             var results = PlayMatches(bots, numberOfMatchups, timeout, threads, skipExternalMatches, ConcurrencyType.ParallelWithSharedMemory, maltheMCTSSettings);
 
@@ -119,10 +118,9 @@ namespace BotBenchmarking
             sb.AppendLine($"Threads: {threads}");
             sb.AppendLine($"Skip External Matches: {skipExternalMatches}");
 
-            var MaltheSettings = new Settings(); // In this benchmark its using the default values given here
             sb.AppendLine();
             sb.AppendLine("MaltheMCTS Settings:");
-            sb.AppendLine(MaltheSettings.ToString());
+            sb.AppendLine(maltheMCTSSettings.ToString());
 
             var benchmarkDetailsLog = sb.ToString();
             await File.WriteAllTextAsync(Path.Combine(benchmarkName, "benchmark_details.txt"), benchmarkDetailsLog);
