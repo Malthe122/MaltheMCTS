@@ -40,8 +40,8 @@ namespace SimpleBots.src.MaltheMCTS.Utility
             double currentPlayerAgentValue = GetAgentValue(currentPlayerAgentStrengths, lateGameMultiplier, earlyGameMultiplier);
             double opponentAgentValue = GetAgentValue(opponentAgentStrengths, lateGameMultiplier, earlyGameMultiplier);
 
-            double currentPlayerPatronValue = Math.Pow(1.5, currentPlayerPatronFavour);
-            double opponentPatronValue = Math.Pow(1.5, opponentPatronFavour);
+            double currentPlayerPatronValue = Math.Pow(BASE_PATRON_VALUE, currentPlayerPatronFavour);
+            double opponentPatronValue = Math.Pow(BASE_PATRON_VALUE, opponentPatronFavour);
 
             var currentPlayerValue = currentPlayerResourceValue + currentPlayerDeckValue + currentPlayerAgentValue + currentPlayerPatronValue;
             var opponentValue = opponentResourceValue + opponentDeckValue + opponentAgentValue + opponentPatronValue;
