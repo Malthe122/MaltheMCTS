@@ -11,7 +11,13 @@ public class Settings
     public bool INCLUDE_END_TURN_CHANCE_NODES { get; set; }
     public EvaluationMethod CHOSEN_EVALUATION_METHOD { get; set; }
     public ScoringMethod CHOSEN_SCORING_METHOD { get; set; }
-    public int ROLLOUT_TURNS_BEFORE_HEURSISTIC { get; set; }
+        // These indent properties are dependent on the chosen scoring method to be relevant
+        public int ROLLOUT_TURNS_BEFORE_HEURSISTIC { get; set; }
+        /// <summary>
+        /// This should be false, when a proper gradient (or different) model is implemented, but allows benchmark to check
+        /// if the trained model actually does a better job than custom built model
+        /// </summary>
+        public bool MANUAL_MODEL { get; set; }
     public bool REUSE_TREE { get; set; }
     public bool SIMULATE_MULTIPLE_TURNS { get; set; }
 
@@ -20,27 +26,29 @@ public class Settings
         ITERATION_COMPLETION_MILLISECONDS_BUFFER = 500;
         UCT_EXPLORATION_CONSTANT = 1.41421356237; // sqrt(2) generally used default value
         FORCE_DELAY_TURN_END_IN_ROLLOUT = true;
-        INCLUDE_PLAY_MOVE_CHANCE_NODES = false;
-        INCLUDE_END_TURN_CHANCE_NODES = false;
+        INCLUDE_PLAY_MOVE_CHANCE_NODES = true;
+        INCLUDE_END_TURN_CHANCE_NODES = true;
         CHOSEN_EVALUATION_METHOD = EvaluationMethod.UCT;
-        CHOSEN_SCORING_METHOD = ScoringMethod.Heuristic;
-        ROLLOUT_TURNS_BEFORE_HEURSISTIC = 1;
-        SIMULATE_MULTIPLE_TURNS = false;
+        CHOSEN_SCORING_METHOD = ScoringMethod.RolloutTurnsCompletionsThenHeuristic;
+            ROLLOUT_TURNS_BEFORE_HEURSISTIC = 1;
+            MANUAL_MODEL = true;
         REUSE_TREE = true;
+        SIMULATE_MULTIPLE_TURNS = false;
     }
 
     public override string ToString()
     {
         return $"ITERATION_COMPLETION_MILLISECONDS_BUFFER={ITERATION_COMPLETION_MILLISECONDS_BUFFER}\n" +
-                "UCT_EXPLORATION_CONSTANT={UCT_EXPLORATION_CONSTANT}\n" +
-                "FORCE_DELAY_TURN_END_IN_ROLLOUT={FORCE_DELAY_TURN_END_IN_ROLLOUT}\n" +
-                "INCLUDE_PLAY_MOVE_CHANCE_NODES={INCLUDE_PLAY_MOVE_CHANCE_NODES}\n" +
-                "INCLUDE_END_TURN_CHANCE_NODES={INCLUDE_END_TURN_CHANCE_NODES}\n" +
-                "CHOSEN_EVALUATION_METHOD={CHOSEN_EVALUATION_METHOD}\n" +
-                "CHOSEN_SCORING_METHOD={CHOSEN_SCORING_METHOD}\n" +
-                "ROLLOUT_TURNS_BEFORE_HEURSISTIC={ROLLOUT_TURNS_BEFORE_HEURSISTIC}\n" +
-                "SIMULATE_MULTIPLE_TURNS={SIMULATE_MULTIPLE_TURNS}\n" +
-                "REUSE_TREE={REUSE_TREE}";
+                $"UCT_EXPLORATION_CONSTANT={UCT_EXPLORATION_CONSTANT}\n" +
+                $"FORCE_DELAY_TURN_END_IN_ROLLOUT={FORCE_DELAY_TURN_END_IN_ROLLOUT}\n" +
+                $"INCLUDE_PLAY_MOVE_CHANCE_NODES={INCLUDE_PLAY_MOVE_CHANCE_NODES}\n" +
+                $"INCLUDE_END_TURN_CHANCE_NODES={INCLUDE_END_TURN_CHANCE_NODES}\n" +
+                $"CHOSEN_EVALUATION_METHOD={CHOSEN_EVALUATION_METHOD}\n" +
+                $"MANUAL_MODEL={MANUAL_MODEL}\n" +
+                $"CHOSEN_SCORING_METHOD={CHOSEN_SCORING_METHOD}\n" +
+                $"ROLLOUT_TURNS_BEFORE_HEURSISTIC={ROLLOUT_TURNS_BEFORE_HEURSISTIC}\n" +
+                $"SIMULATE_MULTIPLE_TURNS={SIMULATE_MULTIPLE_TURNS}\n" +
+                $"REUSE_TREE={REUSE_TREE}";
     }
 
     public static Settings LoadSettingsFromFile(string filePath)

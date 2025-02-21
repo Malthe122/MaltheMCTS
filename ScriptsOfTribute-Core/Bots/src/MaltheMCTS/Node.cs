@@ -114,11 +114,13 @@ public class Node
         {
             case ScoringMethod.Rollout:
                 return Rollout();
-            case ScoringMethod.Heuristic:
+            case ScoringMethod.BestMCTS3Heuristic:
                 return Utility.UseBestMCTS3Heuristic(GameState, false);
             case ScoringMethod.RolloutTurnsCompletionsThenHeuristic:
                 return RolloutTillTurnsEndThenHeuristic(Bot.Settings.ROLLOUT_TURNS_BEFORE_HEURSISTIC);
             default:
+            case ScoringMethod.MaltheScoring:
+
                 throw new NotImplementedException("Tried to applied non-implemented scoring method: " + Bot.Settings.CHOSEN_SCORING_METHOD);
         }
     }
