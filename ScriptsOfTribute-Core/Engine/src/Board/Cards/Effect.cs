@@ -77,8 +77,8 @@ public class Effect : ComplexEffect
 
 public class EffectOr : ComplexEffect
 {
-    private readonly Effect _left;
-    private readonly Effect _right;
+    public readonly Effect _left; // I made these public as i was told that would be pushed in future code
+    public readonly Effect _right; // I made these public as i was told that would be pushed in future code
     public readonly int Combo;
 
     public EffectOr(Effect left, Effect right, int combo)
@@ -111,8 +111,8 @@ public class EffectOr : ComplexEffect
 
 public class EffectComposite : ComplexEffect
 {
-    private readonly Effect _left;
-    private readonly Effect _right;
+    public readonly Effect _left; // I made these public as i was told that would be pushed in future code
+    public readonly Effect _right; // I made these public as i was told that would be pushed in future code
 
     public EffectComposite(Effect left, Effect right)
     {
