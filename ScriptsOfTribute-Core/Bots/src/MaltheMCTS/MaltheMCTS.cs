@@ -17,13 +17,13 @@ public class MaltheMCTS : AI
     // FOR COMPUTATION BENCHMARK
     private int computationsCompleted = 0;
 
-    public MaltheMCTS(string? instanceName) : base()
+    public MaltheMCTS() : base()
     {
         Settings = new Settings(); // Hardcoded
-        instanceName = instanceName ?? "MaltheMCTS_" + Guid.NewGuid();
+        instanceName = "MaltheMCTS_" + Guid.NewGuid();
     }
 
-    public MaltheMCTS(Settings? settings = null) : base()
+    public MaltheMCTS(Settings? settings = null, string? instanceName = null) : base()
     {
         if (settings != null)
         {
@@ -33,6 +33,8 @@ public class MaltheMCTS : AI
         {
             Settings = new Settings(); // Hardcoded
         }
+
+        instanceName = instanceName ?? "MaltheMCTS_" + Guid.NewGuid();
     }
 
     public override void PregamePrepare()
