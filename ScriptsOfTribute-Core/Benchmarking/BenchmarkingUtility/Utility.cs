@@ -54,7 +54,7 @@ public static class Utility
             case "MCTSBot":
                 return new MCTSBot();
             case "MaltheMCTS":
-                return new MaltheMCTS.MaltheMCTS(Guid.NewGuid().ToString());
+                return new MaltheMCTS.MaltheMCTS(instanceName: Guid.NewGuid().ToString());
             case "PatronFavorsBot":
                 return new PatronFavorsBot();
             case "PatronSelectionTimeoutBot":
