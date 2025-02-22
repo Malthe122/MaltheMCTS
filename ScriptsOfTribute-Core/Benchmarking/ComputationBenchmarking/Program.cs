@@ -69,12 +69,6 @@ namespace ComputationBenchmarking
 
             var arguments = rootCommand.Parse(args);
 
-            var bots = arguments.GetValueForOption(botsOption);
-            var numberOfMatchups = arguments.GetValueForOption(numberOfMatchupsOption);
-            var timeout = arguments.GetValueForOption(timeoutOption);
-            var threads = arguments.GetValueForOption(threadsOption);
-            var benchmarkName = arguments.GetValueForOption(nameOption);
-
             rootCommand.SetHandler(
                 BenchmarkComputation,
                 botsOption, numberOfMatchupsOption, timeoutOption, threadsOption, nameOption
