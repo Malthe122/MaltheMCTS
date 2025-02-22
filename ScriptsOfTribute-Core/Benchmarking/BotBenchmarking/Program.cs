@@ -90,7 +90,6 @@ namespace BotBenchmarking
             await rootCommand.InvokeAsync(args);
         }
 
-
         private static async Task Benchmark(List<string> bots, int numberOfMatchups, int timeout, int threads, string benchmarkName, bool skipExternalMatches, string? maltheMCTSSettingsFile)
         {
             // TODO update to parallel with seperate memory, if i manage to implement that
@@ -161,7 +160,7 @@ namespace BotBenchmarking
                     (bot2 as MaltheMCTS.MaltheMCTS).Settings = maltheMCTSSettings;
                 }
 
-                var match = new ScriptsOfTribute.AI.ScriptsOfTribute(Utility.CreateBot(matchup.Item1), Utility.CreateBot(matchup.Item2), TimeSpan.FromSeconds(timeout));
+                var match = new ScriptsOfTribute.AI.ScriptsOfTribute(bot1, bot2, TimeSpan.FromSeconds(timeout));
                 var result = match.Play().Item1;
                 switch (result.Winner)
                 {
