@@ -17,24 +17,19 @@ public class MaltheMCTS : AI
     // FOR COMPUTATION BENCHMARK
     private int computationsCompleted = 0;
 
-    public MaltheMCTS() : base()
+    public MaltheMCTS(string? instanceName = null, Settings? settings = null) : base()
     {
-        Settings = new Settings(); // Hardcoded
-        instanceName = "MaltheMCTS_" + Guid.NewGuid();
+        this.instanceName = instanceName ?? "MaltheMCTS_" + Guid.NewGuid();
+        Settings = settings ?? new Settings(); // Hardcoded
     }
 
-    public MaltheMCTS(Settings? settings = null, string? instanceName = null) : base()
+    /// <summary>
+    /// Explicitly parameterless constructor is needed for SoT framework
+    /// </summary>
+    public MaltheMCTS() : base()
     {
-        if (settings != null)
-        {
-            this.Settings = settings;
-        }
-        else
-        {
-            Settings = new Settings(); // Hardcoded
-        }
-
-        instanceName = instanceName ?? "MaltheMCTS_" + Guid.NewGuid();
+        instanceName = "MaltheMCTS_" + Guid.NewGuid();
+        Settings = new Settings(); // Hardcoded
     }
 
     public override void PregamePrepare()
