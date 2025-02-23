@@ -18,7 +18,7 @@ namespace MaltheMCTS
         /// <summary>
         /// Zero-sum score, where 1 represents a perfect state for the current player and -1 represents a perfect state for the opponent player
         /// </summary>
-        public static double Score(GameState gameState, bool useManualModel)
+        public static double Score(SeededGameState gameState, bool useManualModel)
         {
             double score = 0;
 
@@ -30,6 +30,7 @@ namespace MaltheMCTS
             // decks (and combo synergies)
             var currentPlayerCompleteDeck = new List<Card>();
             currentPlayerCompleteDeck.AddRange(gameState.CurrentPlayer.Hand);
+            currentPlayerCompleteDeck.AddRange(gameState.CurrentPlayer.DrawPile);
             currentPlayerCompleteDeck.AddRange(gameState.CurrentPlayer.Played);
             currentPlayerCompleteDeck.AddRange(gameState.CurrentPlayer.CooldownPile);
             currentPlayerCompleteDeck.AddRange(gameState.CurrentPlayer.Agents.Where(a => a.RepresentingCard.Type != CardType.CONTRACT_AGENT).Select(a => a.RepresentingCard));
@@ -37,7 +38,7 @@ namespace MaltheMCTS
             var currentPlayerDeckStrengths = ScoreStrengthsInDeck(currentPlayerCompleteDeck, currentPlayerPatronToDeckRatio);
 
             var opponentCompleteDeck = new List<Card>();
-            opponentCompleteDeck.AddRange(gameState.EnemyPlayer.HandAndDraw);
+            opponentCompleteDeck.AddRange(gameState.EnemyPlayer.DrawPile);
             opponentCompleteDeck.AddRange(gameState.EnemyPlayer.Played);
             opponentCompleteDeck.AddRange(gameState.EnemyPlayer.CooldownPile);
             opponentCompleteDeck.AddRange(gameState.EnemyPlayer.Agents.Where(a => a.RepresentingCard.Type != CardType.CONTRACT_AGENT).Select(a => a.RepresentingCard));

@@ -29,7 +29,7 @@ public class Settings
         INCLUDE_PLAY_MOVE_CHANCE_NODES = true;
         INCLUDE_END_TURN_CHANCE_NODES = true;
         CHOSEN_EVALUATION_METHOD = EvaluationMethod.UCT;
-        CHOSEN_SCORING_METHOD = ScoringMethod.RolloutTurnsCompletionsThenHeuristic;
+        CHOSEN_SCORING_METHOD = ScoringMethod.MaltheScoring;
             ROLLOUT_TURNS_BEFORE_HEURSISTIC = 1;
             MANUAL_MODEL = true;
         REUSE_TREE = true;
