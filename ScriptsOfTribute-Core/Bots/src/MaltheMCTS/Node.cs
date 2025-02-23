@@ -124,7 +124,7 @@ public class Node
             case ScoringMethod.BestMCTS3Heuristic:
                 return Utility.UseBestMCTS3Heuristic(GameState, false);
             case ScoringMethod.RolloutTurnsCompletionsThenHeuristic:
-                return RolloutTillTurnsEndThenHeuristic(Bot.Settings.ROLLOUT_TURNS_BEFORE_HEURSISTIC);
+                return RolloutTillTurnsEndThenHeuristic(Bot.Settings.ROLLOUT_TURNS_BEFORE_HEURISTIC);
             default:
             case ScoringMethod.MaltheScoring:
 
