@@ -27,7 +27,7 @@ namespace SimpleBots.src.MaltheMCTS.Utility
             int opponentPatronFavour)
         {
             int maxPrestige = Math.Max(currentPlayerPrestige, opponentPrestige);
-            double lateGameMultiplier = double.Max(maxPrestige / 40, 0.1); // 40 is the number where prestige starts being a win condition
+            double lateGameMultiplier = double.Max(maxPrestige / 40.0, 0.1); // 40 is the number where prestige starts being a win condition
             double earlyGameMultiplier = 1 - lateGameMultiplier;
             earlyGameMultiplier = double.Max(earlyGameMultiplier, 0.1);
 

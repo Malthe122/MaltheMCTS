@@ -1,6 +1,6 @@
 namespace MaltheMCTS;
 
-public enum EvaluationMethod
+public enum SelectionMethod
 {
     UCT,
     Custom
