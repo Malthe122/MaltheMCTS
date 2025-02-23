@@ -9,7 +9,7 @@ public class Settings
     public bool FORCE_DELAY_TURN_END_IN_ROLLOUT { get; set; }
     public bool INCLUDE_PLAY_MOVE_CHANCE_NODES { get; set; }
     public bool INCLUDE_END_TURN_CHANCE_NODES { get; set; }
-    public EvaluationMethod CHOSEN_EVALUATION_METHOD { get; set; }
+    public SelectionMethod CHOSEN_SELECTION_METHOD { get; set; }
     public ScoringMethod CHOSEN_SCORING_METHOD { get; set; }
         // These indent properties are dependent on the chosen scoring method to be relevant
         public int ROLLOUT_TURNS_BEFORE_HEURISTIC { get; set; }
@@ -28,8 +28,8 @@ public class Settings
         FORCE_DELAY_TURN_END_IN_ROLLOUT = true;
         INCLUDE_PLAY_MOVE_CHANCE_NODES = true;
         INCLUDE_END_TURN_CHANCE_NODES = true;
-        CHOSEN_EVALUATION_METHOD = EvaluationMethod.UCT;
-        CHOSEN_SCORING_METHOD = ScoringMethod.RolloutTurnsCompletionsThenHeuristic;
+        CHOSEN_SELECTION_METHOD = SelectionMethod.UCT;
+        CHOSEN_SCORING_METHOD = ScoringMethod.MaltheScoring;
             ROLLOUT_TURNS_BEFORE_HEURISTIC = 1;
             MANUAL_MODEL = true;
         REUSE_TREE = true;
@@ -43,7 +43,7 @@ public class Settings
                 $"FORCE_DELAY_TURN_END_IN_ROLLOUT={FORCE_DELAY_TURN_END_IN_ROLLOUT}\n" +
                 $"INCLUDE_PLAY_MOVE_CHANCE_NODES={INCLUDE_PLAY_MOVE_CHANCE_NODES}\n" +
                 $"INCLUDE_END_TURN_CHANCE_NODES={INCLUDE_END_TURN_CHANCE_NODES}\n" +
-                $"CHOSEN_EVALUATION_METHOD={CHOSEN_EVALUATION_METHOD}\n" +
+                $"CHOSEN_SELECTION_METHOD={CHOSEN_SELECTION_METHOD}\n" +
                 $"MANUAL_MODEL={MANUAL_MODEL}\n" +
                 $"CHOSEN_SCORING_METHOD={CHOSEN_SCORING_METHOD}\n" +
                 $"ROLLOUT_TURNS_BEFORE_HEURISTIC={ROLLOUT_TURNS_BEFORE_HEURISTIC}\n" +

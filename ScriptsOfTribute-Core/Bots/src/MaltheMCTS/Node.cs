@@ -125,9 +125,9 @@ public class Node
                 return Utility.UseBestMCTS3Heuristic(GameState, false);
             case ScoringMethod.RolloutTurnsCompletionsThenHeuristic:
                 return RolloutTillTurnsEndThenHeuristic(Bot.Settings.ROLLOUT_TURNS_BEFORE_HEURISTIC);
-            default:
             case ScoringMethod.MaltheScoring:
-
+                return HeuristicScoring.Score(GameState, true);
+            default:
                 throw new NotImplementedException("Tried to applied non-implemented scoring method: " + Bot.Settings.CHOSEN_SCORING_METHOD);
         }
     }
@@ -236,13 +236,13 @@ public class Node
     /// <returns></returns>
     public double GetConfidenceScore(int parentVisitCount)
     {
-        switch (Bot.Settings.CHOSEN_EVALUATION_METHOD)
+        switch (Bot.Settings.CHOSEN_SELECTION_METHOD)
         {
-            case EvaluationMethod.UCT:
+            case SelectionMethod.UCT:
                 double exploitation = TotalScore / VisitCount;
                 double exploration = Bot.Settings.UCT_EXPLORATION_CONSTANT * Math.Sqrt(Math.Log(parentVisitCount) / VisitCount);
                 return exploitation + exploration;
-            case EvaluationMethod.Custom:
+            case SelectionMethod.Custom:
                 return TotalScore - VisitCount;
             default:
                 return 0;

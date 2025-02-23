@@ -18,7 +18,7 @@ namespace MaltheMCTS
         /// <summary>
         /// Zero-sum score, where 1 represents a perfect state for the current player and -1 represents a perfect state for the opponent player
         /// </summary>
-        public static double Score(GameState gameState, bool useManualModel)
+        public static double Score(SeededGameState gameState, bool useManualModel)
         {
             double score = 0;
 
@@ -30,18 +30,19 @@ namespace MaltheMCTS
             // decks (and combo synergies)
             var currentPlayerCompleteDeck = new List<Card>();
             currentPlayerCompleteDeck.AddRange(gameState.CurrentPlayer.Hand);
+            currentPlayerCompleteDeck.AddRange(gameState.CurrentPlayer.DrawPile);
             currentPlayerCompleteDeck.AddRange(gameState.CurrentPlayer.Played);
             currentPlayerCompleteDeck.AddRange(gameState.CurrentPlayer.CooldownPile);
             currentPlayerCompleteDeck.AddRange(gameState.CurrentPlayer.Agents.Where(a => a.RepresentingCard.Type != CardType.CONTRACT_AGENT).Select(a => a.RepresentingCard));
-            var currentPlayerPatronToDeckRatio = GetPatronRatios(currentPlayerCompleteDeck);
+            var currentPlayerPatronToDeckRatio = GetPatronRatios(currentPlayerCompleteDeck, gameState.Patrons);
             var currentPlayerDeckStrengths = ScoreStrengthsInDeck(currentPlayerCompleteDeck, currentPlayerPatronToDeckRatio);
 
             var opponentCompleteDeck = new List<Card>();
-            opponentCompleteDeck.AddRange(gameState.EnemyPlayer.HandAndDraw);
+            opponentCompleteDeck.AddRange(gameState.EnemyPlayer.DrawPile);
             opponentCompleteDeck.AddRange(gameState.EnemyPlayer.Played);
             opponentCompleteDeck.AddRange(gameState.EnemyPlayer.CooldownPile);
             opponentCompleteDeck.AddRange(gameState.EnemyPlayer.Agents.Where(a => a.RepresentingCard.Type != CardType.CONTRACT_AGENT).Select(a => a.RepresentingCard));
-            var opponentPatronToDeckRatio = GetPatronRatios(opponentCompleteDeck);
+            var opponentPatronToDeckRatio = GetPatronRatios(opponentCompleteDeck, gameState.Patrons);
             var opponentDeckStrengths = ScoreStrengthsInDeck(opponentCompleteDeck, opponentPatronToDeckRatio);
 
             // agents
@@ -94,18 +95,18 @@ namespace MaltheMCTS
             }
         }
 
-        private static Dictionary<PatronId, double> GetPatronRatios(List<Card> deck)
+        private static Dictionary<PatronId, double> GetPatronRatios(List<Card> deck, List<PatronId> patrons)
         {
             var patronToAmount = new Dictionary<PatronId, int>(); // todo Check if Bewilderment has the creating PatronId and whether it does contribute to combo effects
             var patronToDeckRatio = new Dictionary<PatronId, double>();
 
+            foreach(var patron in patrons)
+            {
+                patronToAmount.Add(patron, 0);
+            }
+
             foreach (var currCard in deck)
             {
-                if (!patronToAmount.ContainsKey(currCard.Deck))
-                {
-                    patronToAmount.Add(currCard.Deck, 0);
-                }
-
                 patronToAmount[currCard.Deck]++;
             }
 
@@ -159,7 +160,14 @@ namespace MaltheMCTS
             var result = new CardStrengths();
             foreach (var effect in card.Effects)
             {
-                result += ScoreComplexEffectStrengthsInDeck(effect, patronToDeckRatio, deckSize);
+                if (effect == null)
+                {
+                    continue;
+                }
+                else
+                {
+                    result += ScoreComplexEffectStrengthsInDeck(effect, patronToDeckRatio, deckSize);
+                }
             }
 
             return result;
@@ -219,7 +227,10 @@ namespace MaltheMCTS
                     break;
             }
 
-            result = result * GetComboProbability(effect, patronToDeckRatio, deckSize);
+            if (effect.Combo > 1)
+            {
+                result = result * GetComboProbability(effect, patronToDeckRatio, deckSize);
+            }
 
             return result;
         }
