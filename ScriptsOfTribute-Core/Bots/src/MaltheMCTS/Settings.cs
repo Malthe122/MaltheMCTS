@@ -12,7 +12,7 @@ public class Settings
     public EvaluationMethod CHOSEN_EVALUATION_METHOD { get; set; }
     public ScoringMethod CHOSEN_SCORING_METHOD { get; set; }
         // These indent properties are dependent on the chosen scoring method to be relevant
-        public int ROLLOUT_TURNS_BEFORE_HEURSISTIC { get; set; }
+        public int ROLLOUT_TURNS_BEFORE_HEURISTIC { get; set; }
         /// <summary>
         /// This should be false, when a proper gradient (or different) model is implemented, but allows benchmark to check
         /// if the trained model actually does a better job than custom built model
@@ -30,7 +30,7 @@ public class Settings
         INCLUDE_END_TURN_CHANCE_NODES = true;
         CHOSEN_EVALUATION_METHOD = EvaluationMethod.UCT;
         CHOSEN_SCORING_METHOD = ScoringMethod.MaltheScoring;
-            ROLLOUT_TURNS_BEFORE_HEURSISTIC = 1;
+            ROLLOUT_TURNS_BEFORE_HEURISTIC = 1;
             MANUAL_MODEL = true;
         REUSE_TREE = true;
         SIMULATE_MULTIPLE_TURNS = false;
@@ -46,12 +46,12 @@ public class Settings
                 $"CHOSEN_EVALUATION_METHOD={CHOSEN_EVALUATION_METHOD}\n" +
                 $"MANUAL_MODEL={MANUAL_MODEL}\n" +
                 $"CHOSEN_SCORING_METHOD={CHOSEN_SCORING_METHOD}\n" +
-                $"ROLLOUT_TURNS_BEFORE_HEURSISTIC={ROLLOUT_TURNS_BEFORE_HEURSISTIC}\n" +
+                $"ROLLOUT_TURNS_BEFORE_HEURISTIC={ROLLOUT_TURNS_BEFORE_HEURISTIC}\n" +
                 $"SIMULATE_MULTIPLE_TURNS={SIMULATE_MULTIPLE_TURNS}\n" +
                 $"REUSE_TREE={REUSE_TREE}";
     }
 
-    public static Settings LoadSettingsFromFile(string filePath)
+    public static Settings LoadFromFile(string filePath)
     {
         var result = new Settings();
         var lines = File.ReadAllLines(filePath);

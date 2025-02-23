@@ -88,8 +88,8 @@ namespace MaltheMCTSSettingsBenchmarking
 
             rootCommand.SetHandler(async (file1, file2, numberOfMatchups, timeout, threads, benchmarkName) =>
             {
-                var settings1 = Settings.LoadSettingsFromFile(file1);
-                var settings2 = Settings.LoadSettingsFromFile(file2);
+                var settings1 = Settings.LoadFromFile(file1);
+                var settings2 = Settings.LoadFromFile(file2);
 
                 await Benchmark(settings1, settings2, numberOfMatchups, timeout, threads, benchmarkName);
             }, file1Option, file2Option, numberOfMatchupsOption, timeoutOption, threadsOption, nameOption);
@@ -144,8 +144,8 @@ namespace MaltheMCTSSettingsBenchmarking
 
             Parallel.For(0, numberOfMatchups, options, matchup =>
             {
-                var bot1 = new MaltheMCTS.MaltheMCTS(settings1);
-                var bot2 = new MaltheMCTS.MaltheMCTS(settings2);
+                var bot1 = new MaltheMCTS.MaltheMCTS(settings: settings1);
+                var bot2 = new MaltheMCTS.MaltheMCTS(settings: settings2);
 
                 var match = new ScriptsOfTribute.AI.ScriptsOfTribute(bot1, bot2, TimeSpan.FromSeconds(timeout));
                 var result = match.Play().Item1;

@@ -54,7 +54,7 @@ public static class Utility
             case "MCTSBot":
                 return new MCTSBot();
             case "MaltheMCTS":
-                return new MaltheMCTS.MaltheMCTS(Guid.NewGuid().ToString());
+                return new MaltheMCTS.MaltheMCTS(instanceName: Guid.NewGuid().ToString());
             case "PatronFavorsBot":
                 return new PatronFavorsBot();
             case "PatronSelectionTimeoutBot":
@@ -69,6 +69,16 @@ public static class Utility
                 return new RandomWithoutEndTurnBot();
             case "TurnTimeoutBot":
                 return new TurnTimeoutBot();
+            case "BestMCTS3":
+                return new BestMCTS3.BestMCTS3();
+            case "HQL_BOT":
+                return new HQL_BOT.HQL_BOT();
+            case "Sakkiring":
+                return new Sakkirin.Sakkirin();
+            case "SOISMCTS":
+                return new SOISMCTS.SOISMCTS();
+            case "ToT-BoT":
+                throw new NotImplementedException("Benchmark does not include the feature of running python bots yet");
             default:
                 throw new ArgumentException($"Bot '{botName}' is not recognized.");
                 // TODO add tournament bots
@@ -80,10 +90,10 @@ public static class Utility
         var bots = results.Keys.ToList();
         var sb = new System.Text.StringBuilder();
 
-        sb.Append("vs.");
+        sb.Append("vs");
         foreach (var bot in bots)
         {
-            sb.Append(",").Append(bot);
+            sb.Append(";").Append(bot);
         }
         sb.AppendLine();
 
@@ -95,11 +105,11 @@ public static class Utility
                 if (results[bot1].TryGetValue(bot2, out int wins))
                 {
                     double winRate = (double)wins / matchesPerMatchup * 100.0;
-                    sb.Append(",").Append(winRate.ToString("F2"));
+                    sb.Append(";").Append(winRate.ToString("F2"));
                 }
                 else
                 {
-                    sb.Append(",0");
+                    sb.Append(";0");
                 }
             }
             sb.AppendLine();

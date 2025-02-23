@@ -79,29 +79,36 @@ public class Node
     {
         foreach (var currMove in PossibleMoves)
         {
+            Node newChild = null;
+
             if (!MoveToChildNode.Keys.Any(m => m.IsIdentical(currMove)))
             {
                 if (!Bot.Settings.SIMULATE_MULTIPLE_TURNS && currMove.Command == CommandEnum.END_TURN)
                 {
-                    var newChild = new EndNode(GameState, PossibleMoves, Bot);
-                    MoveToChildNode.Add(currMove, newChild);
-                    return newChild;
+                    newChild = new EndNode(GameState, PossibleMoves, Bot);
                 }
                 else if ((Bot.Settings.INCLUDE_PLAY_MOVE_CHANCE_NODES && currMove.IsNonDeterministic())
                     || Bot.Settings.INCLUDE_END_TURN_CHANCE_NODES && currMove.Command == CommandEnum.END_TURN)
                 {
-                    var newChild = new ChanceNode(GameState, this, currMove, Bot);
-                    MoveToChildNode.Add(currMove, newChild);
-                    return newChild;
+                    newChild = new ChanceNode(GameState, this, currMove, Bot);
                 }
                 else
                 {
                     ulong randomSeed = (ulong)Utility.Rng.Next();
                     var (newGameState, newPossibleMoves) = GameState.ApplyMove(currMove, randomSeed);
-                    var newChild = Utility.FindOrBuildNode(newGameState, this, newPossibleMoves, Bot);
-                    MoveToChildNode.Add(currMove, newChild);
-                    return newChild;
+                    newChild = Utility.FindOrBuildNode(newGameState, this, newPossibleMoves, Bot);
                 }
+
+                if (newChild != null &&
+                !Bot.Settings.SIMULATE_MULTIPLE_TURNS &&
+                newChild.PossibleMoves.Count == 1 &&
+                newChild.PossibleMoves[0].Command == CommandEnum.END_TURN)
+                {
+                    newChild = new EndNode(GameState, PossibleMoves, Bot);
+                }
+
+                MoveToChildNode.Add(currMove, newChild);
+                return newChild;
             }
         }
 
@@ -117,11 +124,10 @@ public class Node
             case ScoringMethod.BestMCTS3Heuristic:
                 return Utility.UseBestMCTS3Heuristic(GameState, false);
             case ScoringMethod.RolloutTurnsCompletionsThenHeuristic:
-                return RolloutTillTurnsEndThenHeuristic(Bot.Settings.ROLLOUT_TURNS_BEFORE_HEURSISTIC);
+                return RolloutTillTurnsEndThenHeuristic(Bot.Settings.ROLLOUT_TURNS_BEFORE_HEURISTIC);
             case ScoringMethod.MaltheScoring:
                 return HeuristicScoring.Score(GameState, true);
             default:
-
                 throw new NotImplementedException("Tried to applied non-implemented scoring method: " + Bot.Settings.CHOSEN_SCORING_METHOD);
         }
     }
