@@ -87,7 +87,7 @@ public class Node
                 {
                     newChild = new EndNode(GameState, PossibleMoves, Bot);
                 }
-                else if ((Bot.Settings.INCLUDE_PLAY_MOVE_CHANCE_NODES && currMove.IsNonDeterministic())
+                else if ((Bot.Settings.INCLUDE_PLAY_MOVE_CHANCE_NODES && currMove.IsStochastic(GameState))
                     || Bot.Settings.INCLUDE_END_TURN_CHANCE_NODES && currMove.Command == CommandEnum.END_TURN)
                 {
                     newChild = new ChanceNode(GameState, this, currMove, Bot);
