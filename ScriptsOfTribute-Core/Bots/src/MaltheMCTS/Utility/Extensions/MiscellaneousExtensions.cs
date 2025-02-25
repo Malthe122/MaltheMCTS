@@ -12,7 +12,7 @@ public static class MiscellaneousExtensions{
     /// </summary>
     /// <param name="move"></param>
     /// <returns></returns>
-    public static bool IsStochastic(this Move move, SeededGameState gameState = null)
+    public static bool IsStochastic(this Move move, SeededGameState gameState)
     {
         if (move.Command == CommandEnum.END_TURN)
         {
@@ -44,17 +44,19 @@ public static class MiscellaneousExtensions{
             case SimplePatronMove:
                 return false;
             case MakeChoiceMoveUniqueCard:
-                var makeChoiceMoveUniqueCard = move as MakeChoiceMoveUniqueCard;
-                var cardChoices = makeChoiceMoveUniqueCard.Choices;
-                return false; 
-                // Here i have to return false, althoug REPLACE causes a random effect, but the fact that it is a replace move is not given anywhere in the move
-                // But has to be known from the previously played card (which itself is not a stochastic effect either, as the random effect comes when choosing what
-                // to replace. TODO fix
+                // TODO some cards needs to be recognized as causing a stochastic effect on the NEXT move (such as replace tavern effect, where the move afterwards of choosing a card is what causes the random effect)
+                // then the last played card needs to be found and if its such an effect (and the choices contains any items), then the move is stochastic. A draft for this exists below
+                //var makeChoiceMoveUniqueCard = move as MakeChoiceMoveUniqueCard;
+                //var cardChoices = makeChoiceMoveUniqueCard.Choices;
+                //var list = gameState.CompletedActions.OrderBy(a => a.TargetCard?.CommonId.ToString() ?? "").ToList();
+                //if (gameState.CompletedActions[gameState.CompletedActions.Count - 1].TargetCard?.CommonId == CardId.BARTERER)
+                //{
+                //}
+                return false;
             case MakeChoiceMoveUniqueEffect:
                 var makeChoiceMoveUniqueEffect = move as MakeChoiceMoveUniqueEffect;
                 var effectChoices = makeChoiceMoveUniqueEffect.Choices;
-                var res = makeChoiceMoveUniqueEffect.Choices.Any(e => e.IsStochastic());
-                return res;
+                return makeChoiceMoveUniqueEffect.Choices.Any(e => e.IsStochastic());
             default:
                 throw new Exception("Unknown move type: " + move.GetType().Name);
         }
