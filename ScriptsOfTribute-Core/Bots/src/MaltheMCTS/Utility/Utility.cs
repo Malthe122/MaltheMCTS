@@ -110,7 +110,7 @@ public static class Utility
     {
         foreach(var card in GlobalCardDatabase.Instance.AllCards) {
             // Effect 0 is play/activation effect
-            // TODO handle combos
+            // FUTURE handle combos
             if (card.Effects[0].IsStochastic()) {
                 RANDOM_EFFECT_CARDS.Add(card.CommonId);
             }

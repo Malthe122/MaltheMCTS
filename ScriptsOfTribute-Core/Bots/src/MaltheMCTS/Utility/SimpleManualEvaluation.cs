@@ -15,16 +15,16 @@ namespace SimpleBots.src.MaltheMCTS.Utility
         const double DECK_MULTIPLIER = 3;
         const double BASE_PATRON_VALUE = 1.5;
 
-        public static double Evaluate(int currentPlayerPrestige,
-            int currentPlayerPower,
-            int currentPlayerCoins,
-            CardStrengths currentPlayerDeckStrengths,
-            CardStrengths currentPlayerAgentStrengths,
-            int currentPlayerPatronFavour,
+        public static double Evaluate(
+            int currentPlayerPrestige,
+            CardStrengths currentPlayerDeckStrengths, // 4 values
+            CardStrengths currentPlayerAgentStrengths, // 4 values
+            int currentPlayerPatronFavour, // just a counter
             int opponentPrestige,
-            CardStrengths opponentDeckStrengths,
-            CardStrengths opponentAgentStrengths,
-            int opponentPatronFavour)
+            CardStrengths opponentDeckStrengths, // 4 values
+            CardStrengths opponentAgentStrengths, // 4 values
+            int opponentPatronFavour // hyst a counter
+            )
         {
             int maxPrestige = Math.Max(currentPlayerPrestige, opponentPrestige);
             double lateGameMultiplier = double.Max(maxPrestige / 40.0, 0.1); // 40 is the number where prestige starts being a win condition
