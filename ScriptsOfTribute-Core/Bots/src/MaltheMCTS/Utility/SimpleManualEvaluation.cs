@@ -17,13 +17,15 @@ namespace SimpleBots.src.MaltheMCTS.Utility
 
         public static double Evaluate(
             int currentPlayerPrestige,
-            CardStrengths currentPlayerDeckStrengths, // 4 values
-            CardStrengths currentPlayerAgentStrengths, // 4 values
-            int currentPlayerPatronFavour, // just a counter
+            int currentPlayerPower,
+            CardStrengths currentPlayerDeckStrengths,
+            double currentPlayerDeckComboProportion,
+            CardStrengths currentPlayerAgentStrengths,
+            int currentPlayerPatronFavour,
             int opponentPrestige,
-            CardStrengths opponentDeckStrengths, // 4 values
-            CardStrengths opponentAgentStrengths, // 4 values
-            int opponentPatronFavour // hyst a counter
+            CardStrengths opponentDeckStrengths,
+            CardStrengths opponentAgentStrengths,
+            int opponentPatronFavour
             )
         {
             int maxPrestige = Math.Max(currentPlayerPrestige, opponentPrestige);
@@ -31,7 +33,7 @@ namespace SimpleBots.src.MaltheMCTS.Utility
             double earlyGameMultiplier = 1 - lateGameMultiplier;
             earlyGameMultiplier = double.Max(earlyGameMultiplier, 0.1);
 
-            double currentPlayerResourceValue = ((currentPlayerPrestige + currentPlayerPower) * lateGameMultiplier) + currentPlayerCoins * earlyGameMultiplier;
+            double currentPlayerResourceValue = ((currentPlayerPrestige + currentPlayerPower) * lateGameMultiplier);
             double opponentResourceValue = (opponentPrestige * lateGameMultiplier);
             
             double currentPlayerDeckValue = GetDeckValue(currentPlayerDeckStrengths, lateGameMultiplier, earlyGameMultiplier);

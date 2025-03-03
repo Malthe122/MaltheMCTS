@@ -92,9 +92,9 @@ namespace BotBenchmarking
 
         private static async Task Benchmark(List<string> bots, int numberOfMatchups, int timeout, int threads, string benchmarkName, bool skipExternalMatches, string? maltheMCTSSettingsFile)
         {
-            // TODO update to parallel with seperate memory, if i manage to implement that
+            // FUTURE update to parallel with seperate memory, if i manage to implement that
 
-            // TODO add something about win reason
+            // FUTURE add something about win reason
 
             Directory.CreateDirectory(benchmarkName);
 

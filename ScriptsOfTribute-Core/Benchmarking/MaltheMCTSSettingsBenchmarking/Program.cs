@@ -100,9 +100,9 @@ namespace MaltheMCTSSettingsBenchmarking
 
         private static async Task Benchmark(Settings settings1, Settings settings2, int numberOfMatchups, int timeout, int threads, string benchmarkName)
         {
-            // TODO update to parallel with seperate memory, if i manage to implement that
+            // FUTURE update to parallel with seperate memory, if i manage to implement that
 
-            // TODO add something about win reason
+            // FUTURE add something about win reason
 
             Directory.CreateDirectory(benchmarkName);
 
