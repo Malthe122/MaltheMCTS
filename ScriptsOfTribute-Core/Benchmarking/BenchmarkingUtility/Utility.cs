@@ -81,7 +81,6 @@ public static class Utility
                 throw new NotImplementedException("Benchmark does not include the feature of running python bots yet");
             default:
                 throw new ArgumentException($"Bot '{botName}' is not recognized.");
-                // TODO add tournament bots
         }
     }
 

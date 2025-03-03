@@ -14,18 +14,34 @@ namespace MaltheMCTS
     {
         private const double BASE_AGENT_STRENGTH_MULTIPLIER = 1;
         private const double AGENT_HP_VALUE_MULTIPLIER = 0.1;
+        private const double CHOICE_WEIGHT = 0.75;
 
         /// <summary>
-        /// Zero-sum score, where 1 represents a perfect state for the current player and -1 represents a perfect state for the opponent player
+        /// To lower the amount of variables (hand strengths, patron moves available, coins, power, whether agents have been activated) the model needs to process,
+        /// this model scores states just before ending turn
         /// </summary>
-        public static double Score(SeededGameState gameState, bool useManualModel)
+        public static double Score(SeededGameState gameState, bool useManualModel, bool endOfTurnExclusive = true)
         {
             double score = 0;
+
+            // The manual model does not return either 0 and 1 or -1 and 1, so this logic does not apply for it
+            if (!useManualModel){
+                var winner = CheckWinner(gameState, endOfTurnExclusive);
+
+                if (winner == gameState.CurrentPlayer.PlayerID)
+                {
+                    return 1;
+                }
+                else if (winner == gameState.EnemyPlayer.PlayerID)
+                {
+                    return 0; // Consider if i should measure score as win probability (0-1) or zero sum score
+                }
+            }
+
 
             // base resources
             int currentPlayerPrestige = gameState.CurrentPlayer.Prestige;
             int currentPlayerPower = gameState.CurrentPlayer.Power;
-            //int currentPlayerCoins = gameState.CurrentPlayer.Coins; // Decided to remove this, then rollout to end of turn, to get a less complicated state to evaluate
             int opponentPrestige = gameState.EnemyPlayer.Prestige;
             // decks (and combo synergies)
             var currentPlayerCompleteDeck = new List<Card>();
@@ -36,6 +52,9 @@ namespace MaltheMCTS
             currentPlayerCompleteDeck.AddRange(gameState.CurrentPlayer.Agents.Where(a => a.RepresentingCard.Type != CardType.CONTRACT_AGENT).Select(a => a.RepresentingCard));
             var currentPlayerPatronToDeckRatio = GetPatronRatios(currentPlayerCompleteDeck, gameState.Patrons);
             var currentPlayerDeckStrengths = ScoreStrengthsInDeck(currentPlayerCompleteDeck, currentPlayerPatronToDeckRatio);
+
+            // To allow model to value putting combo cards into your deck before they have an effect
+            double currentPlayerDeckComboProportion = currentPlayerCompleteDeck.Where(c => c.Deck != PatronId.TREASURY).Count() / currentPlayerCompleteDeck.Count;
 
             var opponentCompleteDeck = new List<Card>();
             opponentCompleteDeck.AddRange(gameState.EnemyPlayer.DrawPile);
@@ -67,14 +86,57 @@ namespace MaltheMCTS
                 }
             }
 
-            return ModelEvaluation(currentPlayerPrestige, currentPlayerPower, 0, currentPlayerDeckStrengths, currentPlayerAgentStrengths, currentPlayerPatronFavour,
+            return ModelEvaluation(currentPlayerPrestige, currentPlayerPower, currentPlayerDeckStrengths, currentPlayerDeckComboProportion, currentPlayerAgentStrengths, currentPlayerPatronFavour,
                                     opponentPrestige, opponentDeckStrengths, opponentAgentStrengths, opponentPatronFavour, useManualModel);
         }
 
-        private static double ModelEvaluation(int currentPlayerPrestige,
+        private static PlayerEnum CheckWinner(SeededGameState gameState, bool endOfTurnExclusiveEvaluation)
+        {
+            int currentPlayerPrestige = gameState.CurrentPlayer.Prestige;
+            int opponentPrestige = gameState.EnemyPlayer.Prestige;
+
+            if (currentPlayerPrestige >= 80)
+            {
+                return gameState.CurrentPlayer.PlayerID;
+            }
+
+            int opponentTaunt = gameState.EnemyPlayer.Agents.Where(a => a.RepresentingCard.Taunt).Sum(a => a.CurrentHp);
+            int power = gameState.CurrentPlayer.Power;
+
+            if((power - opponentTaunt) + currentPlayerPrestige >= 80)
+            {
+                return gameState.CurrentPlayer.PlayerID;
+            }
+
+            if(endOfTurnExclusiveEvaluation && opponentPrestige >= 40 && opponentPrestige > currentPlayerPrestige)
+            {
+                return gameState.EnemyPlayer.PlayerID;
+            }
+
+
+            int patronCount = 0;
+
+            foreach(var patron in gameState.PatronStates.All)
+            {
+                if (patron.Value == gameState.CurrentPlayer.PlayerID)
+                {
+                    patronCount++;
+                }
+            }
+
+            if (patronCount >= 4)
+            {
+                return gameState.CurrentPlayer.PlayerID;
+            }
+
+            return PlayerEnum.NO_PLAYER_SELECTED;
+        }
+
+        private static double ModelEvaluation(
+            int currentPlayerPrestige,
             int currentPlayerPower,
-            int currentPlayerCoins,
             CardStrengths currentPlayerDeckStrengths,
+            double currentPlayerDeckComboProportion,
             CardStrengths currentPlayerAgentStrengths,
             int currentPlayerPatronFavour,
             int opponentPrestige,
@@ -85,7 +147,7 @@ namespace MaltheMCTS
         {
             if (useManualModel)
             {
-                return SimpleManualEvaluation.Evaluate(currentPlayerPrestige, currentPlayerPower, currentPlayerCoins, currentPlayerDeckStrengths, currentPlayerAgentStrengths, currentPlayerPatronFavour,
+                return SimpleManualEvaluation.Evaluate(currentPlayerPrestige, currentPlayerPower, currentPlayerDeckStrengths, currentPlayerDeckComboProportion, currentPlayerAgentStrengths, currentPlayerPatronFavour,
                                     opponentPrestige, opponentDeckStrengths, opponentAgentStrengths, opponentPatronFavour);
             }
             else
@@ -97,7 +159,7 @@ namespace MaltheMCTS
 
         private static Dictionary<PatronId, double> GetPatronRatios(List<Card> deck, List<PatronId> patrons)
         {
-            var patronToAmount = new Dictionary<PatronId, int>(); // todo Check if Bewilderment has the creating PatronId and whether it does contribute to combo effects
+            var patronToAmount = new Dictionary<PatronId, int>();
             var patronToDeckRatio = new Dictionary<PatronId, double>();
 
             foreach(var patron in patrons)
@@ -141,22 +203,18 @@ namespace MaltheMCTS
         {
             var summedStrengths = new CardStrengths();
 
-            // TODO handle draw effects
-
             foreach (var currCard in deck)
             {
                 summedStrengths += ScoreStrengthsInDeck(currCard, patronToDeckRatio[currCard.Deck], deck.Count);
             }
 
-            // TODO maybe this is where we need to look at draw effects afterwards
+            // FUTURE maybe this is where we need to look at draw effects afterwards
 
-            return summedStrengths / deck.Count();
+            return summedStrengths / deck.Count;
         }
 
         private static CardStrengths ScoreStrengthsInDeck(Card card, double patronToDeckRatio, int deckSize)
         {
-            // TODO handle taunt being valueable when having good agents in deck
-            // TODO handle effects on agents being multiplied or something as they will either be available as well on next turn
             var result = new CardStrengths();
             foreach (var effect in card.Effects)
             {
@@ -185,11 +243,11 @@ namespace MaltheMCTS
                     var effect2Strengths = ScoreEffectStrengthsInDeck(effectComposite._left, patronToDeckRatio, deckSize);
                     return effect1Strengths + effect2Strengths;
                 case EffectOr:
-                    // TODO Find a way to reward for providing reward for providing 2 options. Currently just considers the first option
                     var effectOr = (effect as EffectOr)!;
                     var effectaStrengths = ScoreEffectStrengthsInDeck(effectOr._right, patronToDeckRatio, deckSize);
                     var effectbStrengths = ScoreEffectStrengthsInDeck(effectOr._left, patronToDeckRatio, deckSize);
-                    return effectaStrengths;
+                    // A way to give reward for both choices, but give a penalty for not being able to apply both
+                    return (effectaStrengths * CHOICE_WEIGHT) + (effectbStrengths * CHOICE_WEIGHT);
                 default:
                     throw new ArgumentException("Unexpected effect type: " + effect.GetType().Name);
             }
@@ -204,7 +262,7 @@ namespace MaltheMCTS
                 case EffectType.CREATE_SUMMERSET_SACKING:
                 case EffectType.DESTROY_CARD:
                 case EffectType.DRAW:
-                // TODO use overall strengths of deck if possible
+                // FUTURE use overall strengths of deck if possible
                 case EffectType.HEAL:
                 case EffectType.KNOCKOUT:
                 case EffectType.OPP_DISCARD:
@@ -212,7 +270,7 @@ namespace MaltheMCTS
                 case EffectType.REPLACE_TAVERN:
                 case EffectType.RETURN_TOP:
                 case EffectType.TOSS:
-                    // TODO find out what to do about these
+                    // FUTURE Do something more sophisticated with these
                     result.MiscellaneousStrength += 1;
                     break;
                 case EffectType.GAIN_COIN:
@@ -237,7 +295,7 @@ namespace MaltheMCTS
 
         private static double GetComboProbability(Effect effect, double patronToDeckRatio, int deckSize)
         {
-            // TODO replace with bionomial calculation as this is inaccurate as every time you draw a card beside this patron, the probability of drawing this patron is increased and vice versa (since you cant draw the same cards multiple times)
+            // FUTURE replace with bionomial calculation as this is inaccurate as every time you draw a card beside this patron, the probability of drawing this patron is increased and vice versa (since you cant draw the same cards multiple times)
             double drawProbability = 5 * patronToDeckRatio; //We draw 5 cards at start of each turn
             return Math.Pow(drawProbability, effect.Combo);
         }
