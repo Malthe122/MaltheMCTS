@@ -448,7 +448,6 @@ public class SOISMCTS : AI
         {
             if (_treeReuse)
             {
-                //TODO::do we need to do anything here? Can we get here with a previous node that is null?
                 //since we expect as soon as we get a choice all future moves will have a choice, until they dont
                 //but shouldnt have the situation where we have one filtered moves repeatedly, then a choice, then
                 //only one filtered move afterwards......
@@ -656,7 +655,7 @@ public class SOISMCTS : AI
                 move = selectedUVD.PickRandom(_intRng);
             }
             var (newSeededGameState, newMoves) = selectedNode.GetCurrentDeterminisation().GetState().ApplyMove(move);
-            List<Move> newFilteredMoves = FilterMoves(newMoves, newSeededGameState); //TODO:Should we be filtering here?
+            List<Move> newFilteredMoves = FilterMoves(newMoves, newSeededGameState);
             Determinisation newd = new Determinisation(newSeededGameState, newFilteredMoves);
             newNode = selectedNode.CreateChild(move, newd);
             pathThroughTree.Add(newNode);

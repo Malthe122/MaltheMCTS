@@ -91,7 +91,7 @@ public static class HandTierListSOISMCTS
         { CardId.SEA_RAIDERS_GLORY, B},
         { CardId.SERPENTPROW_SCHOONER, S},
         { CardId.SUMMERSET_SACKING, A},
-        { CardId.STORM_SHARK_WAVECALLER,  B}, //TODO:: check, game engine seems to classify the following sorcerer orgnum agents as actions? Or am I misunderstanding what a handTier list is?
+        { CardId.STORM_SHARK_WAVECALLER,  B},
         { CardId.SNAKESKIN_FREEBOOTER,  A},
         { CardId.SERPENTGUARD_RIDER, A},
     };
