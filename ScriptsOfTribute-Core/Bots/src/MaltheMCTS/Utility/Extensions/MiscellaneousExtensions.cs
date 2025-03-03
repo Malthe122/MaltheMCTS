@@ -1,9 +1,64 @@
 using ScriptsOfTribute;
 using ScriptsOfTribute.Board.Cards;
+using ScriptsOfTribute.Serializers;
 
 namespace MaltheMCTS;
 
 public static class MiscellaneousExtensions{
+
+    /// <summary>
+    /// Is not taking Combo effects into account at the moment, but here we should also not look at whether the played card has an effect, but also whether there is a combo cards already played that
+    /// will be activated by playing said card
+    /// </summary>
+    /// <param name="move"></param>
+    /// <returns></returns>
+    public static bool IsStochastic(this Move move, SeededGameState gameState = null)
+    {
+        if (move.Command == CommandEnum.END_TURN)
+        {
+            // In this context, i do not count end_turn as stochastic as there is another feature for including chance nodes for end_turn
+            return false;
+        }
+            
+        switch(move)
+        {
+            case SimpleCardMove:
+                var simpleCardMove = move as SimpleCardMove;
+                switch (simpleCardMove.Command)
+                {
+                    case CommandEnum.PLAY_CARD:
+                    case CommandEnum.ACTIVATE_AGENT:
+                        return Utility.RANDOM_EFFECT_CARDS.Contains(simpleCardMove.Card.CommonId);
+                    case CommandEnum.ATTACK:
+                    case CommandEnum.CALL_PATRON:
+                        return false;
+                    case CommandEnum.BUY_CARD:
+                        return
+                            (simpleCardMove.Card.Type == CardType.CONTRACT_ACTION || simpleCardMove.Card.Type == CardType.CONTRACT_AGENT)
+                            &&
+                            Utility.RANDOM_EFFECT_CARDS.Contains(simpleCardMove.Card.CommonId);
+                    case CommandEnum.MAKE_CHOICE:
+                        throw new ArgumentException("Simple card move, should not have this command enum: " + CommandEnum.MAKE_CHOICE);
+                }
+                throw new Exception("Unknown CommandEnum: " + simpleCardMove.Command);
+            case SimplePatronMove:
+                return false;
+            case MakeChoiceMoveUniqueCard:
+                var makeChoiceMoveUniqueCard = move as MakeChoiceMoveUniqueCard;
+                var cardChoices = makeChoiceMoveUniqueCard.Choices;
+                return false; 
+                // Here i have to return false, althoug REPLACE causes a random effect, but the fact that it is a replace move is not given anywhere in the move
+                // But has to be known from the previously played card (which itself is not a stochastic effect either, as the random effect comes when choosing what
+                // to replace. TODO fix
+            case MakeChoiceMoveUniqueEffect:
+                var makeChoiceMoveUniqueEffect = move as MakeChoiceMoveUniqueEffect;
+                var effectChoices = makeChoiceMoveUniqueEffect.Choices;
+                var res = makeChoiceMoveUniqueEffect.Choices.Any(e => e.IsStochastic());
+                return res;
+            default:
+                throw new Exception("Unknown move type: " + move.GetType().Name);
+        }
+    }
 
     public static bool IsStochastic(this UniqueComplexEffect effect) {
         if (effect == null)
@@ -21,11 +76,11 @@ public static class MiscellaneousExtensions{
                     // Unfortunately i have to do string comparison here, since the two effect properties are private on EffectComposite
                     return (effect as UniqueEffectComposite).ToSimpleString().Contains("DRAW");
                 case UniqueEffectOr:
-                    // For OR effects, i say that playing them dont create a random effect, since it only creates the choice. 7
+                    // For OR effects, i say that playing them dont create a random effect, since it only creates the choice.
                     // One of the chosen options can then create a random effect afterwards when chosen, but that is a seperate move
                     return false;
                 default:
-                    throw new Exception("Unknown effect type");
+                    throw new Exception("Unknown effect type: " + effect.GetType().Name);
         }
     }
 
@@ -63,7 +118,7 @@ public static class MiscellaneousExtensions{
             case MakeChoiceMoveUniqueEffect:
                 return false;
             default:
-                throw new Exception("Unknown move type");
+                throw new Exception("Unknown move type: " + move.GetType().Name);
         }
 }
     /// <summary>
