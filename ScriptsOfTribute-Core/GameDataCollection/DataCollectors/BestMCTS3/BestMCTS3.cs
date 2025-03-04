@@ -405,7 +405,6 @@ public class BestMCTS3 : AI
         if (possibleMoves.Count == 1 && possibleMoves[0].Command == CommandEnum.END_TURN)
         {
             startOfTurn = true;
-            // TODO add entry here
             AddFeatureSet(gameState);
             return Move.EndTurn();
         }
@@ -478,7 +477,7 @@ public class BestMCTS3 : AI
             
             if (moveOut.Command == CommandEnum.END_TURN)
             {
-                // TODO add entry here
+                AddFeatureSet(gameState);
             }
             return moveOut;
         }
@@ -549,10 +548,8 @@ public class BestMCTS3 : AI
 
     private void AddFeatureSet(GameState gameState)
     {
-        var featureSet = new GameStateFeatureSet()
-        {
-            
-        }
+        var featureSet = FeatureSetUtility.BuildFeatureSet(gameState.ToSeededGameState(0));
+        GameStateFeatureSetsFromMatch.Add(featureSet);
     }
 
     public override void GameEnd(EndGameState state, FullGameState? finalBoardState)
