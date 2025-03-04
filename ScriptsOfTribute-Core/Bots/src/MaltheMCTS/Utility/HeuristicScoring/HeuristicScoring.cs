@@ -1,14 +1,13 @@
 ﻿using ScriptsOfTribute;
 using ScriptsOfTribute.Board.Cards;
 using ScriptsOfTribute.Serializers;
-using SimpleBots.src.MaltheMCTS.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MaltheMCTS
+namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
 {
     public static class HeuristicScoring
     {
@@ -25,7 +24,8 @@ namespace MaltheMCTS
             double score = 0;
 
             // The manual model does not return either 0 and 1 or -1 and 1, so this logic does not apply for it
-            if (!useManualModel){
+            if (!useManualModel)
+            {
                 var winner = CheckWinner(gameState, endOfTurnExclusive);
 
                 if (winner == gameState.CurrentPlayer.PlayerID)
@@ -37,7 +37,6 @@ namespace MaltheMCTS
                     return 0; // Consider if i should measure score as win probability (0-1) or zero sum score
                 }
             }
-
 
             // base resources
             int currentPlayerPrestige = gameState.CurrentPlayer.Prestige;
@@ -86,6 +85,7 @@ namespace MaltheMCTS
                 }
             }
 
+            // TODO replace arguments with GameStateFeatureSet object
             return ModelEvaluation(currentPlayerPrestige, currentPlayerPower, currentPlayerDeckStrengths, currentPlayerDeckComboProportion, currentPlayerAgentStrengths, currentPlayerPatronFavour,
                                     opponentPrestige, opponentDeckStrengths, opponentAgentStrengths, opponentPatronFavour, useManualModel);
         }
@@ -103,12 +103,12 @@ namespace MaltheMCTS
             int opponentTaunt = gameState.EnemyPlayer.Agents.Where(a => a.RepresentingCard.Taunt).Sum(a => a.CurrentHp);
             int power = gameState.CurrentPlayer.Power;
 
-            if((power - opponentTaunt) + currentPlayerPrestige >= 80)
+            if (power - opponentTaunt + currentPlayerPrestige >= 80)
             {
                 return gameState.CurrentPlayer.PlayerID;
             }
 
-            if(endOfTurnExclusiveEvaluation && opponentPrestige >= 40 && opponentPrestige > currentPlayerPrestige)
+            if (endOfTurnExclusiveEvaluation && opponentPrestige >= 40 && opponentPrestige > currentPlayerPrestige)
             {
                 return gameState.EnemyPlayer.PlayerID;
             }
@@ -116,7 +116,7 @@ namespace MaltheMCTS
 
             int patronCount = 0;
 
-            foreach(var patron in gameState.PatronStates.All)
+            foreach (var patron in gameState.PatronStates.All)
             {
                 if (patron.Value == gameState.CurrentPlayer.PlayerID)
                 {
@@ -162,7 +162,7 @@ namespace MaltheMCTS
             var patronToAmount = new Dictionary<PatronId, int>();
             var patronToDeckRatio = new Dictionary<PatronId, double>();
 
-            foreach(var patron in patrons)
+            foreach (var patron in patrons)
             {
                 patronToAmount.Add(patron, 0);
             }
@@ -187,7 +187,7 @@ namespace MaltheMCTS
             foreach (var agent in agents)
             {
                 var agentCardStrength = ScoreStrengthsInDeck(agent.RepresentingCard, patronToDeckRatio[agent.RepresentingCard.Deck], deckSize) * BASE_AGENT_STRENGTH_MULTIPLIER;
-                var agentStrength = agentCardStrength + (agentCardStrength * AGENT_HP_VALUE_MULTIPLIER * agent.CurrentHp); // A way of contributing extra strengths to the agent, the more HP it has
+                var agentStrength = agentCardStrength + agentCardStrength * AGENT_HP_VALUE_MULTIPLIER * agent.CurrentHp; // A way of contributing extra strengths to the agent, the more HP it has
                 if (agent.RepresentingCard.Taunt)
                 {
                     agentStrength.PrestigeStrength += agent.CurrentHp;
@@ -247,7 +247,7 @@ namespace MaltheMCTS
                     var effectaStrengths = ScoreEffectStrengthsInDeck(effectOr._right, patronToDeckRatio, deckSize);
                     var effectbStrengths = ScoreEffectStrengthsInDeck(effectOr._left, patronToDeckRatio, deckSize);
                     // A way to give reward for both choices, but give a penalty for not being able to apply both
-                    return (effectaStrengths * CHOICE_WEIGHT) + (effectbStrengths * CHOICE_WEIGHT);
+                    return effectaStrengths * CHOICE_WEIGHT + effectbStrengths * CHOICE_WEIGHT;
                 default:
                     throw new ArgumentException("Unexpected effect type: " + effect.GetType().Name);
             }
@@ -298,55 +298,6 @@ namespace MaltheMCTS
             // FUTURE replace with bionomial calculation as this is inaccurate as every time you draw a card beside this patron, the probability of drawing this patron is increased and vice versa (since you cant draw the same cards multiple times)
             double drawProbability = 5 * patronToDeckRatio; //We draw 5 cards at start of each turn
             return Math.Pow(drawProbability, effect.Combo);
-        }
-
-        public struct CardStrengths
-        {
-            public double PrestigeStrength = 0;
-            public double PowerStrength = 0;
-            public double GoldStrength = 0;
-            public double MiscellaneousStrength = 0;
-            // Consider if i should consider other overall properties than these four
-            public CardStrengths()
-            {
-            }
-
-            public static CardStrengths operator +(CardStrengths a, CardStrengths b)
-            {
-                var prestigeStrength = a.PrestigeStrength + b.PrestigeStrength;
-                var powerStrength = a.PowerStrength + b.PowerStrength;
-                var goldStrength = a.GoldStrength + b.GoldStrength;
-                var miscellaneousStrength = a.MiscellaneousStrength + b.MiscellaneousStrength;
-                return new CardStrengths()
-                {
-                    PrestigeStrength = prestigeStrength,
-                    PowerStrength = powerStrength,
-                    GoldStrength = goldStrength,
-                    MiscellaneousStrength = miscellaneousStrength
-                };
-            }
-
-            public static CardStrengths operator *(CardStrengths a, double multiplier)
-            {
-                return new CardStrengths()
-                {
-                    PrestigeStrength = a.PrestigeStrength * multiplier,
-                    PowerStrength = a.PowerStrength * multiplier,
-                    GoldStrength = a.GoldStrength * multiplier,
-                    MiscellaneousStrength = a.MiscellaneousStrength * multiplier
-                };
-            }
-
-            public static CardStrengths operator /(CardStrengths a, int divisor)
-            {
-                return new CardStrengths()
-                {
-                    PrestigeStrength = a.PrestigeStrength / divisor,
-                    PowerStrength = a.PowerStrength / divisor,
-                    GoldStrength = a.GoldStrength / divisor,
-                    MiscellaneousStrength = a.MiscellaneousStrength / divisor
-                };
-            }
         }
     }
 }

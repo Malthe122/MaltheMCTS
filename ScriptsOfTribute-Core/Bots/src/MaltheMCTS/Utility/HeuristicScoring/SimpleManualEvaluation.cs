@@ -1,12 +1,11 @@
-﻿using MaltheMCTS;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static MaltheMCTS.HeuristicScoring;
+using static SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring.HeuristicScoring;
 
-namespace SimpleBots.src.MaltheMCTS.Utility
+namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
 {
     public static class SimpleManualEvaluation
     {
@@ -33,9 +32,9 @@ namespace SimpleBots.src.MaltheMCTS.Utility
             double earlyGameMultiplier = 1 - lateGameMultiplier;
             earlyGameMultiplier = double.Max(earlyGameMultiplier, 0.1);
 
-            double currentPlayerResourceValue = ((currentPlayerPrestige + currentPlayerPower) * lateGameMultiplier);
-            double opponentResourceValue = (opponentPrestige * lateGameMultiplier);
-            
+            double currentPlayerResourceValue = (currentPlayerPrestige + currentPlayerPower) * lateGameMultiplier;
+            double opponentResourceValue = opponentPrestige * lateGameMultiplier;
+
             double currentPlayerDeckValue = GetDeckValue(currentPlayerDeckStrengths, lateGameMultiplier, earlyGameMultiplier);
             double opponentDeckValue = GetDeckValue(opponentDeckStrengths, lateGameMultiplier, earlyGameMultiplier);
 
@@ -57,7 +56,7 @@ namespace SimpleBots.src.MaltheMCTS.Utility
             var goldValue = agentStrengths.GoldStrength * earlyGameMultiplier;
             var miscValue = agentStrengths.MiscellaneousStrength * MISCELLANEOUS_MULTIPLIER;
 
-            return (prestigeValue + goldValue + miscValue);
+            return prestigeValue + goldValue + miscValue;
         }
 
         private static double GetDeckValue(CardStrengths deckStrengths, double lateGameMultiplier, double earlyGameMultiplier)
