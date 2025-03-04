@@ -11,6 +11,22 @@ using System.Collections.Generic;
 
 namespace DataCollectors_BestMCTS3;
 
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+// This was added by the competition organizers to solve the problem with agents
+// using this internal `List` extension.
+public static class Extensions
+{
+    public static T PickRandom<T>(this List<T> source, SeededRandom rng)
+    {
+        return source[rng.Next() % source.Count];
+    }
+}
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
 public class MCTSNode
 {
     public List<(MCTSNode?, Move)> children = new();
@@ -390,6 +406,7 @@ public class BestMCTS3 : AI
         {
             startOfTurn = true;
             // TODO add entry here
+            AddFeatureSet(gameState);
             return Move.EndTurn();
         }
 
@@ -523,19 +540,41 @@ public class BestMCTS3 : AI
         {
             usedTimeInTurn = TimeSpan.FromSeconds(0);
             startOfTurn = true;
+            AddFeatureSet(gameState);
         }
         usedTimeInTurn += moveTime.Elapsed;
 
         return moveOut;
     }
 
+    private void AddFeatureSet(GameState gameState)
+    {
+        var featureSet = new GameStateFeatureSet()
+        {
+            
+        }
+    }
+
     public override void GameEnd(EndGameState state, FullGameState? finalBoardState)
     {
         foreach(var featureSet in GameStateFeatureSetsFromMatch)
         {
-            Program.FeatureSetToWinsLossesDraws.TryAdd(featureSet, new Program.ResultRates());
-            
+            Program.FeatureSetToResultRates.TryAdd(featureSet, new Program.ResultRates());
+            if (state.Winner == Id)
+            {
+                Program.FeatureSetToResultRates[featureSet].Wins++;
+            }
+            else if (state.Winner == PlayerEnum.NO_PLAYER_SELECTED)
+            {
+                Program.FeatureSetToResultRates[featureSet].Draws++;
+            }
+            else
+            {
+                Program.FeatureSetToResultRates[featureSet].Looses++;
+            }
         }
+
+
     }
 }
 

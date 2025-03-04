@@ -21,8 +21,6 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
         /// </summary>
         public static double Score(SeededGameState gameState, bool useManualModel, bool endOfTurnExclusive = true)
         {
-            double score = 0;
-
             // The manual model does not return either 0 and 1 or -1 and 1, so this logic does not apply for it
             if (!useManualModel)
             {
@@ -38,56 +36,9 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
                 }
             }
 
-            // base resources
-            int currentPlayerPrestige = gameState.CurrentPlayer.Prestige;
-            int currentPlayerPower = gameState.CurrentPlayer.Power;
-            int opponentPrestige = gameState.EnemyPlayer.Prestige;
-            // decks (and combo synergies)
-            var currentPlayerCompleteDeck = new List<Card>();
-            currentPlayerCompleteDeck.AddRange(gameState.CurrentPlayer.Hand);
-            currentPlayerCompleteDeck.AddRange(gameState.CurrentPlayer.DrawPile);
-            currentPlayerCompleteDeck.AddRange(gameState.CurrentPlayer.Played);
-            currentPlayerCompleteDeck.AddRange(gameState.CurrentPlayer.CooldownPile);
-            currentPlayerCompleteDeck.AddRange(gameState.CurrentPlayer.Agents.Where(a => a.RepresentingCard.Type != CardType.CONTRACT_AGENT).Select(a => a.RepresentingCard));
-            var currentPlayerPatronToDeckRatio = GetPatronRatios(currentPlayerCompleteDeck, gameState.Patrons);
-            var currentPlayerDeckStrengths = ScoreStrengthsInDeck(currentPlayerCompleteDeck, currentPlayerPatronToDeckRatio);
+            var featureSet = FeatureSetUtility.BuildFeatureSet(gameState);
 
-            // To allow model to value putting combo cards into your deck before they have an effect
-            double currentPlayerDeckComboProportion = currentPlayerCompleteDeck.Where(c => c.Deck != PatronId.TREASURY).Count() / currentPlayerCompleteDeck.Count;
-
-            var opponentCompleteDeck = new List<Card>();
-            opponentCompleteDeck.AddRange(gameState.EnemyPlayer.DrawPile);
-            opponentCompleteDeck.AddRange(gameState.EnemyPlayer.Played);
-            opponentCompleteDeck.AddRange(gameState.EnemyPlayer.CooldownPile);
-            opponentCompleteDeck.AddRange(gameState.EnemyPlayer.Agents.Where(a => a.RepresentingCard.Type != CardType.CONTRACT_AGENT).Select(a => a.RepresentingCard));
-            var opponentPatronToDeckRatio = GetPatronRatios(opponentCompleteDeck, gameState.Patrons);
-            var opponentDeckStrengths = ScoreStrengthsInDeck(opponentCompleteDeck, opponentPatronToDeckRatio);
-
-            // agents
-            var currentPlayerAgentStrengths = ScoreStrengthsInDeck(gameState.CurrentPlayer.Agents, currentPlayerPatronToDeckRatio, currentPlayerCompleteDeck.Count);
-            var opponentAgentStrengths = ScoreStrengthsInDeck(gameState.EnemyPlayer.Agents, opponentPatronToDeckRatio, opponentCompleteDeck.Count);
-
-            // patrons. Maybe needs to be more sophisticated. Right now, does not look of benefit of having specific patron favours, but just the amount 
-            int currentPlayerPatronFavour = 0;
-            int opponentPatronFavour = 0;
-
-            foreach (var patron in gameState.Patrons)
-            {
-                var favouredPlayer = gameState.PatronStates.GetFor(patron);
-
-                if (favouredPlayer == gameState.CurrentPlayer.PlayerID)
-                {
-                    currentPlayerPatronFavour++;
-                }
-                else if (favouredPlayer == gameState.EnemyPlayer.PlayerID)
-                {
-                    opponentPatronFavour++;
-                }
-            }
-
-            // TODO replace arguments with GameStateFeatureSet object
-            return ModelEvaluation(currentPlayerPrestige, currentPlayerPower, currentPlayerDeckStrengths, currentPlayerDeckComboProportion, currentPlayerAgentStrengths, currentPlayerPatronFavour,
-                                    opponentPrestige, opponentDeckStrengths, opponentAgentStrengths, opponentPatronFavour, useManualModel);
+            return ModelEvaluation(featureSet, useManualModel);
         }
 
         private static PlayerEnum CheckWinner(SeededGameState gameState, bool endOfTurnExclusiveEvaluation)
@@ -132,23 +83,11 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
             return PlayerEnum.NO_PLAYER_SELECTED;
         }
 
-        private static double ModelEvaluation(
-            int currentPlayerPrestige,
-            int currentPlayerPower,
-            CardStrengths currentPlayerDeckStrengths,
-            double currentPlayerDeckComboProportion,
-            CardStrengths currentPlayerAgentStrengths,
-            int currentPlayerPatronFavour,
-            int opponentPrestige,
-            CardStrengths opponentDeckStrengths,
-            CardStrengths opponentAgentStrengths,
-            int opponentPatronFavour,
-            bool useManualModel)
+        private static double ModelEvaluation(GameStateFeatureSet featureSet, bool useManualModel)
         {
             if (useManualModel)
             {
-                return SimpleManualEvaluation.Evaluate(currentPlayerPrestige, currentPlayerPower, currentPlayerDeckStrengths, currentPlayerDeckComboProportion, currentPlayerAgentStrengths, currentPlayerPatronFavour,
-                                    opponentPrestige, opponentDeckStrengths, opponentAgentStrengths, opponentPatronFavour);
+                return SimpleManualEvaluation.Evaluate(featureSet);
             }
             else
             {

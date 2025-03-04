@@ -14,38 +14,27 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
         const double DECK_MULTIPLIER = 3;
         const double BASE_PATRON_VALUE = 1.5;
 
-        public static double Evaluate(
-            int currentPlayerPrestige,
-            int currentPlayerPower,
-            CardStrengths currentPlayerDeckStrengths,
-            double currentPlayerDeckComboProportion,
-            CardStrengths currentPlayerAgentStrengths,
-            int currentPlayerPatronFavour,
-            int opponentPrestige,
-            CardStrengths opponentDeckStrengths,
-            CardStrengths opponentAgentStrengths,
-            int opponentPatronFavour
-            )
+        public static double Evaluate(GameStateFeatureSet featureSet)
         {
-            int maxPrestige = Math.Max(currentPlayerPrestige, opponentPrestige);
+            int maxPrestige = Math.Max(featureSet.CurrentPlayerPrestige, featureSet.OpponentPrestige);
             double lateGameMultiplier = double.Max(maxPrestige / 40.0, 0.1); // 40 is the number where prestige starts being a win condition
             double earlyGameMultiplier = 1 - lateGameMultiplier;
             earlyGameMultiplier = double.Max(earlyGameMultiplier, 0.1);
 
-            double currentPlayerResourceValue = (currentPlayerPrestige + currentPlayerPower) * lateGameMultiplier;
-            double opponentResourceValue = opponentPrestige * lateGameMultiplier;
+            double currentPlayerPrestigeValue = featureSet.CurrentPlayerPrestige * lateGameMultiplier;
+            double opponentPrestigeValue = featureSet.OpponentPrestige * lateGameMultiplier;
 
-            double currentPlayerDeckValue = GetDeckValue(currentPlayerDeckStrengths, lateGameMultiplier, earlyGameMultiplier);
-            double opponentDeckValue = GetDeckValue(opponentDeckStrengths, lateGameMultiplier, earlyGameMultiplier);
+            double currentPlayerDeckValue = GetDeckValue(featureSet.CurrentPlayerDeckStrengths, lateGameMultiplier, earlyGameMultiplier);
+            double opponentDeckValue = GetDeckValue(featureSet.OpponentDeckStrengths, lateGameMultiplier, earlyGameMultiplier);
 
-            double currentPlayerAgentValue = GetAgentValue(currentPlayerAgentStrengths, lateGameMultiplier, earlyGameMultiplier);
-            double opponentAgentValue = GetAgentValue(opponentAgentStrengths, lateGameMultiplier, earlyGameMultiplier);
+            double currentPlayerAgentValue = GetAgentValue(featureSet.CurrentPlayerAgentStrengths, lateGameMultiplier, earlyGameMultiplier);
+            double opponentAgentValue = GetAgentValue(featureSet.OpponentAgentStrengths, lateGameMultiplier, earlyGameMultiplier);
 
-            double currentPlayerPatronValue = Math.Pow(BASE_PATRON_VALUE, currentPlayerPatronFavour);
-            double opponentPatronValue = Math.Pow(BASE_PATRON_VALUE, opponentPatronFavour);
+            double currentPlayerPatronValue = Math.Pow(BASE_PATRON_VALUE, featureSet.CurrentPlayerPatronFavour);
+            double opponentPatronValue = Math.Pow(BASE_PATRON_VALUE, featureSet.OpponentPatronFavour);
 
-            var currentPlayerValue = currentPlayerResourceValue + currentPlayerDeckValue + currentPlayerAgentValue + currentPlayerPatronValue;
-            var opponentValue = opponentResourceValue + opponentDeckValue + opponentAgentValue + opponentPatronValue;
+            var currentPlayerValue = currentPlayerPrestigeValue + currentPlayerDeckValue + currentPlayerAgentValue + currentPlayerPatronValue;
+            var opponentValue = opponentPrestigeValue + opponentDeckValue + opponentAgentValue + opponentPatronValue;
 
             return currentPlayerValue - opponentValue;
         }

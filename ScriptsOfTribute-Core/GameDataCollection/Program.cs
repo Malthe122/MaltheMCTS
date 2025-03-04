@@ -3,29 +3,37 @@ using System;
 using System.CommandLine;
 using MaltheMCTS;
 using SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring;
+using BenchmarkingUtility;
+using ScriptsOfTribute.AI;
+using HQL_BOT;
+using System.Globalization;
 
 namespace GameDataCollection
 {
     internal class Program
     {
-        public struct ResultRates
+        public class ResultRates
         {
-            public int Wins = 0;
-            public int Looses = 0;
-            public int Draws = 0;
+            public int Wins;
+            public int Looses;
+            public int Draws;
+            public ResultRates() {
+                Wins = 0;
+                Looses = 0;
+                Draws = 0;
+            }
         }
 
-        public static Dictionary<GameStateFeatureSet, ResultRates> FeatureSetToWinsLossesDraws = new Dictionary<GameStateFeatureSet, ResultRates>();
+        public static Dictionary<GameStateFeatureSet, ResultRates> FeatureSetToResultRates = new Dictionary<GameStateFeatureSet, ResultRates>();
         static async Task Main(string[] args)
         {
-            var botsOption = new Option<List<string>>(
-                aliases: new[] { "--bots", "-b" },
-                description: "List of bot names",
+            var botOption = new Option<string>(
+                aliases: new[] { "--bot", "-b" },
+                description: "Bot to use for data collection",
                 parseArgument: result => result.Tokens.Select(t => t.Value).ToList()
             )
             {
                 IsRequired = true,
-                AllowMultipleArgumentsPerToken = true
             };
 
             var numberOfMatchupsOption = new Option<int>(
@@ -42,14 +50,6 @@ namespace GameDataCollection
                 getDefaultValue: () => 10
             );
 
-            var threadsOption = new Option<int>(
-                aliases: new[] { "--threads", "-t" },
-                description: "Number of threads"
-            )
-            {
-                IsRequired = true
-            };
-
             var nameOption = new Option<string>(
                 aliases: new[] { "--dataset-name", "-dn" },
                 description: "Name of dataset"
@@ -65,10 +65,9 @@ namespace GameDataCollection
 
             var rootCommand = new RootCommand
             {
-                botsOption,
+                botOption,
                 numberOfMatchupsOption,
                 timeoutOption,
-                threadsOption,
                 nameOption,
                 maltheMCTSSettingFileOption,
             };
@@ -76,95 +75,113 @@ namespace GameDataCollection
             var arguments = rootCommand.Parse(args);
 
             rootCommand.SetHandler(
-                Benchmark,
-                botsOption, numberOfMatchupsOption, timeoutOption, threadsOption, nameOption, maltheMCTSSettingFileOption
+                CollectData,
+                botOption, numberOfMatchupsOption, timeoutOption, nameOption, maltheMCTSSettingFileOption
             );
 
             await rootCommand.InvokeAsync(args);
         }
 
-        private static async Task Benchmark(List<string> bots, int numberOfMatchups, int timeout, int threads, string benchmarkName, string? maltheMCTSSettingsFile)
+        private static async Task CollectData(string botString, int numberOfMatchups, int timeout, string datasetName, string? maltheMCTSSettingsFile)
         {
-            Directory.CreateDirectory(benchmarkName);
+            Directory.CreateDirectory(datasetName);
 
-            var maltheMCTSSettings = maltheMCTSSettingsFile != null ? Settings.LoadFromFile(maltheMCTSSettingsFile) : new Settings();
+            // FUTURE readd if i start training using MaltheMCTS
+            //var maltheMCTSSettings = maltheMCTSSettingsFile != null ? Settings.LoadFromFile(maltheMCTSSettingsFile) : new Settings();
 
-            var results = PlayMatches(bots, numberOfMatchups, timeout, threads, false, ConcurrencyType.ParallelWithSharedMemory, maltheMCTSSettings);
+            Console.WriteLine("Starting playing matches...");
+            PlayMatches(botString, numberOfMatchups, timeout);
+            Console.WriteLine("Finished matches");
 
-            var matchupWinrates = Utility.MatchResultsToCsv(results, numberOfMatchups);
-            await File.WriteAllTextAsync(Path.Combine(benchmarkName, "matchup_winrate.csv"), matchupWinrates);
-
-            var overallWinrates = Utility.GetOverallWinRatesText(results, numberOfMatchups);
-            await File.WriteAllTextAsync(Path.Combine(benchmarkName, "overall_winrates.txt"), overallWinrates);
-
-            var sb = new StringBuilder();
-            sb.AppendLine("Data Collection Details Log:");
-            sb.AppendLine($"Benchmark Name: {benchmarkName}");
-            sb.AppendLine($"Bots: {string.Join(", ", bots)}");
-            sb.AppendLine($"Number of Matchups: {numberOfMatchups}");
-            sb.AppendLine($"Timeout: {timeout}");
-            sb.AppendLine($"Threads: {threads}");
-
-            sb.AppendLine();
-            sb.AppendLine("MaltheMCTS Settings:");
-            sb.AppendLine(maltheMCTSSettings.ToString());
-
-            var benchmarkDetailsLog = sb.ToString();
-            await File.WriteAllTextAsync(Path.Combine(benchmarkName, "benchmark_details.txt"), benchmarkDetailsLog);
-
-            Console.WriteLine("Benchmark complete. Results logged in folder: " + benchmarkName);
+            Console.WriteLine("Saving dataset...");
+            ExportDatasetToCSV(datasetName);
+            Console.WriteLine("Dataset complete. Stored in folder: " + datasetName);
         }
 
-        private static Dictionary<string, Dictionary<string, int>> PlayMatches(List<string> bots, int numberOfMatchups, int timeout, int threads, bool skipExternalMatches, ConcurrencyType concurrencyType, Settings? maltheMCTSSettings = null)
+        private static void ExportDatasetToCSV(string datasetName)
         {
-            Dictionary<string, Dictionary<string, int>> botToWins = new();
+            var sb = new StringBuilder();
 
-            foreach (var bot in bots)
+            // Headers
+            sb.AppendLine("CurrentPlayerPrestige,CurrentPlayerDeck_PrestigeStrength,CurrentPlayerDeck_PowerStrength,CurrentPlayerDeck_GoldStrength,CurrentPlayerDeck_MiscStrength," +
+                          "CurrentPlayerDeckComboProportion,CurrentPlayerAgent_PrestigeStrength,CurrentPlayerAgent_PowerStrength,CurrentPlayerAgent_GoldStrength,CurrentPlayerAgent_MiscStrength," +
+                          "CurrentPlayerPatronFavour,OpponentPrestige,OpponentDeck_PrestigeStrength,OpponentDeck_PowerStrength,OpponentDeck_GoldStrength,OpponentDeck_MiscStrength," +
+                          "OpponentAgent_PrestigeStrength,OpponentAgent_PowerStrength,OpponentAgent_GoldStrength,OpponentAgent_MiscStrength,OpponentPatronFavour,WinProbability");
+
+            foreach (var entry in FeatureSetToResultRates)
             {
-                botToWins.Add(bot, new Dictionary<string, int>());
+                var featureSet = entry.Key;
+                var results = entry.Value;
+
+                int totalGames = results.Wins + results.Looses + results.Draws;
+                double winProbability = (results.Wins + 0.5 * results.Draws) / totalGames;
+
+                sb.AppendLine($"{featureSet.CurrentPlayerPrestige}," +
+                              $"{featureSet.CurrentPlayerDeckStrengths.PrestigeStrength},{featureSet.CurrentPlayerDeckStrengths.PowerStrength},{featureSet.CurrentPlayerDeckStrengths.GoldStrength},{featureSet.CurrentPlayerDeckStrengths.MiscellaneousStrength}," +
+                              $"{featureSet.CurrentPlayerDeckComboProportion}," +
+                              $"{featureSet.CurrentPlayerAgentStrengths.PrestigeStrength},{featureSet.CurrentPlayerAgentStrengths.PowerStrength},{featureSet.CurrentPlayerAgentStrengths.GoldStrength},{featureSet.CurrentPlayerAgentStrengths.MiscellaneousStrength}," +
+                              $"{featureSet.CurrentPlayerPatronFavour}," +
+                              $"{featureSet.OpponentPrestige}," +
+                              $"{featureSet.OpponentDeckStrengths.PrestigeStrength},{featureSet.OpponentDeckStrengths.PowerStrength},{featureSet.OpponentDeckStrengths.GoldStrength},{featureSet.OpponentDeckStrengths.MiscellaneousStrength}," +
+                              $"{featureSet.OpponentAgentStrengths.PrestigeStrength},{featureSet.OpponentAgentStrengths.PowerStrength},{featureSet.OpponentAgentStrengths.GoldStrength},{featureSet.OpponentAgentStrengths.MiscellaneousStrength}," +
+                              $"{featureSet.OpponentPatronFavour}," +
+                              $"{winProbability.ToString(CultureInfo.InvariantCulture)}");
             }
 
-            var matchups = Utility.BuildMatchups(bots, numberOfMatchups, skipExternalMatches);
+            // Write to file
+            File.WriteAllText(datasetName + "/" + datasetName + ".csv", sb.ToString());
+        }
 
-            var options = new ParallelOptions { MaxDegreeOfParallelism = threads };
-
-            if (concurrencyType != ConcurrencyType.ParallelWithSharedMemory)
+        private static void PlayMatches(string botString, int numberOfMatchups, int timeout)
+        {
+            for (int i = 0; i < numberOfMatchups; i++)
             {
-                throw new NotImplementedException("Chosen concurrency type has not been implemented yet: " + concurrencyType.ToString());
-            }
-
-            Parallel.ForEach(matchups, options, matchup =>
-            {
-                var bot1 = Utility.CreateBot(matchup.Item1);
-                var bot2 = Utility.CreateBot(matchup.Item2);
-
-                if (bot1 is MaltheMCTS.MaltheMCTS && maltheMCTSSettings != null)
-                {
-                    (bot1 as MaltheMCTS.MaltheMCTS).Settings = maltheMCTSSettings;
-                }
-
-                if (bot2 is MaltheMCTS.MaltheMCTS && maltheMCTSSettings != null)
-                {
-                    (bot2 as MaltheMCTS.MaltheMCTS).Settings = maltheMCTSSettings;
-                }
-
+                Console.WriteLine("Playing match " + i + "...");
+                var bot1 = CreateBot(botString);
+                var bot2 = CreateBot(botString);
                 var match = new ScriptsOfTribute.AI.ScriptsOfTribute(bot1, bot2, TimeSpan.FromSeconds(timeout));
-                var result = match.Play().Item1;
-                switch (result.Winner)
-                {
-                    case ScriptsOfTribute.PlayerEnum.PLAYER1:
-                        Utility.AddWinToResultContainer(matchup.Item1, matchup.Item2, botToWins);
-                        break;
-                    case ScriptsOfTribute.PlayerEnum.PLAYER2:
-                        Utility.AddWinToResultContainer(matchup.Item2, matchup.Item1, botToWins);
-                        break;
-                    case ScriptsOfTribute.PlayerEnum.NO_PLAYER_SELECTED:
-                        // Draw
-                        break;
-                }
-            });
+                match.Play();
+                Console.WriteLine("Finished match " + i);
+            }
+        }
 
-            return botToWins;
+        public static AI CreateBot(string botName)
+        {
+            switch (botName)
+            {
+                //case "AlwaysFirstOptionBot":
+                //    return new AlwaysFirstOptionBot();
+                //case "BeamSearchBot":
+                //    return new BeamSearchBot();
+                //case "DecisionTreeBot":
+                //    return new DecisionTreeBot();
+                //case "MaxAgentsBot":
+                //    return new MaxAgentsBot();
+                //case "MaxPrestigeBot":
+                //    return new MaxPrestigeBot();
+                //case "MCTSBot":
+                //    return new MCTSBot();
+                //case "MaltheMCTS":
+                //    return new MaltheMCTS.MaltheMCTS(instanceName: Guid.NewGuid().ToString());
+                //case "PatronFavorsBot":
+                //    return new PatronFavorsBot();
+                //case "PatronSelectionTimeoutBot":
+                //    return new PatronSelectionTimeoutBot();
+                //case "RandomBot":
+                //    return new RandomBot();
+                //case "RandomBotWithRandomStateExploring":
+                //    return new RandomBotWithRandomStateExploring();
+                //case "RandomSimulationBot":
+                //    return new RandomSimulationBot();
+                //case "RandomWithoutEndTurnBot":
+                //    return new RandomWithoutEndTurnBot();
+                //case "TurnTimeoutBot":
+                //    return new TurnTimeoutBot();
+                case "BestMCTS3":
+                    return new DataCollectors_BestMCTS3.BestMCTS3();
+                default:
+                    throw new ArgumentException($"Does not have a data collector for: '{botName}'");
+            }
         }
     }
 }
