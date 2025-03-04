@@ -29,8 +29,7 @@ namespace GameDataCollection
         {
             var botOption = new Option<string>(
                 aliases: new[] { "--bot", "-b" },
-                description: "Bot to use for data collection",
-                parseArgument: result => result.Tokens.Select(t => t.Value).ToList()
+                description: "Bot to use for data collection"
             )
             {
                 IsRequired = true,
