@@ -1,5 +1,6 @@
 using ScriptsOfTribute;
 using ScriptsOfTribute.Serializers;
+using SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring;
 
 namespace MaltheMCTS;
 

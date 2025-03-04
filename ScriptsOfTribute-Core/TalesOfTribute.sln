@@ -19,11 +19,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BenchmarkingUtility", "Benc
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Benchmarking", "Benchmarking", "{10194C46-C150-4727-8CE9-59BE284BB913}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ComputationBenchmarking", "benchmarking\ComputationBenchmarking\ComputationBenchmarking.csproj", "{DBFE016F-06D1-463A-8759-06F6A7212FB2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ComputationBenchmarking", "benchmarking\ComputationBenchmarking\ComputationBenchmarking.csproj", "{DBFE016F-06D1-463A-8759-06F6A7212FB2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaltheMCTSSettingsBenchmarking", "Benchmarking\MaltheMCTSSettingsBenchmarking\MaltheMCTSSettingsBenchmarking.csproj", "{51F91DBF-0699-4223-919E-87E216092C33}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MaltheMCTSSettingsBenchmarking", "Benchmarking\MaltheMCTSSettingsBenchmarking\MaltheMCTSSettingsBenchmarking.csproj", "{51F91DBF-0699-4223-919E-87E216092C33}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotBenchmarking", "Benchmarking\BotBenchmarking\BotBenchmarking.csproj", "{C40B7C0B-5621-4507-B234-4022733D6B8C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotBenchmarking", "Benchmarking\BotBenchmarking\BotBenchmarking.csproj", "{C40B7C0B-5621-4507-B234-4022733D6B8C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameDataCollection", "GameDataCollection\GameDataCollection.csproj", "{2DD88893-B1E7-45B1-83B3-04AF15173848}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -71,6 +73,10 @@ Global
 		{C40B7C0B-5621-4507-B234-4022733D6B8C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C40B7C0B-5621-4507-B234-4022733D6B8C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C40B7C0B-5621-4507-B234-4022733D6B8C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2DD88893-B1E7-45B1-83B3-04AF15173848}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2DD88893-B1E7-45B1-83B3-04AF15173848}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2DD88893-B1E7-45B1-83B3-04AF15173848}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2DD88893-B1E7-45B1-83B3-04AF15173848}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
