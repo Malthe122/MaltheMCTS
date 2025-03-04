@@ -7,6 +7,7 @@ using BenchmarkingUtility;
 using ScriptsOfTribute.AI;
 using HQL_BOT;
 using System.Globalization;
+using System.Threading;
 
 namespace GameDataCollection
 {
@@ -94,6 +95,19 @@ namespace GameDataCollection
 
             Console.WriteLine("Saving dataset...");
             ExportDatasetToCSV(datasetName);
+
+            var sb = new StringBuilder();
+            sb.AppendLine($"DatasetName Name: {datasetName}");
+            sb.AppendLine($"Bot: {botString}");
+            sb.AppendLine($"Number of Matchups: {numberOfMatchups}");
+            sb.AppendLine($"Timeout: {timeout}");
+
+            //sb.AppendLine();
+            //sb.AppendLine("MaltheMCTS Settings:");
+            //sb.AppendLine(maltheMCTSSettings.ToString());
+
+            File.WriteAllText(datasetName + "/" + "details.csv", sb.ToString());
+
             Console.WriteLine("Dataset complete. Stored in folder: " + datasetName);
         }
 
