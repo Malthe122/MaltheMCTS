@@ -106,7 +106,7 @@ namespace GameDataCollection
             //sb.AppendLine("MaltheMCTS Settings:");
             //sb.AppendLine(maltheMCTSSettings.ToString());
 
-            File.WriteAllText(datasetName + "/" + "details.csv", sb.ToString());
+            File.WriteAllText(datasetName + "/" + "details.txt", sb.ToString());
 
             Console.WriteLine("Dataset complete. Stored in folder: " + datasetName);
         }
