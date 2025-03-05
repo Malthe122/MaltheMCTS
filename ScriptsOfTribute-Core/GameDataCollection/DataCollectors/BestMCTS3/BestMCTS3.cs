@@ -356,13 +356,8 @@ public class BestMCTS3 : AI
     }
     public override PatronId SelectPatron(List<PatronId> availablePatrons, int round)
     {
-        if (availablePatrons.Contains(PatronId.DUKE_OF_CROWS)) return PatronId.DUKE_OF_CROWS;
-        if (availablePatrons.Contains(PatronId.RED_EAGLE)) return PatronId.RED_EAGLE;
-        var patronid = availablePatrons.PickRandom(rngs[0]);
-        while (patronid == PatronId.ORGNUM) {
-            patronid = availablePatrons.PickRandom(rngs[0]);
-        }
-        return patronid;
+        // Modified to get data from all patrons
+        return availablePatrons.PickRandom(new SeededRandom());
     }
 
     void SelectStrategy(GameState gameState)
