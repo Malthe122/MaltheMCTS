@@ -57,7 +57,7 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
             var currentPlayerDeckStrengths = ScoreStrengthsInDeck(currentPlayerCompleteDeck, currentPlayerPatronToDeckRatio);
 
             // To allow model to value putting combo cards into your deck before they have an effect
-            double currentPlayerDeckComboProportion = currentPlayerCompleteDeck.Where(c => c.Deck != PatronId.TREASURY).Count() / currentPlayerCompleteDeck.Count;
+            double currentPlayerDeckComboProportion = ((double)currentPlayerCompleteDeck.Where(c => c.Deck != PatronId.TREASURY).Count()) / currentPlayerCompleteDeck.Count;
 
             var opponentCompleteDeck = new List<Card>();
             opponentCompleteDeck.AddRange(gameState.EnemyPlayer.DrawPile);
