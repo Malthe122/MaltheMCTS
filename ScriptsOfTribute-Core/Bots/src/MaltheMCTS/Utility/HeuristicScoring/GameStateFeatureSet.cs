@@ -12,7 +12,11 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
 {
     public struct GameStateFeatureSet
     {
-        // FUTURE, consider if chosen patrons should be represented in the feature set
+        // Patrons
+        public PatronId Patron1;
+        public PatronId Patron2;
+        public PatronId Patron3;
+        public PatronId Patron4;
         public int CurrentPlayerPrestige;
         public CardStrengths CurrentPlayerDeckStrengths;
         public double CurrentPlayerDeckComboProportion;
@@ -32,6 +36,8 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
 
         public static GameStateFeatureSet BuildFeatureSet(SeededGameState gameState)
         {
+            // To make sure that a game with Hlaalu and Crows, is considered the same as one with Crows and Hlaalu
+            var patrons = gameState.Patrons.Order().ToList();
             // base resources
             int currentPlayerPrestige = gameState.CurrentPlayer.Prestige;
             if (gameState.EnemyPlayer.Agents.All(a => !a.RepresentingCard.Taunt))
@@ -51,7 +57,7 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
             var currentPlayerDeckStrengths = ScoreStrengthsInDeck(currentPlayerCompleteDeck, currentPlayerPatronToDeckRatio);
 
             // To allow model to value putting combo cards into your deck before they have an effect
-            double currentPlayerDeckComboProportion = currentPlayerCompleteDeck.Where(c => c.Deck != PatronId.TREASURY).Count() / currentPlayerCompleteDeck.Count;
+            double currentPlayerDeckComboProportion = ((double)currentPlayerCompleteDeck.Where(c => c.Deck != PatronId.TREASURY).Count()) / currentPlayerCompleteDeck.Count;
 
             var opponentCompleteDeck = new List<Card>();
             opponentCompleteDeck.AddRange(gameState.EnemyPlayer.DrawPile);
@@ -85,6 +91,10 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
 
             var featureSet = new GameStateFeatureSet()
             {
+                Patron1 = patrons[0],
+                Patron2 = patrons[1],
+                Patron3 = patrons[2],
+                Patron4 = patrons[3],
                 CurrentPlayerPrestige = currentPlayerPrestige,
                 OpponentPrestige = opponentPrestige,
                 CurrentPlayerDeckStrengths = currentPlayerDeckStrengths,
