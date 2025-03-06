@@ -127,24 +127,56 @@ namespace GameDataCollection
                 var featureSet = entry.Key;
                 var results = entry.Value;
 
-                int totalGames = results.Wins + results.Looses + results.Draws;
-                double winProbability = (results.Wins + 0.5 * results.Draws) / totalGames;
+                // Use this if i want each set represented only once, with a win probability next to it, then use winProbability variable for the last column
+                // Then remove the AddDataRow loops
+                //int totalGames = results.Wins + results.Looses + results.Draws;
+                //double winProbability = (results.Wins + 0.5 * results.Draws) / totalGames;
 
-                sb.AppendLine($"{(int)featureSet.Patron1};{(int)featureSet.Patron2};{(int)featureSet.Patron3};{(int)featureSet.Patron4};" + 
-                              $"{featureSet.CurrentPlayerPrestige};" +
-                              $"{featureSet.CurrentPlayerDeckStrengths.PrestigeStrength};{featureSet.CurrentPlayerDeckStrengths.PowerStrength};{featureSet.CurrentPlayerDeckStrengths.GoldStrength};{featureSet.CurrentPlayerDeckStrengths.MiscellaneousStrength};" +
-                              $"{featureSet.CurrentPlayerDeckComboProportion};" +
-                              $"{featureSet.CurrentPlayerAgentStrengths.PowerStrength};{featureSet.CurrentPlayerAgentStrengths.GoldStrength};{featureSet.CurrentPlayerAgentStrengths.MiscellaneousStrength};" +
-                              $"{featureSet.CurrentPlayerPatronFavour};" +
-                              $"{featureSet.OpponentPrestige};" +
-                              $"{featureSet.OpponentDeckStrengths.PrestigeStrength};{featureSet.OpponentDeckStrengths.PowerStrength};{featureSet.OpponentDeckStrengths.GoldStrength};{featureSet.OpponentDeckStrengths.MiscellaneousStrength};" +
-                              $"{featureSet.OpponentAgentStrengths.PowerStrength};{featureSet.OpponentAgentStrengths.GoldStrength};{featureSet.OpponentAgentStrengths.MiscellaneousStrength};" +
-                              $"{featureSet.OpponentPatronFavour};" +
-                              $"{winProbability.ToString(CultureInfo.InvariantCulture)}");
+                //sb.AppendLine($"{(int)featureSet.Patron1};{(int)featureSet.Patron2};{(int)featureSet.Patron3};{(int)featureSet.Patron4};" + 
+                //              $"{featureSet.CurrentPlayerPrestige};" +
+                //              $"{featureSet.CurrentPlayerDeckStrengths.PrestigeStrength};{featureSet.CurrentPlayerDeckStrengths.PowerStrength};{featureSet.CurrentPlayerDeckStrengths.GoldStrength};{featureSet.CurrentPlayerDeckStrengths.MiscellaneousStrength};" +
+                //              $"{featureSet.CurrentPlayerDeckComboProportion};" +
+                //              $"{featureSet.CurrentPlayerAgentStrengths.PowerStrength};{featureSet.CurrentPlayerAgentStrengths.GoldStrength};{featureSet.CurrentPlayerAgentStrengths.MiscellaneousStrength};" +
+                //              $"{featureSet.CurrentPlayerPatronFavour};" +
+                //              $"{featureSet.OpponentPrestige};" +
+                //              $"{featureSet.OpponentDeckStrengths.PrestigeStrength};{featureSet.OpponentDeckStrengths.PowerStrength};{featureSet.OpponentDeckStrengths.GoldStrength};{featureSet.OpponentDeckStrengths.MiscellaneousStrength};" +
+                //              $"{featureSet.OpponentAgentStrengths.PowerStrength};{featureSet.OpponentAgentStrengths.GoldStrength};{featureSet.OpponentAgentStrengths.MiscellaneousStrength};" +
+                //              $"{featureSet.OpponentPatronFavour};" +
+                //              $"{winProbability.ToString(CultureInfo.InvariantCulture)}");
+
+                for(int i = 0; i < results.Looses; i++)
+                {
+                    AddDataRow(sb, featureSet, 0);
+                }
+
+                for (int i = 0; i < results.Draws; i++)
+                {
+                    AddDataRow(sb, featureSet, 0.5);
+                }
+
+                for (int i = 0; i < results.Wins; i++)
+                {
+                    AddDataRow(sb, featureSet, 1);
+                }
             }
 
             // Write to file
             File.WriteAllText(datasetName + "/" + datasetName + ".csv", sb.ToString());
+        }
+
+        private static void AddDataRow(StringBuilder sb, GameStateFeatureSet featureSet, double winProbability)
+        {
+            sb.AppendLine($"{(int)featureSet.Patron1};{(int)featureSet.Patron2};{(int)featureSet.Patron3};{(int)featureSet.Patron4};" +
+                          $"{featureSet.CurrentPlayerPrestige};" +
+                          $"{featureSet.CurrentPlayerDeckStrengths.PrestigeStrength};{featureSet.CurrentPlayerDeckStrengths.PowerStrength};{featureSet.CurrentPlayerDeckStrengths.GoldStrength};{featureSet.CurrentPlayerDeckStrengths.MiscellaneousStrength};" +
+                          $"{featureSet.CurrentPlayerDeckComboProportion};" +
+                          $"{featureSet.CurrentPlayerAgentStrengths.PowerStrength};{featureSet.CurrentPlayerAgentStrengths.GoldStrength};{featureSet.CurrentPlayerAgentStrengths.MiscellaneousStrength};" +
+                          $"{featureSet.CurrentPlayerPatronFavour};" +
+                          $"{featureSet.OpponentPrestige};" +
+                          $"{featureSet.OpponentDeckStrengths.PrestigeStrength};{featureSet.OpponentDeckStrengths.PowerStrength};{featureSet.OpponentDeckStrengths.GoldStrength};{featureSet.OpponentDeckStrengths.MiscellaneousStrength};" +
+                          $"{featureSet.OpponentAgentStrengths.PowerStrength};{featureSet.OpponentAgentStrengths.GoldStrength};{featureSet.OpponentAgentStrengths.MiscellaneousStrength};" +
+                          $"{featureSet.OpponentPatronFavour};" +
+                          $"{winProbability.ToString(CultureInfo.InvariantCulture)}");
         }
 
         private static void PlayMatches(string botString, int numberOfMatchups, int timeout)
