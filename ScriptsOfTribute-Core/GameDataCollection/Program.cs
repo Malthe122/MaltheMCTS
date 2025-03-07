@@ -82,11 +82,11 @@ namespace GameDataCollection
             await rootCommand.InvokeAsync(args);
         }
 
-        private static async Task CollectData(string botString, int numberOfMatchups, int timeout, string datasetName, string? maltheMCTSSettingsFile)
+        private static void CollectData(string botString, int numberOfMatchups, int timeout, string datasetName, string? maltheMCTSSettingsFile)
         {
             Directory.CreateDirectory(datasetName);
 
-            // FUTURE readd if i start training using MaltheMCTS
+            // FUTURE load settings if i start training using MaltheMCTS
             //var maltheMCTSSettings = maltheMCTSSettingsFile != null ? Settings.LoadFromFile(maltheMCTSSettingsFile) : new Settings();
 
             Console.WriteLine("Starting playing matches...");
