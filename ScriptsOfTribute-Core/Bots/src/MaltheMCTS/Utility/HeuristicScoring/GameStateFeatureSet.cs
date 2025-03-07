@@ -12,20 +12,30 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
 {
     public struct GameStateFeatureSet
     {
-        // Patrons
-        public PatronId Patron1;
-        public PatronId Patron2;
-        public PatronId Patron3;
-        public PatronId Patron4;
-        public int CurrentPlayerPrestige;
-        public CardStrengths CurrentPlayerDeckStrengths;
-        public double CurrentPlayerDeckComboProportion;
-        public CardStrengths CurrentPlayerAgentStrengths;
-        public int CurrentPlayerPatronFavour;
-        public int OpponentPrestige;
-        public CardStrengths OpponentDeckStrengths;
-        public CardStrengths OpponentAgentStrengths;
-        public int OpponentPatronFavour;
+        public int Patron_1 { get; set; }
+        public int Patron_2 { get; set; }
+        public int Patron_3 { get; set; }
+        public int Patron_4 { get; set; }
+        public int CurrentPlayerPrestige { get; set; }
+        public double CurrentPlayerDeck_PrestigeStrength { get; set; }
+        public double CurrentPlayerDeck_PowerStrength { get; set; }
+        public double CurrentPlayerDeck_GoldStrength { get; set; }
+        public double CurrentPlayerDeck_MiscStrength { get; set; }
+        public double CurrentPlayerDeckComboProportion { get; set; }
+        public double CurrentPlayerAgent_PowerStrength { get; set; }
+        public double CurrentPlayerAgent_GoldStrength { get; set; }
+        public double CurrentPlayerAgent_MiscStrength { get; set; }
+        public int CurrentPlayerPatronFavour { get; set; }
+        public int OpponentPrestige { get; set; }
+        public double OpponentDeck_PrestigeStrength { get; set; }
+        public double OpponentDeck_PowerStrength { get; set; }
+        public double OpponentDeck_GoldStrength { get; set; }
+        public double OpponentDeck_MiscStrength { get; set; }
+        public double OpponentAgent_PowerStrength { get; set; }
+        public double OpponentAgent_GoldStrength { get; set; }
+        public double OpponentAgent_MiscStrength { get; set; }
+        public int OpponentPatronFavour { get; set; }
+        public double? WinProbability { get; set; }
     }
 
     public static class FeatureSetUtility
@@ -91,18 +101,28 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
 
             var featureSet = new GameStateFeatureSet()
             {
-                Patron1 = patrons[0],
-                Patron2 = patrons[1],
-                Patron3 = patrons[2],
-                Patron4 = patrons[3],
+                Patron_1 = (int)patrons[0],
+                Patron_2 = (int)patrons[1],
+                Patron_3 = (int)patrons[2],
+                Patron_4 = (int)patrons[3],
                 CurrentPlayerPrestige = currentPlayerPrestige,
-                OpponentPrestige = opponentPrestige,
-                CurrentPlayerDeckStrengths = currentPlayerDeckStrengths,
+                CurrentPlayerDeck_PrestigeStrength = currentPlayerDeckStrengths.PrestigeStrength,
+                CurrentPlayerDeck_PowerStrength = currentPlayerDeckStrengths.PowerStrength,
+                CurrentPlayerDeck_GoldStrength = currentPlayerDeckStrengths.GoldStrength,
+                CurrentPlayerDeck_MiscStrength = currentPlayerDeckStrengths.MiscellaneousStrength,
                 CurrentPlayerDeckComboProportion = currentPlayerDeckComboProportion,
-                OpponentDeckStrengths = opponentDeckStrengths,
-                CurrentPlayerAgentStrengths = currentPlayerAgentStrengths,
-                OpponentAgentStrengths = opponentAgentStrengths,
+                CurrentPlayerAgent_PowerStrength = currentPlayerAgentStrengths.PowerStrength,
+                CurrentPlayerAgent_GoldStrength = currentPlayerAgentStrengths.GoldStrength,
+                CurrentPlayerAgent_MiscStrength = currentPlayerAgentStrengths.MiscellaneousStrength,
                 CurrentPlayerPatronFavour = currentPlayerPatronFavour,
+                OpponentPrestige = opponentPrestige,
+                OpponentDeck_PrestigeStrength = opponentDeckStrengths.PrestigeStrength,
+                OpponentDeck_PowerStrength = opponentDeckStrengths.PowerStrength,
+                OpponentDeck_GoldStrength = opponentDeckStrengths.GoldStrength,
+                OpponentDeck_MiscStrength = opponentDeckStrengths.MiscellaneousStrength,
+                OpponentAgent_PowerStrength = opponentAgentStrengths.PowerStrength,
+                OpponentAgent_GoldStrength = opponentAgentStrengths.GoldStrength,
+                OpponentAgent_MiscStrength = opponentAgentStrengths.MiscellaneousStrength,
                 OpponentPatronFavour = opponentPatronFavour,
             };
 

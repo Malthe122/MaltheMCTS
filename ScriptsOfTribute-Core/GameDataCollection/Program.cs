@@ -166,17 +166,17 @@ namespace GameDataCollection
 
         private static void AddDataRow(StringBuilder sb, GameStateFeatureSet featureSet, double winProbability)
         {
-            sb.AppendLine($"{(int)featureSet.Patron1};{(int)featureSet.Patron2};{(int)featureSet.Patron3};{(int)featureSet.Patron4};" +
-                          $"{featureSet.CurrentPlayerPrestige};" +
-                          $"{featureSet.CurrentPlayerDeckStrengths.PrestigeStrength};{featureSet.CurrentPlayerDeckStrengths.PowerStrength};{featureSet.CurrentPlayerDeckStrengths.GoldStrength};{featureSet.CurrentPlayerDeckStrengths.MiscellaneousStrength};" +
-                          $"{featureSet.CurrentPlayerDeckComboProportion};" +
-                          $"{featureSet.CurrentPlayerAgentStrengths.PowerStrength};{featureSet.CurrentPlayerAgentStrengths.GoldStrength};{featureSet.CurrentPlayerAgentStrengths.MiscellaneousStrength};" +
-                          $"{featureSet.CurrentPlayerPatronFavour};" +
-                          $"{featureSet.OpponentPrestige};" +
-                          $"{featureSet.OpponentDeckStrengths.PrestigeStrength};{featureSet.OpponentDeckStrengths.PowerStrength};{featureSet.OpponentDeckStrengths.GoldStrength};{featureSet.OpponentDeckStrengths.MiscellaneousStrength};" +
-                          $"{featureSet.OpponentAgentStrengths.PowerStrength};{featureSet.OpponentAgentStrengths.GoldStrength};{featureSet.OpponentAgentStrengths.MiscellaneousStrength};" +
-                          $"{featureSet.OpponentPatronFavour};" +
-                          $"{winProbability.ToString(CultureInfo.InvariantCulture)}");
+            sb.AppendLine($"{featureSet.Patron_1};{featureSet.Patron_2};{featureSet.Patron_3};{featureSet.Patron_4};" +
+              $"{featureSet.CurrentPlayerPrestige};" +
+              $"{featureSet.CurrentPlayerDeck_PrestigeStrength};{featureSet.CurrentPlayerDeck_PowerStrength};{featureSet.CurrentPlayerDeck_GoldStrength};{featureSet.CurrentPlayerDeck_MiscStrength};" +
+              $"{featureSet.CurrentPlayerDeckComboProportion};" +
+              $"{featureSet.CurrentPlayerAgent_PowerStrength};{featureSet.CurrentPlayerAgent_GoldStrength};{featureSet.CurrentPlayerAgent_MiscStrength};" +
+              $"{featureSet.CurrentPlayerPatronFavour};" +
+              $"{featureSet.OpponentPrestige};" +
+              $"{featureSet.OpponentDeck_PrestigeStrength};{featureSet.OpponentDeck_PowerStrength};{featureSet.OpponentDeck_GoldStrength};{featureSet.OpponentDeck_MiscStrength};" +
+              $"{featureSet.OpponentAgent_PowerStrength};{featureSet.OpponentAgent_GoldStrength};{featureSet.OpponentAgent_MiscStrength};" +
+              $"{featureSet.OpponentPatronFavour};" +
+              $"{featureSet.WinProbability!.Value.ToString(CultureInfo.InvariantCulture)}");
         }
 
         private static void PlayMatches(string botString, int numberOfMatchups, int timeout)
