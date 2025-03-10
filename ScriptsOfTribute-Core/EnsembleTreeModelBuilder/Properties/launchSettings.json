@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "EnsembleTreeModelBuilder": {
+      "commandName": "Project",
+      "commandLineArgs": "-t DataCollection_3.csv -et 600 -m test1"
+    }
+  }
+}

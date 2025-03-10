@@ -63,7 +63,7 @@ namespace EnsembleTreeModelBuilder
             //Console.WriteLine("Loaded training data with " + dataSets.Schema.Count + " collumns");
 
             var columnInference = mlContext.Auto().InferColumns(trainingDataFilePath, labelColumnName: "WinProbability", groupColumns: false);
-            IDataView fullData = mlContext.Data.LoadFromTextFile(trainingDataFilePath, columnInference.TextLoaderOptions);
+            IDataView fullData = mlContext.Data.LoadFromTextFile<GameStateFeatureSetCsvRow>(trainingDataFilePath, columnInference.TextLoaderOptions);
 
             var trainTestSplit = mlContext.Data.TrainTestSplit(fullData, testFraction: 0.2);
             IDataView trainData = trainTestSplit.TrainSet;
@@ -90,6 +90,24 @@ namespace EnsembleTreeModelBuilder
             experiment.SetPipeline(pipeline)
                       .SetRegressionMetric(RegressionMetric.RSquared, labelColumn: labelName)
                       .SetDataset(trainData, testData);
+
+            // DEBUGGING CODE -------------------
+
+            var schema = fullData.Schema;
+            foreach (var column in schema)
+            {
+                Console.WriteLine($"Column: {column.Name}, Type: {column.Type}");
+            }
+
+            // Preview the first few rows to ensure proper parsing
+            var preview = fullData.Preview(5);  // Preview first 5 rows
+            Console.WriteLine("Previewing data:");
+            foreach (var row in preview.RowView)
+            {
+                Console.WriteLine(string.Join(", ", row.Values.Select(v => v.Value.ToString())));
+            }
+
+            // -------------------------
 
             Console.WriteLine("Running AutoML experiment...");
             var experimentResult = experiment.RunAsync().GetAwaiter().GetResult();

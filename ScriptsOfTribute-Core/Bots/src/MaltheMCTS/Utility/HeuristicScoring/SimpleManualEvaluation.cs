@@ -24,19 +24,21 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
             double currentPlayerPrestigeValue = featureSet.CurrentPlayerPrestige * lateGameMultiplier;
             double opponentPrestigeValue = featureSet.OpponentPrestige * lateGameMultiplier;
 
-            double currentPlayerDeckValue = GetDeckValue(featureSet.CurrentPlayerDeckStrengths, lateGameMultiplier, earlyGameMultiplier);
-            double opponentDeckValue = GetDeckValue(featureSet.OpponentDeckStrengths, lateGameMultiplier, earlyGameMultiplier);
+            //double currentPlayerDeckValue = GetDeckValue(featureSet.CurrentPlayerDeckStrengths, lateGameMultiplier, earlyGameMultiplier);
+            //double opponentDeckValue = GetDeckValue(featureSet.OpponentDeckStrengths, lateGameMultiplier, earlyGameMultiplier);
 
-            double currentPlayerAgentValue = GetAgentValue(featureSet.CurrentPlayerAgentStrengths, lateGameMultiplier, earlyGameMultiplier);
-            double opponentAgentValue = GetAgentValue(featureSet.OpponentAgentStrengths, lateGameMultiplier, earlyGameMultiplier);
+            //double currentPlayerAgentValue = GetAgentValue(featureSet.CurrentPlayerAgentStrengths, lateGameMultiplier, earlyGameMultiplier);
+            //double opponentAgentValue = GetAgentValue(featureSet.OpponentAgentStrengths, lateGameMultiplier, earlyGameMultiplier);
 
             double currentPlayerPatronValue = Math.Pow(BASE_PATRON_VALUE, featureSet.CurrentPlayerPatronFavour);
             double opponentPatronValue = Math.Pow(BASE_PATRON_VALUE, featureSet.OpponentPatronFavour);
 
-            var currentPlayerValue = currentPlayerPrestigeValue + currentPlayerDeckValue + currentPlayerAgentValue + currentPlayerPatronValue;
-            var opponentValue = opponentPrestigeValue + opponentDeckValue + opponentAgentValue + opponentPatronValue;
+            //var currentPlayerValue = currentPlayerPrestigeValue + currentPlayerDeckValue + currentPlayerAgentValue + currentPlayerPatronValue;
+            //var opponentValue = opponentPrestigeValue + opponentDeckValue + opponentAgentValue + opponentPatronValue;
 
-            return currentPlayerValue - opponentValue;
+            //return currentPlayerValue - opponentValue;
+
+            return 1; // TODO fix before use. Outcommented code after refactor
         }
 
         private static double GetAgentValue(CardStrengths agentStrengths, double lateGameMultiplier, double earlyGameMultiplier)
