@@ -9,6 +9,8 @@ using Microsoft.ML.AutoML;
 using Microsoft.ML.Trainers.LightGbm;
 using Tensorflow;
 using System.Text;
+using HQL_BOT;
+using static Microsoft.ML.AutoML.AutoMLExperiment;
 
 namespace EnsembleTreeModelBuilder
 {
@@ -53,7 +55,11 @@ namespace EnsembleTreeModelBuilder
         private static void TrainModel(string trainingDataFilePath, string modelName, uint experiementTime)
         {
 
+            Console.WriteLine("Running training on " + trainingDataFilePath + "...");
+
             Directory.CreateDirectory(MODELS_FOLDER + "/" + modelName);
+
+            CleanIntegersFromCsv(trainingDataFilePath);
 
             var mlContext = new MLContext();
 
@@ -81,33 +87,15 @@ namespace EnsembleTreeModelBuilder
                     useLgbm: true
             ));
 
-            var experiementSettings = new RegressionExperimentSettings
+            var experiementSettings = new AutoMLExperimentSettings
             {
                 MaxExperimentTimeInSeconds = experiementTime,
             };
 
-            var experiment = mlContext.Auto().CreateExperiment();
+            var experiment = mlContext.Auto().CreateExperiment(experiementSettings);
             experiment.SetPipeline(pipeline)
                       .SetRegressionMetric(RegressionMetric.RSquared, labelColumn: labelName)
                       .SetDataset(trainData, testData);
-
-            // DEBUGGING CODE -------------------
-
-            var schema = fullData.Schema;
-            foreach (var column in schema)
-            {
-                Console.WriteLine($"Column: {column.Name}, Type: {column.Type}");
-            }
-
-            // Preview the first few rows to ensure proper parsing
-            var preview = fullData.Preview(5);  // Preview first 5 rows
-            Console.WriteLine("Previewing data:");
-            foreach (var row in preview.RowView)
-            {
-                Console.WriteLine(string.Join(", ", row.Values.Select(v => v.Value.ToString())));
-            }
-
-            // -------------------------
 
             Console.WriteLine("Running AutoML experiment...");
             var experimentResult = experiment.RunAsync().GetAwaiter().GetResult();
@@ -126,6 +114,29 @@ namespace EnsembleTreeModelBuilder
             File.WriteAllText(MODELS_FOLDER + modelName + "/" + "Details.txt", info.ToString());
 
             Console.WriteLine("Best model saved in " + MODELS_FOLDER + modelName);
+        }
+
+        private static void CleanIntegersFromCsv(string trainingDataFilePath)
+        {
+            var lines = File.ReadAllLines(trainingDataFilePath);
+            var updatedLines = lines.Select(line =>
+            {
+                var values = line.Split(';');
+
+                for (int i = 0; i < values.Length; i++)
+                {
+                    if (int.TryParse(values[i], out int intValue))
+                    {
+                        values[i] = intValue.ToString("0.0", CultureInfo.InvariantCulture);
+                    }
+                }
+
+                return string.Join(";", values);
+            });
+
+            File.WriteAllLines(trainingDataFilePath, updatedLines);
+
+            Console.WriteLine("CSV file cleaned successfully!");
         }
 
         //private static List<GameStateFeatureSetCsvRow> LoadCsvData(string filePath)
