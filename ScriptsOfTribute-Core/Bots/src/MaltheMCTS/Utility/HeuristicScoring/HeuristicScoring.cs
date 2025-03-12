@@ -1,6 +1,7 @@
 ﻿using ScriptsOfTribute;
 using ScriptsOfTribute.Board.Cards;
 using ScriptsOfTribute.Serializers;
+using SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring.ModelEvaluation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -91,8 +92,8 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
             }
             else
             {
-                // TODO implement model
-                throw new NotImplementedException("model not yet implemented");
+                var csvFeatureSet = featureSet.ToCsvRow();
+                return EnsembledTreeModelEvaluation.GetWinProbability(csvFeatureSet);
             }
         }
 
@@ -234,7 +235,8 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
 
         private static double GetComboProbability(Effect effect, double patronToDeckRatio, int deckSize)
         {
-            // FUTURE replace with bionomial calculation as this is inaccurate as every time you draw a card beside this patron, the probability of drawing this patron is increased and vice versa (since you cant draw the same cards multiple times)
+            // FUTURE consider replacing with bionomial calculation as this is inaccurate as every time you draw a card beside this patron, the probability of drawing
+            // this patron is increased and vice versa (since you cant draw the same cards multiple times)
             double drawProbability = 5 * patronToDeckRatio; //We draw 5 cards at start of each turn
             return Math.Pow(drawProbability, effect.Combo);
         }
