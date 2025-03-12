@@ -59,59 +59,45 @@ namespace EnsembleTreeModelBuilder
 
             Directory.CreateDirectory(MODELS_FOLDER + "/" + modelName);
 
-            CleanIntegersFromCsv(trainingDataFilePath);
+            //CleanIntegersFromCsv(trainingDataFilePath); // Check if this is neccessary or puttin the properties as floats in class is enough
 
             var mlContext = new MLContext();
 
-            //Console.WriteLine("Loading data from: '" + trainingDataFilePath + "'...");
-            //var dataSets = mlContext.Data.LoadFromTextFile<GameStateFeatureSetCsvRow>(
-            //path: trainingDataFilePath, hasHeader: true, separatorChar: ';');
-            //Console.WriteLine("Loaded training data with " + dataSets.Schema.Count + " collumns");
-
             var columnInference = mlContext.Auto().InferColumns(trainingDataFilePath, labelColumnName: "WinProbability", groupColumns: false);
             IDataView fullData = mlContext.Data.LoadFromTextFile<GameStateFeatureSetCsvRow>(trainingDataFilePath, columnInference.TextLoaderOptions);
-
             var trainTestSplit = mlContext.Data.TrainTestSplit(fullData, testFraction: 0.2);
             IDataView trainData = trainTestSplit.TrainSet;
             IDataView testData = trainTestSplit.TestSet;
 
             string labelName = columnInference.ColumnInformation.LabelColumnName;
-            var pipeline = mlContext.Auto().Featurizer(trainData, columnInformation: columnInference.ColumnInformation)
-                .Append(mlContext.Auto().Regression(
-                    labelColumnName: labelName,
-                    // Here i can allow only one type, e.g. FastForest if i want faster inference time in exchange for lower accuracy
-                    useFastForest: true,
-                    useFastTree: true,
-                    useLbfgsPoissonRegression: true,
-                    useSdca: true,
-                    useLgbm: true
-            ));
-
-            var experiementSettings = new AutoMLExperimentSettings
+            var experimentSettings = new RegressionExperimentSettings
             {
                 MaxExperimentTimeInSeconds = experiementTime,
+                OptimizingMetric = RegressionMetric.RSquared
             };
+            // Change experiementSettings.Trainers here to limit certain models
 
-            var experiment = mlContext.Auto().CreateExperiment(experiementSettings);
-            experiment.SetPipeline(pipeline)
-                      .SetRegressionMetric(RegressionMetric.RSquared, labelColumn: labelName)
-                      .SetDataset(trainData, testData);
-
+            var experiment = mlContext.Auto().CreateRegressionExperiment(experimentSettings);
             Console.WriteLine("Running AutoML experiment...");
-            var experimentResult = experiment.RunAsync().GetAwaiter().GetResult();
-            var bestModel = experimentResult.Model;
-            double bestRSquared = experimentResult.Metric;  // Best R² on validation (test) set
+            var experimentResult = experiment.Execute(trainData, testData, "WinProbability");
+
+            var bestRun = experimentResult.BestRun;
+            var bestModel = bestRun.Model;
+            double bestRSquared = bestRun.ValidationMetrics.RSquared;
 
             // Save the model to a .zip file for later use
-            mlContext.Model.Save(bestModel, trainData.Schema, MODELS_FOLDER + modelName + "/" + modelName + ".zip");
+            mlContext.Model.Save(bestModel, fullData.Schema, MODELS_FOLDER + modelName);
 
-            string bestPipeline = pipeline.ToString(experimentResult.TrialSettings.Parameter);
             StringBuilder info = new StringBuilder();
             info.AppendLine("R²:" + bestRSquared);
             info.AppendLine();
-            info.AppendLine("Pipeline details:");
-            info.AppendLine(bestPipeline);
-            File.WriteAllText(MODELS_FOLDER + modelName + "/" + "Details.txt", info.ToString());
+            info.AppendLine("Best run details:");
+            info.AppendLine("Type: " + bestRun.TrainerName);
+            //info.AppendLine(GetHyperparemeterString(bestRun.Model, bestRun.TrainerName));
+            info.AppendLine("Training time: " + bestRun.RuntimeInSeconds);
+            info.AppendLine("RSquared: " + bestRun.ValidationMetrics.RSquared);
+            info.AppendLine("Model to string: " + bestRun.Model.ToString());
+            File.WriteAllText(MODELS_FOLDER + "/" + modelName + "/" + "Details.txt", info.ToString());
 
             Console.WriteLine("Best model saved in " + MODELS_FOLDER + modelName);
         }
