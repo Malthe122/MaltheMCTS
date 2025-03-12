@@ -10,6 +10,10 @@ using static SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring.HeuristicScoring
 
 namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
 {
+    /// <summary>
+    /// Although ML.Net only wants floats, i keep this version as its more clean and accurate, and is ready to be used by a better framework. Instead a transformation to
+    /// an object with float properties is done before working with model through ML.Net
+    /// </summary>
     public struct GameStateFeatureSet
     {
         public int Patron_1 { get; set; }
@@ -36,6 +40,36 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
         public double OpponentAgent_MiscStrength { get; set; }
         public int OpponentPatronFavour { get; set; }
         public double? WinProbability { get; set; }
+
+        public GameStateFeatureSetCsvRow ToCsvRow()
+        {
+            return new GameStateFeatureSetCsvRow
+            {
+                Patron_1 = (float)Patron_1,
+                Patron_2 = (float)Patron_2,
+                Patron_3 = (float)Patron_3,
+                Patron_4 = (float)Patron_4,
+                CurrentPlayerPrestige = (float)CurrentPlayerPrestige,
+                CurrentPlayerDeck_PrestigeStrength = (float)CurrentPlayerDeck_PrestigeStrength,
+                CurrentPlayerDeck_PowerStrength = (float)CurrentPlayerDeck_PowerStrength,
+                CurrentPlayerDeck_GoldStrength = (float)CurrentPlayerDeck_GoldStrength,
+                CurrentPlayerDeck_MiscStrength = (float)CurrentPlayerDeck_MiscStrength,
+                CurrentPlayerDeckComboProportion = (float)CurrentPlayerDeckComboProportion,
+                CurrentPlayerAgent_PowerStrength = (float)CurrentPlayerAgent_PowerStrength,
+                CurrentPlayerAgent_GoldStrength = (float)CurrentPlayerAgent_GoldStrength,
+                CurrentPlayerAgent_MiscStrength = (float)CurrentPlayerAgent_MiscStrength,
+                CurrentPlayerPatronFavour = (float)CurrentPlayerPatronFavour,
+                OpponentPrestige = (float)OpponentPrestige,
+                OpponentDeck_PrestigeStrength = (float)OpponentDeck_PrestigeStrength,
+                OpponentDeck_PowerStrength = (float)OpponentDeck_PowerStrength,
+                OpponentDeck_GoldStrength = (float)OpponentDeck_GoldStrength,
+                OpponentDeck_MiscStrength = (float)OpponentDeck_MiscStrength,
+                OpponentAgent_PowerStrength = (float)OpponentAgent_PowerStrength,
+                OpponentAgent_GoldStrength = (float)OpponentAgent_GoldStrength,
+                OpponentAgent_MiscStrength = (float)OpponentAgent_MiscStrength,
+                OpponentPatronFavour = (float)OpponentPatronFavour
+            };
+        }
     }
 
     public static class FeatureSetUtility

@@ -2,14 +2,11 @@
 using CsvHelper;
 using System.CommandLine;
 using System.Globalization;
-using SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 using Microsoft.ML;
 using Microsoft.ML.AutoML;
 using Microsoft.ML.Trainers.LightGbm;
 using Tensorflow;
 using System.Text;
-using HQL_BOT;
 using static Microsoft.ML.AutoML.AutoMLExperiment;
 
 namespace EnsembleTreeModelBuilder

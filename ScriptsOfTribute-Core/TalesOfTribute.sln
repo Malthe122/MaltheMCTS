@@ -25,9 +25,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MaltheMCTSSettingsBenchmark
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BotBenchmarking", "Benchmarking\BotBenchmarking\BotBenchmarking.csproj", "{C40B7C0B-5621-4507-B234-4022733D6B8C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameDataCollection", "GameDataCollection\GameDataCollection.csproj", "{2DD88893-B1E7-45B1-83B3-04AF15173848}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GameDataCollection", "GameDataCollection\GameDataCollection.csproj", "{2DD88893-B1E7-45B1-83B3-04AF15173848}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EnsembleTreeModelBuilder", "EnsembleTreeModelBuilder\EnsembleTreeModelBuilder.csproj", "{A2A2D587-6BC9-4568-803A-96C8672702E7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EnsembleTreeModelBuilder", "EnsembleTreeModelBuilder\EnsembleTreeModelBuilder.csproj", "{A2A2D587-6BC9-4568-803A-96C8672702E7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

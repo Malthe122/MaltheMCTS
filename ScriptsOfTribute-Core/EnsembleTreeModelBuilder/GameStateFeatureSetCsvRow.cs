@@ -1,12 +1,8 @@
-﻿using ScriptsOfTribute.Board.Cards;
-using ScriptsOfTribute;
-using ScriptsOfTribute.Serializers;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring.HeuristicScoring;
 using Microsoft.ML.Data;
 
 namespace EnsembleTreeModelBuilder

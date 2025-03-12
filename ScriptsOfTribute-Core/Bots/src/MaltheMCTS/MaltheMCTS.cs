@@ -23,6 +23,7 @@ public class MaltheMCTS : AI
         Settings = settings ?? new Settings(); // Hardcoded
     }
 
+    // TODO initiate the static model class, so its not using time on the first turn
     /// <summary>
     /// Explicitly parameterless constructor is needed for SoT framework
     /// </summary>

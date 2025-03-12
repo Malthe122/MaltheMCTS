@@ -2,7 +2,7 @@
   "profiles": {
     "GameRunner": {
       "commandName": "Project",
-      "commandLineArgs": "MaltheMCTS RandomBot -n 10 -to 10000"
+      "commandLineArgs": "MaltheMCTS RandomBot -n 10 -to 10"
     }
   }
 }

@@ -38,7 +38,7 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
 
             //return currentPlayerValue - opponentValue;
 
-            return 1; // TODO fix before use. Outcommented code after refactor
+            throw new NotImplementedException(); // TODO fix before use. Outcommented code after refactor
         }
 
         private static double GetAgentValue(CardStrengths agentStrengths, double lateGameMultiplier, double earlyGameMultiplier)
