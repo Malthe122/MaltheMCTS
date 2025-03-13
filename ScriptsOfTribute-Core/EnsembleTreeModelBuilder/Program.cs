@@ -8,7 +8,6 @@ using Microsoft.ML.Trainers.LightGbm;
 using Tensorflow;
 using System.Text;
 using static Microsoft.ML.AutoML.AutoMLExperiment;
-using System.Security.AccessControl;
 
 namespace EnsembleTreeModelBuilder
 {
@@ -55,16 +54,7 @@ namespace EnsembleTreeModelBuilder
 
             Console.WriteLine("Running training on " + trainingDataFilePath + "...");
 
-            // This is needed since Ubuntu creates the folder without rights for the application to add files to it in the end
-            var directory = Directory.CreateDirectory(MODELS_FOLDER + "/" + modelName);
-            DirectorySecurity security = directory.GetAccessControl();
-            security.AddAccessRule(new FileSystemAccessRule("Everyone",
-                FileSystemRights.FullControl,
-                InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit,
-                PropagationFlags.None,
-                AccessControlType.Allow));
-            directory.SetAccessControl(security);
-
+            Directory.CreateDirectory(MODELS_FOLDER + "/" + modelName);
 
             //CleanIntegersFromCsv(trainingDataFilePath); // Check if this is neccessary or puttin the properties as floats in class is enough
 
