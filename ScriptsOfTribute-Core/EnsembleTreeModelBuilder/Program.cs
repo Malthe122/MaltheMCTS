@@ -83,7 +83,7 @@ namespace EnsembleTreeModelBuilder
             double bestRSquared = bestRun.ValidationMetrics.RSquared;
 
             // Save the model to a .zip file for later use
-            mlContext.Model.Save(bestModel, fullData.Schema, MODELS_FOLDER + "/" + modelName);
+            mlContext.Model.Save(bestModel, fullData.Schema, MODELS_FOLDER + "/" + modelName + "/" + "Model_" + modelName);
 
             StringBuilder info = new StringBuilder();
             info.AppendLine("R²:" + bestRSquared);
