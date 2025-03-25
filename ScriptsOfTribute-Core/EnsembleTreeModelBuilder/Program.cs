@@ -14,6 +14,7 @@ namespace EnsembleTreeModelBuilder
         public const string MODELS_FOLDER = "GeneratedModels";
 
         private static DataViewSchema dataViewSchema;
+        private static ColumnInferenceResults columnInferenceResults;
 
         static async Task Main(string[] args)
         {
@@ -74,6 +75,7 @@ namespace EnsembleTreeModelBuilder
             IDataView testData = trainTestSplit.TestSet;
 
             dataViewSchema = trainData.Schema;
+            columnInferenceResults = columnInference;
 
             string labelName = columnInference.ColumnInformation.LabelColumnName;
             if (individualExperiementsPerModel)
@@ -127,6 +129,7 @@ namespace EnsembleTreeModelBuilder
             info.AppendLine("Model to string: " + bestRun.Model.ToString());
 
             info.AppendLine(bestRun.TrainerName + " details:\n");
+
             switch (modelType)
             {
                 case RegressionTrainer.FastForest:
@@ -232,54 +235,35 @@ namespace EnsembleTreeModelBuilder
             info.AppendLine($"Bias: {model.Bias}");
             info.AppendLine($"Weight Count: {model.Weights.Count}");
 
-            // ML.NET has a column 'Features' that contains the name of the actual columns in the dataset, if i understand it correctly
-            if (dataViewSchema.GetColumnOrNull("Features") is DataViewSchema.Column featureColumn)
-            {
-                // Here i extract the actual collumns using the features collumn. Tbh not sure how this works
-                var slotNames = default(VBuffer<ReadOnlyMemory<char>>);
-                featureColumn.GetSlotNames(ref slotNames);
+            var numericColumnNames = columnInferenceResults.TextLoaderOptions.Columns
+                .Where(c => c.DataKind == DataKind.Single || c.DataKind == DataKind.Double)
+                .Select(c => c.Name)
+                .ToList();
 
-                var slotNamesArray = slotNames.DenseValues().Select(name => name.ToString()).ToArray();
-
-                // Iterate through weights and match them with their corresponding column
-                for (int i = 0; i < model.Weights.Count; i++)
-                {
-                    var featureName = i < slotNamesArray.Length ? slotNamesArray[i] : $"Feature_{i}";
-                    var weight = model.Weights[i];
-                    info.AppendLine($"{featureName}: {weight:0.000}");
-                }
-            }
-            else
+            for (int i = 0; i < model.Weights.Count; i++)
             {
-                info.AppendLine("Feature names are not available.");
+                var name = i < numericColumnNames.Count ? numericColumnNames[i] : $"Feature_{i}";
+                var weight = model.Weights[i];
+                info.AppendLine($"{name}: {weight:0.000}");
             }
         }
 
         private static void AddPoissonRegressionInfo(StringBuilder info, PoissonRegressionModelParameters model)
         {
-            info.AppendLine("Bias: " + model.Bias);
-            info.AppendLine("Weight Count: " + model.Weights.Count);
+            info.AppendLine($"Bias: {model.Bias}");
+            info.AppendLine($"Weight Count: {model.Weights.Count}");
 
-            if (dataViewSchema.GetColumnOrNull("Features") is DataViewSchema.Column featureColumn)
+            var numericColumnNames = columnInferenceResults.TextLoaderOptions.Columns
+                .Where(c => c.DataKind == DataKind.Single || c.DataKind == DataKind.Double)
+                .Select(c => c.Name)
+                .ToList();
+
+            for (int i = 0; i < model.Weights.Count; i++)
             {
-                var slotNames = default(VBuffer<ReadOnlyMemory<char>>);
-                featureColumn.GetSlotNames(ref slotNames);
-
-                var slotNamesArray = slotNames.DenseValues().Select(name => name.ToString()).ToArray();
-
-                for (int i = 0; i < model.Weights.Count; i++)
-                {
-                    var featureName = i < slotNamesArray.Length ? slotNamesArray[i] : $"Feature_{i}";
-                    var weight = model.Weights[i];
-                    info.AppendLine($"{featureName}: {weight:0.000}");
-                }
-            }
-            else
-            {
-                info.AppendLine("Slot names not available for Features column.");
+                var name = i < numericColumnNames.Count ? numericColumnNames[i] : $"Feature_{i}";
+                var weight = model.Weights[i];
+                info.AppendLine($"{name}: {weight:0.000}");
             }
         }
-
-
     }
 }
