@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Bots;
 using ScriptsOfTribute.AI;
+using Tensorflow;
 
 public static class Utility
 {
@@ -30,6 +31,33 @@ public static class Utility
             matchups.RemoveAll(m => 
             {
                 return !(m.Item1 != "MaltheMCTS") && !(m.Item2 != "MaltheMCTS");
+            }
+            );
+        }
+
+        return matchups;
+    }
+
+    public static List<(AI, AI)> BuildMatchups2(List<AI> bots, int amount, bool skipExternalMatches)
+    {
+        List<(AI, AI)> matchups = new();
+
+        for (int i = 0; i < bots.Count; i++)
+        {
+            for (int j = i + 1; j < bots.Count; j++)
+            {
+                for (int k = 0; k < amount; k++)
+                {
+                    matchups.Add((bots[i], bots[j]));
+                }
+            }
+        }
+
+        if (skipExternalMatches)
+        {
+            matchups.RemoveAll(m =>
+            {
+                return !(m.Item1 is MaltheMCTS.MaltheMCTS) && !(m.Item2 is MaltheMCTS.MaltheMCTS);
             }
             );
         }
@@ -136,6 +164,21 @@ public static class Utility
         if (!container.ContainsKey(winner))
         {
             container.Add(winner, new Dictionary<string, int>());
+        }
+
+        if (!container[winner].ContainsKey(looser))
+        {
+            container[winner].Add(looser, 0);
+        }
+
+        container[winner][looser]++;
+    }
+
+    public static void AddWinToResultContainer(AI winner, AI looser, Dictionary<AI, Dictionary<AI, int>> container)
+    {
+        if (!container.ContainsKey(winner))
+        {
+            container.Add(winner, new Dictionary<AI, int>());
         }
 
         if (!container[winner].ContainsKey(looser))

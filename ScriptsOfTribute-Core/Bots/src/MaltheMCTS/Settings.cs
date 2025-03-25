@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Configuration;
+using System.Reflection;
 
 namespace MaltheMCTS;
 
@@ -38,17 +39,8 @@ public class Settings
 
     public override string ToString()
     {
-        return $"ITERATION_COMPLETION_MILLISECONDS_BUFFER={ITERATION_COMPLETION_MILLISECONDS_BUFFER}\n" +
-                $"UCT_EXPLORATION_CONSTANT={UCT_EXPLORATION_CONSTANT}\n" +
-                $"FORCE_DELAY_TURN_END_IN_ROLLOUT={FORCE_DELAY_TURN_END_IN_ROLLOUT}\n" +
-                $"INCLUDE_PLAY_MOVE_CHANCE_NODES={INCLUDE_PLAY_MOVE_CHANCE_NODES}\n" +
-                $"INCLUDE_END_TURN_CHANCE_NODES={INCLUDE_END_TURN_CHANCE_NODES}\n" +
-                $"CHOSEN_SELECTION_METHOD={CHOSEN_SELECTION_METHOD}\n" +
-                $"MANUAL_MODEL={MANUAL_MODEL}\n" +
-                $"CHOSEN_SCORING_METHOD={CHOSEN_SCORING_METHOD}\n" +
-                $"ROLLOUT_TURNS_BEFORE_HEURISTIC={ROLLOUT_TURNS_BEFORE_HEURISTIC}\n" +
-                $"SIMULATE_MULTIPLE_TURNS={SIMULATE_MULTIPLE_TURNS}\n" +
-                $"REUSE_TREE={REUSE_TREE}";
+        var props = GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public);
+        return string.Join("\n", props.Select(p => $"{p.Name}={p.GetValue(this)}"));
     }
 
     public static Settings LoadFromFile(string filePath)
