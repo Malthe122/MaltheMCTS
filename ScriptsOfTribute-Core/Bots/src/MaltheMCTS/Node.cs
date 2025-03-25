@@ -128,7 +128,7 @@ public class Node
                 return RolloutTillTurnsEndThenHeuristic(Bot.Settings.ROLLOUT_TURNS_BEFORE_HEURISTIC);
             case ScoringMethod.MaltheScoring:
                 // TODO add rollout to end of turn before scoring
-                return HeuristicScoring.Score(GameState, Bot.Settings.MANUAL_MODEL);
+                return HeuristicScoring.Score(GameState, Bot.Settings.FEATURE_SET_MODEL_TYPE);
             default:
                 throw new NotImplementedException("Tried to applied non-implemented scoring method: " + Bot.Settings.CHOSEN_SCORING_METHOD);
         }

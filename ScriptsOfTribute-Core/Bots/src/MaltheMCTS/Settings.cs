@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Configuration;
+using Microsoft.ML.AutoML;
 using System.Reflection;
 
 namespace MaltheMCTS;
@@ -15,16 +16,15 @@ public class Settings
         // These indent properties are dependent on the chosen scoring method to be relevant
         public int ROLLOUT_TURNS_BEFORE_HEURISTIC { get; set; }
         /// <summary>
-        /// This should be false, when a proper gradient (or different) model is implemented, but allows benchmark to check
-        /// if the trained model actually does a better job than custom built model
+        /// Uses manual (non-ensembled tree) model, if set as null
         /// </summary>
-        public bool MANUAL_MODEL { get; set; }
+        public RegressionTrainer? FEATURE_SET_MODEL_TYPE { get; set; }
     public bool REUSE_TREE { get; set; }
     public bool SIMULATE_MULTIPLE_TURNS { get; set; }
 
     public Settings()
     {
-        ITERATION_COMPLETION_MILLISECONDS_BUFFER = 500;
+        ITERATION_COMPLETION_MILLISECONDS_BUFFER = 300;
         UCT_EXPLORATION_CONSTANT = 1.41421356237; // sqrt(2) generally used default value
         FORCE_DELAY_TURN_END_IN_ROLLOUT = true;
         INCLUDE_PLAY_MOVE_CHANCE_NODES = true;
@@ -32,7 +32,7 @@ public class Settings
         CHOSEN_SELECTION_METHOD = SelectionMethod.UCT;
         CHOSEN_SCORING_METHOD = ScoringMethod.MaltheScoring;
             ROLLOUT_TURNS_BEFORE_HEURISTIC = 1;
-            MANUAL_MODEL = false;
+            FEATURE_SET_MODEL_TYPE = null;
         REUSE_TREE = true;
         SIMULATE_MULTIPLE_TURNS = true;
     }
