@@ -163,7 +163,7 @@ namespace EnsembleTreeModelBuilder
                     break;
             }
 
-            File.WriteAllText(MODELS_FOLDER + "/" + experiementFolderName + "/" + "Details.txt", info.ToString());
+            File.WriteAllText(MODELS_FOLDER + "/" + experiementFolderName + "/" + modelType + "_Details.txt", info.ToString());
             Console.WriteLine("Best model saved in " + MODELS_FOLDER + "/" + experiementFolderName + "/" + modelType);
         }
 
