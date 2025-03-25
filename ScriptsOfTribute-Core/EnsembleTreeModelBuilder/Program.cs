@@ -2,12 +2,19 @@
 using Microsoft.ML;
 using Microsoft.ML.AutoML;
 using System.Text;
+using Microsoft.ML.Data;
+using Microsoft.ML.Trainers.FastTree;
+using Microsoft.ML.Trainers.LightGbm;
+using Microsoft.ML.Trainers;
 
 namespace EnsembleTreeModelBuilder
 {
     internal class Program
     {
         public const string MODELS_FOLDER = "GeneratedModels";
+
+        private static DataViewSchema dataViewSchema;
+        private static ColumnInferenceResults columnInferenceResults;
 
         static async Task Main(string[] args)
         {
@@ -67,6 +74,9 @@ namespace EnsembleTreeModelBuilder
             IDataView trainData = trainTestSplit.TrainSet;
             IDataView testData = trainTestSplit.TestSet;
 
+            dataViewSchema = trainData.Schema;
+            columnInferenceResults = columnInference;
+
             string labelName = columnInference.ColumnInformation.LabelColumnName;
             if (individualExperiementsPerModel)
             {
@@ -114,12 +124,49 @@ namespace EnsembleTreeModelBuilder
             info.AppendLine();
             info.AppendLine("Best run details:");
             info.AppendLine("Type: " + bestRun.TrainerName);
-            //info.AppendLine(GetHyperparemeterString(bestRun.Model, bestRun.TrainerName));
             info.AppendLine("Training time: " + bestRun.RuntimeInSeconds);
             info.AppendLine("RSquared: " + bestRun.ValidationMetrics.RSquared);
             info.AppendLine("Model to string: " + bestRun.Model.ToString());
-            File.WriteAllText(MODELS_FOLDER + "/" + experiementFolderName + "/" + "Details.txt", info.ToString());
 
+            info.AppendLine(bestRun.TrainerName + " details:\n");
+
+            switch (modelType)
+            {
+                case RegressionTrainer.FastForest:
+                    var model = (TransformerChain<ITransformer>)bestRun.Model;
+                    var fastForest = model
+                        .OfType<RegressionPredictionTransformer<FastForestRegressionModelParameters>>()
+                        .First().Model;
+                    AddEnsembleTreeModelInfo(info, fastForest.TrainedTreeEnsemble);
+                    break;
+                case RegressionTrainer.FastTree:
+                case RegressionTrainer.FastTreeTweedie:
+                    var fastTree = ((TransformerChain<ITransformer>)bestRun.Model)
+                           .OfType<RegressionPredictionTransformer<FastTreeRegressionModelParameters>>()
+                           .First().Model;
+                    AddEnsembleTreeModelInfo(info, fastTree.TrainedTreeEnsemble);
+                    break;
+                case RegressionTrainer.LightGbm:
+                    var lightGbm = ((TransformerChain<ITransformer>)bestRun.Model)
+                        .OfType<RegressionPredictionTransformer<LightGbmRegressionModelParameters>>()
+                        .First().Model;
+                    AddEnsembleTreeModelInfo(info, lightGbm.TrainedTreeEnsemble);
+                    break;
+                case RegressionTrainer.LbfgsPoissonRegression:
+                    var lbfgs = ((TransformerChain<ITransformer>)bestRun.Model)
+                            .OfType<RegressionPredictionTransformer<PoissonRegressionModelParameters>>()
+                            .First().Model;
+                    AddPoissonRegressionInfo(info, lbfgs);
+                    break;
+                case RegressionTrainer.StochasticDualCoordinateAscent:
+                    var sdca = ((TransformerChain<ITransformer>)bestRun.Model)
+                        .OfType<RegressionPredictionTransformer<LinearRegressionModelParameters>>()
+                        .First().Model;
+                    AddSdcaModelInfo(info, sdca);
+                    break;
+            }
+
+            File.WriteAllText(MODELS_FOLDER + "/" + experiementFolderName + "/" + modelType + "_Details.txt", info.ToString());
             Console.WriteLine("Best model saved in " + MODELS_FOLDER + "/" + experiementFolderName + "/" + modelType);
         }
 
@@ -155,6 +202,68 @@ namespace EnsembleTreeModelBuilder
             File.WriteAllText(MODELS_FOLDER + "/" + modelName + "/" + "Details.txt", info.ToString());
 
             Console.WriteLine("Best model saved in " + MODELS_FOLDER + "/" + modelName);
+        }
+
+        private static void AddEnsembleTreeModelInfo(StringBuilder info, QuantileRegressionTreeEnsemble ensemble)
+        {
+            info.AppendLine("Total Trees: " + ensemble.Trees.Count);
+
+            var leaves = ensemble.Trees.Select(t => t.NumberOfLeaves).ToList();
+            var nodes = ensemble.Trees.Select(t => t.NumberOfNodes).ToList();
+
+            info.AppendLine($"Leaves per Tree - Min: {leaves.Min()}, Max: {leaves.Max()}, Avg: {leaves.Average():0.00}");
+            info.AppendLine($"Nodes per Tree - Min: {nodes.Min()}, Max: {nodes.Max()}, Avg: {nodes.Average():0.00}");
+            info.AppendLine("Tree Weights (first 5): " + string.Join(", ", ensemble.TreeWeights.Take(5)) + (ensemble.TreeWeights.Count > 5 ? ", ..." : ""));
+            info.AppendLine("Bias: " + ensemble.Bias);
+        }
+
+        private static void AddEnsembleTreeModelInfo(StringBuilder info, RegressionTreeEnsemble ensemble)
+        {
+            info.AppendLine("Total Trees: " + ensemble.Trees.Count);
+
+            var leaves = ensemble.Trees.Select(t => t.NumberOfLeaves).ToList();
+            var nodes = ensemble.Trees.Select(t => t.NumberOfNodes).ToList();
+
+            info.AppendLine($"Leaves per Tree - Min: {leaves.Min()}, Max: {leaves.Max()}, Avg: {leaves.Average():0.00}");
+            info.AppendLine($"Nodes per Tree - Min: {nodes.Min()}, Max: {nodes.Max()}, Avg: {nodes.Average():0.00}");
+            info.AppendLine("Tree Weights (first 5): " + string.Join(", ", ensemble.TreeWeights.Take(5)) + (ensemble.TreeWeights.Count > 5 ? ", ..." : ""));
+            info.AppendLine("Bias: " + ensemble.Bias);
+        }
+
+        private static void AddSdcaModelInfo(StringBuilder info, LinearRegressionModelParameters model)
+        {
+            info.AppendLine($"Bias: {model.Bias}");
+            info.AppendLine($"Weight Count: {model.Weights.Count}");
+
+            var numericColumnNames = columnInferenceResults.TextLoaderOptions.Columns
+                .Where(c => c.DataKind == DataKind.Single || c.DataKind == DataKind.Double)
+                .Select(c => c.Name)
+                .ToList();
+
+            for (int i = 0; i < model.Weights.Count; i++)
+            {
+                var name = i < numericColumnNames.Count ? numericColumnNames[i] : $"Feature_{i}";
+                var weight = model.Weights[i];
+                info.AppendLine($"{name}: {weight:0.000}");
+            }
+        }
+
+        private static void AddPoissonRegressionInfo(StringBuilder info, PoissonRegressionModelParameters model)
+        {
+            info.AppendLine($"Bias: {model.Bias}");
+            info.AppendLine($"Weight Count: {model.Weights.Count}");
+
+            var numericColumnNames = columnInferenceResults.TextLoaderOptions.Columns
+                .Where(c => c.DataKind == DataKind.Single || c.DataKind == DataKind.Double)
+                .Select(c => c.Name)
+                .ToList();
+
+            for (int i = 0; i < model.Weights.Count; i++)
+            {
+                var name = i < numericColumnNames.Count ? numericColumnNames[i] : $"Feature_{i}";
+                var weight = model.Weights[i];
+                info.AppendLine($"{name}: {weight:0.000}");
+            }
         }
     }
 }
