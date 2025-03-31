@@ -2,7 +2,7 @@
   "profiles": {
     "BotBenchmarking": {
       "commandName": "Project",
-      "commandLineArgs": "-b MaltheMCTS BestMCTS3 -n 10 -to 10 -t 1 -bm MMCTS_VS_BestMCTS3 -s settings1"
+      "commandLineArgs": "-b MaltheMCTS BestMCTS3 -n 10 -to 10 -t 1 -bm testetest"
     }
   }
 }

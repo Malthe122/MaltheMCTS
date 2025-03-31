@@ -1,6 +1,8 @@
 using ScriptsOfTribute;
+using ScriptsOfTribute.Board.Cards;
 using ScriptsOfTribute.Serializers;
 using SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring;
+using System.Linq;
 
 namespace MaltheMCTS;
 
@@ -14,6 +16,13 @@ public class Node
     public List<Move> PossibleMoves;
     internal MaltheMCTS Bot;
 
+    private HashSet<CardId> CardsInHandRanked;
+    private HashSet<CardId> CardsInCooldownRanked;
+    private HashSet<CardId> CardsInTavernRanked;
+    private HashSet<CardId> CardsInDrawPileRanked;
+    private HashSet<CardId> CardsPlayedRanked;
+    private HashSet<CardId> CardsInHandAndPlayedRanked;
+
     /// <summary>
     /// Only used when SimulateMultipleTurns is disabled. It is a copy of this node, but representing the current score/visits of the node if end_turn is played, but without
     /// affecting the state with the card draws that happens on end_turn, since with this feature disabled, we do not want this to be part of our simulations.
@@ -23,10 +32,10 @@ public class Node
     public Node(SeededGameState gameState, List<Move> possibleMoves, MaltheMCTS bot)
     {
         GameState = gameState;
-        PossibleMoves = Utility.GetUniqueMoves(possibleMoves);
+        FilterMoves();
         MoveToChildNode = new Dictionary<Move, Node>();
-        ApplyInstantMoves();
         Bot = bot;
+        ApplyInstantMoves();
     }
 
     public virtual void Visit(out double score, HashSet<Node> visitedNodes)
@@ -123,7 +132,7 @@ public class Node
             case ScoringMethod.Rollout:
                 return Rollout();
             case ScoringMethod.BestMCTS3Heuristic:
-                return Utility.UseBestMCTS3Heuristic(GameState, false);
+                return Utility.UseBestMCTS3Heuristic(GameState, false, Bot.Settings.SIMULATE_MULTIPLE_TURNS);
             case ScoringMethod.RolloutTurnsCompletionsThenHeuristic:
                 return RolloutTillTurnsEndThenHeuristic(Bot.Settings.ROLLOUT_TURNS_BEFORE_HEURISTIC);
             case ScoringMethod.MaltheScoring:
@@ -198,7 +207,7 @@ public class Node
 
             var (newGameState, newPossibleMoves) = rolloutGameState.ApplyMove(moveToMake);
             rolloutGameState = newGameState;
-            rolloutPossibleMoves = Utility.GetUniqueMoves(newPossibleMoves);
+            rolloutPossibleMoves = Utility.RemoveDuplicateMoves(newPossibleMoves);
         }
 
         if (rolloutGameState.GameEndState.Winner != PlayerEnum.NO_PLAYER_SELECTED)
@@ -258,12 +267,233 @@ public class Node
             if (currMove.IsInstantPlay())
             {
                 (GameState, var possibleMoves) = GameState.ApplyMove(currMove, (ulong)Utility.Rng.Next());
-                PossibleMoves = Utility.GetUniqueMoves(possibleMoves);
+                PossibleMoves = possibleMoves;
+                FilterMoves();
                 ApplyInstantMoves();
                 break;
             }
         }
 
+        CardsInHandRanked = null;
+        CardsInCooldownRanked = null;
+        CardsInTavernRanked = null;
+        CardsInDrawPileRanked = null;
+        CardsPlayedRanked = null;
         GameStateHash = GameState.GenerateHash();
+    }
+
+    private void FilterMoves()
+    {
+        PossibleMoves = Utility.RemoveDuplicateMoves(PossibleMoves);
+
+        // TODO look at this one after the branchlimit one
+        if (Bot.Settings.ADDITiONAL_SELECTION_MOVE_FILTERING)
+        {
+            switch (GameState.BoardState)
+            {
+                case ScriptsOfTribute.Board.CardAction.BoardState.CHOICE_PENDING:
+                    switch (GameState.PendingChoice!.ChoiceFollowUp)
+                    {
+                        case ChoiceFollowUp.ENACT_CHOSEN_EFFECT:
+                        case ChoiceFollowUp.ACQUIRE_CARDS:
+                            Console.WriteLine("WHAT IS THIS?");
+                            break;
+                        case ChoiceFollowUp.DESTROY_CARDS:
+                        case ChoiceFollowUp.DISCARD_CARDS:
+                            //int weakCardAmount = (uniqueMoves).Max(x => (x as MakeChoiceMove<UniqueCard>)!.Choices.Count);
+                            //if (CardsInDrawPileRanked == null)
+                            //{
+                            //    RankCardsInHand();
+                            //}
+                            //PossibleMoves = FindWeakestHandCollection(availableMoves, weakCardAmount, branchLimit.Value);
+                            //return;
+                            break;
+                        case ChoiceFollowUp.REFRESH_CARDS: //Means moving cards from cooldown to top of drawpile
+                                                           // TODO, consider if i should not use all refreshes if cooldown is weak
+                            //int strongCardAmount = (uniqueMoves).Max(x => (x as MakeChoiceMove<UniqueCard>)!.Choices.Count);
+                            //PossibleMoves = FindStrongestCardCollections(availableMoves, strongCardAmount, branchLimit.Value);
+                            break;
+                        case ChoiceFollowUp.TOSS_CARDS:
+                        case ChoiceFollowUp.KNOCKOUT_AGENTS:
+                        case ChoiceFollowUp.COMPLETE_HLAALU:
+                        case ChoiceFollowUp.COMPLETE_PELLIN:
+                        case ChoiceFollowUp.COMPLETE_PSIJIC:
+                        case ChoiceFollowUp.COMPLETE_TREASURY:
+                            Console.WriteLine("Unexpected branch limit exceeded");
+                            break;
+                        case ChoiceFollowUp.REPLACE_CARDS_IN_TAVERN:
+                            // Not sure here how to make some good logic. Instead, just makes some random moves available
+                            var indexes = new HashSet<int>();
+                            while (indexes.Count < branchLimit)
+                            {
+                                indexes.Add(Rng.Next(possibleMoves.Count));
+                            }
+                            availableMoves = indexes.Select(i => possibleMoves[i]).ToList();
+                            break;
+                    }
+                    break;
+                case ScriptsOfTribute.Board.CardAction.BoardState.NORMAL:
+                    Console.WriteLine("Here i probably do not want to limit");
+                    break;
+                case ScriptsOfTribute.Board.CardAction.BoardState.START_OF_TURN_CHOICE_PENDING:
+                    switch (gameState.PendingChoice!.ChoiceFollowUp)
+                    {
+                        case ChoiceFollowUp.DISCARD_CARDS:
+                            int weakCardAmount = (uniqueMoves).Max(x => (x as MakeChoiceMove<UniqueCard>)!.Choices.Count);
+                            availableMoves = FindWeakestCardCollections(availableMoves, weakCardAmount);
+                            break;
+                        default:
+                            Console.WriteLine("UNKNOWN choice type: " + gameState.PendingChoice!.ChoiceFollowUp);
+                            break;
+                    }
+                    break;
+                case ScriptsOfTribute.Board.CardAction.BoardState.PATRON_CHOICE_PENDING:
+                    Console.WriteLine("UNEXPECTED");
+                    break;
+            }
+        }
+
+        if (Bot.Settings.STANDARD_BRANCH_LIMIT != null && PossibleMoves.Count > Bot.Settings.STANDARD_BRANCH_LIMIT)
+        {
+            Console.WriteLine("EXCEEDED BRANCH LIMIT");
+            switch (GameState.BoardState)
+            {
+                case ScriptsOfTribute.Board.CardAction.BoardState.CHOICE_PENDING:
+                    switch (GameState.PendingChoice!.ChoiceFollowUp)
+                    {
+                        case ChoiceFollowUp.ENACT_CHOSEN_EFFECT:
+                            Console.WriteLine("UNEXPECTED BRANCH LIMIT VIOLATION (enact chosen effect)");
+                            break;
+                        case ChoiceFollowUp.ACQUIRE_CARDS:
+                            if (CardsInTavernRanked == null)
+                            {
+                                CardsInTavernRanked = Utility.RankCardsInGameState(GameState, GameState.TavernAvailableCards);
+                            }
+                            // Aquire in this patch, always is a maximum of 1 card
+                            var topTavernCards = CardsInTavernRanked.Take(Bot.Settings.STANDARD_BRANCH_LIMIT!.Value - 1);
+                            PossibleMoves = PossibleMoves.Where(m => 
+                                topTavernCards.Contains((m as MakeChoiceMoveUniqueCard).Choices[0].CommonId) 
+                                || (m as MakeChoiceMoveUniqueCard).Choices.Count == 0)
+                                .ToList();
+                            break;
+                        case ChoiceFollowUp.DESTROY_CARDS:
+                            if (CardsPlayedRanked == null)
+                            {
+                                CardsPlayedRanked = Utility.RankCardsInGameState(GameState, GameState.CurrentPlayer.Played);
+                            }
+                            int maxAmount = PossibleMoves.Max(m => (m as MakeChoiceMoveUniqueCard).Choices.Count);
+                            if (maxAmount == 1)
+                            {
+                                var bottumPlayedCards = CardsPlayedRanked.TakeLast(Bot.Settings.STANDARD_BRANCH_LIMIT!.Value - 1);
+                                PossibleMoves = PossibleMoves.Where(m =>
+                                bottumPlayedCards.Contains((m as MakeChoiceMoveUniqueCard).Choices[0].CommonId)
+                                || (m as MakeChoiceMoveUniqueCard).Choices.Count == 0)
+                                .ToList();
+                            }
+                            else // Here the possible destroy amount is 2, since thats the max in the patch
+                            {
+                                switch(Bot.Settings.STANDARD_BRANCH_LIMIT!.Value)
+                                {
+                                    case 1:
+                                        // Add the choice with the 2 worst cards
+                                    case 2:
+                                        // Add the choices with the 2 worst cards and with the worst card
+                                    case 3:
+                                        // Add the choices with the 2 worst cards and with the worst card and with no cards
+                                    default: // 4 or more
+                                        int singleChoiceMoveCount = Bot.Settings.STANDARD_BRANCH_LIMIT!.Value / 2;
+                                        int twoChoicesMoveCount = Bot.Settings.STANDARD_BRANCH_LIMIT!.Value / 2;
+
+                                        if (singleChoiceMoveCount + twoChoicesMoveCount == Bot.Settings.STANDARD_BRANCH_LIMIT) // I want the non-destroying move to be available
+                                        {
+                                            singleChoiceMoveCount -= 1; // Lowering this rather than twoChoice, since twoChoice is generally the best move
+                                        }
+
+                                        var bottumPlayedCards = CardsPlayedRanked.TakeLast(singleChoiceMoveCount);
+                                        var singleChoiceMoves = PossibleMoves.Where(m =>
+                                        (m as MakeChoiceMoveUniqueCard).Choices.Count == 1
+                                        && bottumPlayedCards.Contains((m as MakeChoiceMoveUniqueCard).Choices[0].CommonId));
+                                        // TODO find the logic for picking [0,1], [0,2] [1,2] etc. and Add the two choice moves here
+                                        break;
+                                }
+                            }
+                            break;
+                        case ChoiceFollowUp.DISCARD_CARDS:
+                            // Discard in this patch is always 1 card
+                            if (CardsInHandRanked == null)
+                            {
+                                CardsInHandRanked = Utility.RankCardsInGameState(GameState, GameState.CurrentPlayer.Hand);
+                            }
+                            var bottumHandCards = CardsInHandRanked.TakeLast(Bot.Settings.STANDARD_BRANCH_LIMIT!.Value).ToList();
+                            PossibleMoves = PossibleMoves.Where(m => bottumHandCards.Contains((m as MakeChoiceMoveUniqueCard).Choices[0].CommonId)).ToList();
+                            break;
+                        case ChoiceFollowUp.REFRESH_CARDS: //Means moving cards from cooldown to top of drawpile
+                                                           // TODO, same complicated logic here as in destroy cards
+                            int strongCardAmount = (uniqueMoves).Max(x => (x as MakeChoiceMove<UniqueCard>)!.Choices.Count);
+                            availableMoves = FindStrongestCardCollections(availableMoves, strongCardAmount, branchLimit);
+                            break;
+                        case ChoiceFollowUp.TOSS_CARDS:
+                            // TODO same complicated logic here
+                        case ChoiceFollowUp.KNOCKOUT_AGENTS: // the possible amount is always 2 (if opponent has 2 more agents) in this patch
+                            // Theoretically it could make sense to leave agents up to stop opponent from playing even stronger agents, but i see this as purely theoretical and
+                            // not something that actually happens in games, so to optimize the MCTS-search, i excludea ny moves that does not knockout the maximum amount of agents
+                            int knockoutCount = Math.Min(GameState.EnemyPlayer.Agents.Count, 2);
+                            PossibleMoves = PossibleMoves.Where(m => (m as MakeChoiceMoveUniqueCard).Choices.Count == knockoutCount).ToList();
+                            // TODO same logic as for destroy cards
+                            break;
+                        case ChoiceFollowUp.COMPLETE_HLAALU:
+                            Console.WriteLine("UNEXPECTED BRANCH LIMIT VIOLATION (COMPLETE_HLAALU)");
+                            break;
+                        case ChoiceFollowUp.COMPLETE_PELLIN:
+                            Console.WriteLine("UNEXPECTED BRANCH LIMIT VIOLATION (COMPLETE_PELLIN)");
+                            break;
+                        case ChoiceFollowUp.COMPLETE_PSIJIC:
+                            Console.WriteLine("UNEXPECTED BRANCH LIMIT VIOLATION (COMPLETE_PSIJIC)");
+                            break;
+                        case ChoiceFollowUp.COMPLETE_TREASURY:
+                            if (CardsInHandAndPlayedRanked == null)
+                            {
+                                var cards = new HashSet<CardId>();
+                                cards.UnionWith(GameState.CurrentPlayer.Hand.Select(c => c.CommonId).ToHashSet());
+                                cards.UnionWith(GameState.CurrentPlayer.Played.Select(c => c.CommonId).ToHashSet());
+                                CardsInHandAndPlayedRanked = Utility.RankCardsInGameState(GameState, cards);
+                            }
+                            break;
+                        case ChoiceFollowUp.REPLACE_CARDS_IN_TAVERN:
+                            // Not sure here how to make some good logic. Instead, just makes some random moves available
+                            var indexes = new HashSet<int>();
+                            while (indexes.Count < Bot.Settings.STANDARD_BRANCH_LIMIT!.Value)
+                            {
+                                indexes.Add(Utility.Rng.Next(PossibleMoves.Count));
+                            }
+                            PossibleMoves = indexes.Select(i => PossibleMoves[i]).ToList();
+                            break;
+                    }
+                    break;
+                case ScriptsOfTribute.Board.CardAction.BoardState.NORMAL:
+                    Console.WriteLine("Here i probably do not want to limit");
+                    break;
+                case ScriptsOfTribute.Board.CardAction.BoardState.START_OF_TURN_CHOICE_PENDING:
+                    switch (gameState.PendingChoice!.ChoiceFollowUp)
+                    {
+                        case ChoiceFollowUp.DISCARD_CARDS:
+                            int weakCardAmount = (uniqueMoves).Max(x => (x as MakeChoiceMove<UniqueCard>)!.Choices.Count);
+                            availableMoves = FindWeakestCardCollections(availableMoves, weakCardAmount);
+                            break;
+                        default:
+                            Console.WriteLine("UNKNOWN choice type: " + gameState.PendingChoice!.ChoiceFollowUp);
+                            break;
+                    }
+                    break;
+                case ScriptsOfTribute.Board.CardAction.BoardState.PATRON_CHOICE_PENDING:
+                    Console.WriteLine("UNEXPECTED");
+                    break;
+            }
+            return availableMoves;
+        }
+        else
+        {
+            return uniqueMoves;
+        }
     }
 }

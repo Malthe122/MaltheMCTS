@@ -218,7 +218,7 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
             return summedStrengths / deck.Count;
         }
 
-        private static CardStrengths ScoreStrengthsInDeck(Card card, double patronToDeckRatio, int deckSize)
+        public static CardStrengths ScoreStrengthsInDeck(Card card, double patronToDeckRatio, int deckSize)
         {
             var result = new CardStrengths();
             foreach (var effect in card.Effects)

@@ -3,6 +3,7 @@ using ExternalHeuristic;
 using ScriptsOfTribute;
 using ScriptsOfTribute.Board.Cards;
 using ScriptsOfTribute.Serializers;
+using SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring;
 
 namespace MaltheMCTS;
 
@@ -17,29 +18,47 @@ public static class Utility
     /// </summary>
     private const double average_bestmcts3_heuristic_score = 0.4855746429f;
     public static Random Rng = new Random();
-    
+
     public static readonly List<CardId> RANDOM_EFFECT_CARDS = new List<CardId>();
 
     public static readonly List<CardId> INSTANT_EFFECT_PLAY_CARDS = new List<CardId>();
+    public static List<CardId> PRIMITIVE_CARD_RANKING = new List<CardId>();
 
     internal static void CategorizeCards()
     {
-        foreach(var card in GlobalCardDatabase.Instance.AllCards) {
+        foreach (var card in GlobalCardDatabase.Instance.AllCards)
+        {
             // Effect 0 is play/activation effect
             // FUTURE handle combos
-            if (card.Effects[0].IsStochastic()) {
+            if (card.Effects[0].IsStochastic())
+            {
                 RANDOM_EFFECT_CARDS.Add(card.CommonId);
             }
 
-            if (card.Effects.All(e => {
+            if (card.Effects.All(e =>
+            {
                 return e.IsInstantPlayEffect();
-            })) {
+            }))
+            {
                 INSTANT_EFFECT_PLAY_CARDS.Add(card.CommonId);
             }
         }
+
+        //PRIMITIVE_CARD_RANKING = GlobalCardDatabase.Instance.AllCards.OrderBy(x => PrimitiveStrengthRanking(FeatureSetUtility.ScoreStrengthsInDeck(x, 0.25, 1))).Select(x => x.CommonId).ToList();
+
+        Console.WriteLine("TESTESTTEST");
     }
 
-    public static double UseBestMCTS3Heuristic(SeededGameState gameState, bool onlyEndOfTurns)
+    private static double PrimitiveStrengthRanking(CardStrengths cardStrengths)
+    {
+        return
+            cardStrengths.GoldStrength +
+            cardStrengths.MiscellaneousStrength * 1.50 +
+            cardStrengths.PowerStrength * 1.50 +
+            cardStrengths.PrestigeStrength * 1.50;
+    }
+
+    public static double UseBestMCTS3Heuristic(SeededGameState gameState, bool onlyEndOfTurns, bool normalize = true)
     {
 
         GameStrategy strategy;
@@ -62,9 +81,12 @@ public static class Utility
 
         var result = strategy.Heuristic(gameState);
 
-        return NormalizeBestMCTS3Score(result, onlyEndOfTurns);
+        if (normalize)
+        {
+            return NormalizeBestMCTS3Score(result, onlyEndOfTurns);
+        }
 
-        // return result;
+        return result;
     }
 
     /// <summary>
@@ -74,7 +96,8 @@ public static class Utility
     /// </summary>
     private static double NormalizeBestMCTS3Score(double score, bool onlyEndOfTurns)
     {
-        if (onlyEndOfTurns){
+        if (onlyEndOfTurns)
+        {
             if (score < average_bestmcts3_heuristic_end_of_turn_score)
             {
                 return (score - average_bestmcts3_heuristic_end_of_turn_score) / average_bestmcts3_heuristic_end_of_turn_score;
@@ -84,7 +107,8 @@ public static class Utility
                 return (score - average_bestmcts3_heuristic_end_of_turn_score) / (1 - average_bestmcts3_heuristic_end_of_turn_score);
             }
         }
-        else {
+        else
+        {
             if (score < average_bestmcts3_heuristic_score)
             {
                 return (score - average_bestmcts3_heuristic_score) / average_bestmcts3_heuristic_score;
@@ -106,13 +130,15 @@ public static class Utility
             if (bot.NodeGameStateHashMap.ContainsKey(result.GameStateHash))
             {
                 Node equalNode = null;
-                try{
+                try
+                {
                     equalNode = bot.NodeGameStateHashMap[result.GameStateHash].SingleOrDefault(node => node.GameState.IsIdentical(result.GameState));
                 }
-                catch(Exception e) {
+                catch (Exception e)
+                {
                     var error = "Somehow two identical states were both added to hashmap.\n";
                     error += "State hashes:\n";
-                    bot.NodeGameStateHashMap[result.GameStateHash].ToList().ForEach(n => {error += n.GameStateHash + "\n";});
+                    bot.NodeGameStateHashMap[result.GameStateHash].ToList().ForEach(n => { error += n.GameStateHash + "\n"; });
                     error += "Full states:\n";
                     bot.NodeGameStateHashMap[result.GameStateHash].ToList().ForEach(n => n.GameState.Log());
                 }
@@ -135,22 +161,20 @@ public static class Utility
         return result;
     }
 
-    /// <summary>
-    /// SoT framework handles moves equal moves like different moves if they refer to different card ids of the same type. I consider pla
-    /// </summary>
-    /// 
-    internal static List<Move> GetUniqueMoves(List<Move> possibleMoves)
+    private static List<Move> FindStrongestCardCollections(List<Move> availableMoves, int strongCardAmount, int amount)
     {
-        var result = new List<Move>();
-
-        foreach(var currMove in possibleMoves) {
-            if (!result.Any(m => m.IsIdentical(currMove))){
-                result.Add(currMove);
-            }
-        }
-
-        return result;
+        throw new NotImplementedException();
     }
+
+    //TODO
+    private static List<Move> FindWeakestCardCollections(List<Move> availableMoves, int weakCardAmount, int amount)
+    {
+        return new List<Move>()
+        {
+            availableMoves[0]
+        };
+    }
+
     /// <summary>
     /// Since we reuse identical states, our move will not be identical to the move in the official gamestate, since although gamestates are logically identical
     /// we might have a specific card on hand with ID 1 in our gamestate, while the official gamestate has an identical card in our hand but with a different id.
@@ -169,5 +193,28 @@ public static class Utility
         }
 
         return arg1 / arg2;
+    }
+
+    /// <summary>
+    /// SoT framework handles moves equal moves like different moves if they refer to different card ids of the same type. I consider
+    /// playing the same card (with different ids) as identical moves, since their impact on the game is 100 % identical
+    /// </summary>
+    public static List<Move> RemoveDuplicateMoves(List<Move> moves)
+    {
+        var uniqueMoves = new List<Move>();
+        foreach (var currMove in moves)
+        {
+            if (!uniqueMoves.Any(m => m.IsIdentical(currMove)))
+            {
+                uniqueMoves.Add(currMove);
+            }
+        }
+
+        return uniqueMoves;
+    }
+
+    internal static HashSet<CardId> RankCardsInGameState(SeededGameState gameState, HashSet<CardId> cards)
+    {
+        throw new NotImplementedException();
     }
 }

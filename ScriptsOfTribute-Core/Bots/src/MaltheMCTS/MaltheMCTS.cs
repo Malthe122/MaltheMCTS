@@ -50,7 +50,6 @@ public class MaltheMCTS : AI
 
     public override Move Play(GameState gameState, List<Move> possibleMoves, TimeSpan remainingTime)
     {
-
         try
         {
             var instantPlay = FindInstantPlayMove(possibleMoves);
