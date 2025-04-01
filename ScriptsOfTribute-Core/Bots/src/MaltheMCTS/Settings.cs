@@ -27,14 +27,14 @@ public class Settings
         ITERATION_COMPLETION_MILLISECONDS_BUFFER = 300;
         UCT_EXPLORATION_CONSTANT = 1.41421356237; // sqrt(2) generally used default value
         FORCE_DELAY_TURN_END_IN_ROLLOUT = true;
-        INCLUDE_PLAY_MOVE_CHANCE_NODES = true;
-        INCLUDE_END_TURN_CHANCE_NODES = true;
+        INCLUDE_PLAY_MOVE_CHANCE_NODES = false;
+        INCLUDE_END_TURN_CHANCE_NODES = false;
         CHOSEN_SELECTION_METHOD = SelectionMethod.UCT;
         CHOSEN_SCORING_METHOD = ScoringMethod.MaltheScoring;
             ROLLOUT_TURNS_BEFORE_HEURISTIC = 1;
             FEATURE_SET_MODEL_TYPE = null;
         REUSE_TREE = true;
-        SIMULATE_MULTIPLE_TURNS = true;
+        SIMULATE_MULTIPLE_TURNS = false;
     }
 
     public override string ToString()
@@ -75,6 +75,12 @@ public class Settings
                     else if (property.PropertyType.IsEnum)
                     {
                         var enumValue = Enum.Parse(property.PropertyType, value);
+                        property.SetValue(result, enumValue);
+                    }
+                    else if (Nullable.GetUnderlyingType(property.PropertyType)?.IsEnum == true)
+                    {
+                        var enumType = Nullable.GetUnderlyingType(property.PropertyType);
+                        var enumValue = Enum.Parse(enumType, value);
                         property.SetValue(result, enumValue);
                     }
                 }
