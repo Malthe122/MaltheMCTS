@@ -16,12 +16,12 @@ public class Node
     public List<Move> PossibleMoves;
     internal MaltheMCTS Bot;
 
-    private HashSet<CardId> CardsInHandRanked;
-    private HashSet<CardId> CardsInCooldownRanked;
-    private HashSet<CardId> CardsInTavernRanked;
-    private HashSet<CardId> CardsInDrawPileRanked;
-    private HashSet<CardId> CardsPlayedRanked;
-    private HashSet<CardId> CardsInHandAndPlayedRanked;
+    private List<UniqueCard> CardsInHandRanked;
+    private List<UniqueCard> CardsInCooldownRanked;
+    private List<UniqueCard> CardsInTavernRanked;
+    private List<UniqueCard> CardsInDrawPileRanked;
+    private List<UniqueCard> CardsPlayedRanked;
+    private List<UniqueCard> CardsInHandAndPlayedRanked;
 
     /// <summary>
     /// Only used when SimulateMultipleTurns is disabled. It is a copy of this node, but representing the current score/visits of the node if end_turn is played, but without
@@ -370,26 +370,26 @@ public class Node
                         case ChoiceFollowUp.ACQUIRE_CARDS:
                             if (CardsInTavernRanked == null)
                             {
-                                CardsInTavernRanked = Utility.RankCardsInGameState(GameState, GameState.TavernAvailableCards.Select(c => c.CommonId).ToHashSet());
+                                CardsInTavernRanked = Utility.RankCardsInGameState(GameState, GameState.TavernAvailableCards.ToList());
                             }
                             // Aquire in this patch, always is a maximum of 1 card
                             var topTavernCards = CardsInTavernRanked.Take(Bot.Settings.STANDARD_BRANCH_LIMIT!.Value - 1);
                             PossibleMoves = PossibleMoves.Where(m =>
-                                topTavernCards.Contains((m as MakeChoiceMoveUniqueCard).Choices[0].CommonId)
+                                topTavernCards.Contains((m as MakeChoiceMoveUniqueCard).Choices[0])
                                 || (m as MakeChoiceMoveUniqueCard).Choices.Count == 0)
                                 .ToList();
                             break;
                         case ChoiceFollowUp.DESTROY_CARDS:
                             if (CardsPlayedRanked == null)
                             {
-                                CardsPlayedRanked = Utility.RankCardsInGameState(GameState, GameState.CurrentPlayer.Played.Select(c => c.CommonId).ToHashSet());
+                                CardsPlayedRanked = Utility.RankCardsInGameState(GameState, GameState.CurrentPlayer.Played.ToList());
                             }
                             int maxAmount = PossibleMoves.Max(m => (m as MakeChoiceMoveUniqueCard).Choices.Count);
                             if (maxAmount == 1)
                             {
                                 var bottumPlayedCards = CardsPlayedRanked.TakeLast(Bot.Settings.STANDARD_BRANCH_LIMIT!.Value - 1);
                                 PossibleMoves = PossibleMoves.Where(m =>
-                                bottumPlayedCards.Contains((m as MakeChoiceMoveUniqueCard).Choices[0].CommonId)
+                                bottumPlayedCards.Contains((m as MakeChoiceMoveUniqueCard).Choices[0])
                                 || (m as MakeChoiceMoveUniqueCard).Choices.Count == 0)
                                 .ToList();
                             }
@@ -415,7 +415,7 @@ public class Node
                                         var bottumPlayedCards = CardsPlayedRanked.TakeLast(singleChoiceMoveCount);
                                         var singleChoiceMoves = PossibleMoves.Where(m =>
                                         (m as MakeChoiceMoveUniqueCard).Choices.Count == 1
-                                        && bottumPlayedCards.Contains((m as MakeChoiceMoveUniqueCard).Choices[0].CommonId));
+                                        && bottumPlayedCards.Contains((m as MakeChoiceMoveUniqueCard).Choices[0]));
                                         // TODO find the logic for picking [0,1], [0,2] [1,2] etc. and Add the two choice moves here
                                         break;
                                 }
@@ -425,10 +425,10 @@ public class Node
                             // Discard in this patch is always 1 card
                             if (CardsInHandRanked == null)
                             {
-                                CardsInHandRanked = Utility.RankCardsInGameState(GameState, GameState.CurrentPlayer.Hand.Select(c => c.CommonId).ToHashSet());
+                                CardsInHandRanked = Utility.RankCardsInGameState(GameState, GameState.CurrentPlayer.Hand.ToList());
                             }
                             var bottumHandCards = CardsInHandRanked.TakeLast(Bot.Settings.STANDARD_BRANCH_LIMIT!.Value).ToList();
-                            PossibleMoves = PossibleMoves.Where(m => bottumHandCards.Contains((m as MakeChoiceMoveUniqueCard).Choices[0].CommonId)).ToList();
+                            PossibleMoves = PossibleMoves.Where(m => bottumHandCards.Contains((m as MakeChoiceMoveUniqueCard).Choices[0])).ToList();
                             break;
                         case ChoiceFollowUp.REFRESH_CARDS: //Means moving cards from cooldown to top of drawpile
                                                            // TODO, same complicated logic here as in destroy cards
@@ -456,9 +456,9 @@ public class Node
                         case ChoiceFollowUp.COMPLETE_TREASURY:
                             if (CardsInHandAndPlayedRanked == null)
                             {
-                                var cards = new HashSet<CardId>();
-                                cards.UnionWith(GameState.CurrentPlayer.Hand.Select(c => c.CommonId).ToHashSet());
-                                cards.UnionWith(GameState.CurrentPlayer.Played.Select(c => c.CommonId).ToHashSet());
+                                var cards = new List<UniqueCard>();
+                                cards.AddRange(GameState.CurrentPlayer.Hand.ToList());
+                                cards.AddRange(GameState.CurrentPlayer.Played.ToList());
                                 CardsInHandAndPlayedRanked = Utility.RankCardsInGameState(GameState, cards);
                             }
                             break;

@@ -213,8 +213,76 @@ public static class Utility
         return uniqueMoves;
     }
 
-    internal static HashSet<CardId> RankCardsInGameState(SeededGameState gameState, HashSet<CardId> cards)
+    public static List<UniqueCard> RankCardsInGameState(SeededGameState gameState, List<UniqueCard> cards)
     {
-        throw new NotImplementedException();
+        // Add hashsets with common ids, so calculation only needs to be done ones for each type
+        var rankedCardTypes = new Dictionary<CardId, double>();
+        var completeDeck = GetCurrentPlayerCompleteDeck(gameState);
+        var patronRatios = FeatureSetUtility.GetPatronRatios(completeDeck, gameState.Patrons);
+
+        var orderedCards = cards.OrderBy(c =>
+        {
+            if (rankedCardTypes.ContainsKey(c.CommonId))
+            {
+                return rankedCardTypes[c.CommonId];
+            }
+            else
+            {
+                var score = CardStrengthsToScore(FeatureSetUtility.ScoreStrengthsInDeck(c, patronRatios[c.Deck], completeDeck.Count));
+                rankedCardTypes.Add(c.CommonId, score);
+                return score;
+            }
+        });
+
+        return orderedCards.ToList();
+    }
+
+    private static List<Card> GetCurrentPlayerCompleteDeck(SeededGameState gameState)
+    {
+        var currentPlayerCompleteDeck = new List<Card>();
+        currentPlayerCompleteDeck.AddRange(gameState.CurrentPlayer.Hand);
+        currentPlayerCompleteDeck.AddRange(gameState.CurrentPlayer.DrawPile);
+        currentPlayerCompleteDeck.AddRange(gameState.CurrentPlayer.Played);
+        currentPlayerCompleteDeck.AddRange(gameState.CurrentPlayer.CooldownPile);
+        currentPlayerCompleteDeck.AddRange(gameState.CurrentPlayer.Agents.Where(a => a.RepresentingCard.Type != CardType.CONTRACT_AGENT).Select(a => a.RepresentingCard));
+
+        return currentPlayerCompleteDeck;
+    }
+
+    private static double CardStrengthsToScore(CardStrengths cardStrengths)
+    {
+        // TODO maybe there should be some logic here that prefers power and prestige later in the game and coins early in the game
+        return cardStrengths.GoldStrength
+            + cardStrengths.MiscellaneousStrength
+            + cardStrengths.PowerStrength
+            + cardStrengths.PrestigeStrength;
+    }
+
+    /// <returns>
+    /// combinationAmount amount of combination in the following order using the rankedList:
+    /// 1. [0, 1]
+    /// 2. [0, 2]
+    /// 3. [1, 2]
+    /// 4. [0, 3]
+    /// 5. [1, 3]
+    /// 6. [2, 3]
+    /// etc.
+    /// </returns>
+    public static List<(CardId, CardId)> GetRankedCardCombinations(List<CardId> rankedList, int combinationAmount)
+    {
+        var result = new List<(CardId, CardId)>();
+        if (combinationAmount <= 0 || rankedList.Count < 2)
+        {
+            return result;
+        }
+
+        for (int j = 1; j < rankedList.Count && result.Count < combinationAmount; j++)
+        {
+            for (int i = 0; i < j && result.Count < combinationAmount; i++)
+            {
+                result.Add((rankedList[i], rankedList[j]));
+            }
+        }
+        return result;
     }
 }

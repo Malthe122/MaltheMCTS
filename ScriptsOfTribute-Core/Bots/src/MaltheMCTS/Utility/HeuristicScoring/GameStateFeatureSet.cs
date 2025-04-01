@@ -74,7 +74,7 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
 
     public static class FeatureSetUtility
     {
-        private const double BASE_AGENT_STRENGTH_MULTIPLIER = 1;
+        private const double BASE_AGENT_STRENGTH_MULTIPLIER = 1.5;
         private const double AGENT_HP_VALUE_MULTIPLIER = 0.1;
         private const double CHOICE_WEIGHT = 0.75;
 
@@ -162,7 +162,8 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
 
             return featureSet;
         }
-        private static Dictionary<PatronId, double> GetPatronRatios(List<Card> deck, List<PatronId> patrons)
+
+        public static Dictionary<PatronId, double> GetPatronRatios(List<Card> deck, List<PatronId> patrons)
         {
             var patronToAmount = new Dictionary<PatronId, int>();
             var patronToDeckRatio = new Dictionary<PatronId, double>();
@@ -229,7 +230,16 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
                 }
                 else
                 {
-                    result += ScoreComplexEffectStrengthsInDeck(effect, patronToDeckRatio, deckSize);
+                    var cardStrength = ScoreComplexEffectStrengthsInDeck(effect, patronToDeckRatio, deckSize);
+                    // TODO update paper with this new addition
+                    if (card.Type == CardType.AGENT || card.Type == CardType.CONTRACT_AGENT) {
+                        cardStrength *= BASE_AGENT_STRENGTH_MULTIPLIER;
+                        if (card.Taunt)
+                        {
+                            cardStrength.PrestigeStrength += card.HP;
+                        }
+                    }
+                    result += cardStrength;
                 }
             }
 
