@@ -222,8 +222,17 @@ public static class IsIdenticalExtensions{
     }
 
     public static bool IsIdentical(this List<UniqueCard> instance, List<UniqueCard> other) {
-        List<CardId> orderedInstanceCardIds = instance.OrderBy(card => card.CommonId).Select(card => card.CommonId).ToList();
-        List<CardId> orderedOtherCardIds = other.OrderBy(card => card.CommonId).Select(card => card.CommonId).ToList();
+        // (CardId, int) to regard instances of same agent seperately if they have different amount of HP
+        List<(CardId, int)> orderedInstanceCardIds = 
+            instance.OrderBy(card => card.CommonId)
+            .ThenBy(card => card.HP)
+            .Select(card => (card.CommonId, card.HP))
+            .ToList();
+        List<(CardId, int)> orderedOtherCardIds = 
+            other.OrderBy(card => card.CommonId)
+            .ThenBy(card => card.HP)
+            .Select(card => (card.CommonId, card.HP))
+            .ToList();
         return orderedInstanceCardIds.SequenceEqual(orderedOtherCardIds);
     }
 

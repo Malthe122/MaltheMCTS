@@ -161,20 +161,6 @@ public static class Utility
         return result;
     }
 
-    private static List<Move> FindStrongestCardCollections(List<Move> availableMoves, int strongCardAmount, int amount)
-    {
-        throw new NotImplementedException();
-    }
-
-    //TODO
-    private static List<Move> FindWeakestCardCollections(List<Move> availableMoves, int weakCardAmount, int amount)
-    {
-        return new List<Move>()
-        {
-            availableMoves[0]
-        };
-    }
-
     /// <summary>
     /// Since we reuse identical states, our move will not be identical to the move in the official gamestate, since although gamestates are logically identical
     /// we might have a specific card on hand with ID 1 in our gamestate, while the official gamestate has an identical card in our hand but with a different id.
@@ -213,14 +199,14 @@ public static class Utility
         return uniqueMoves;
     }
 
-    public static List<UniqueCard> RankCardsInGameState(SeededGameState gameState, List<UniqueCard> cards)
+    public static List<UniqueCard> RankCardsInGameState(SeededGameState gameState, IEnumerable<UniqueCard> cards)
     {
         // Add hashsets with common ids, so calculation only needs to be done ones for each type
         var rankedCardTypes = new Dictionary<CardId, double>();
         var completeDeck = GetCurrentPlayerCompleteDeck(gameState);
         var patronRatios = FeatureSetUtility.GetPatronRatios(completeDeck, gameState.Patrons);
 
-        var orderedCards = cards.OrderBy(c =>
+        var orderedCards = cards.OrderByDescending(c =>
         {
             if (rankedCardTypes.ContainsKey(c.CommonId))
             {
@@ -229,6 +215,10 @@ public static class Utility
             else
             {
                 var score = CardStrengthsToScore(FeatureSetUtility.ScoreStrengthsInDeck(c, patronRatios[c.Deck], completeDeck.Count));
+                if(c.Deck != PatronId.TREASURY)
+                {
+                    score += 0.1 * patronRatios[c.Deck]; // To favor cards that fit into the deck, if their effects are equal
+                }
                 rankedCardTypes.Add(c.CommonId, score);
                 return score;
             }
@@ -267,22 +257,111 @@ public static class Utility
     /// 5. [1, 3]
     /// 6. [2, 3]
     /// etc.
+    /// Unless includeSingle and/or includeEmpty flags are enabled
     /// </returns>
-    public static List<(CardId, CardId)> GetRankedCardCombinations(List<CardId> rankedList, int combinationAmount)
+    public static List<Move> GetRankedCardCombinationMoves(List<Move> moves, List<UniqueCard> rankedCardList, int moveCount, bool includeEmptyAndSingleChoice)
     {
-        var result = new List<(CardId, CardId)>();
-        if (combinationAmount <= 0 || rankedList.Count < 2)
+        var result = new List<Move>();
+
+        if (includeEmptyAndSingleChoice)
         {
+            switch (moveCount)
+            {
+                case 1: // Just best combination of two cards
+                    var topCards = rankedCardList.Take(2).ToList();
+                    result = new List<Move>() {
+                                            moves.First(m =>
+                                            {
+                                                var move = (m as MakeChoiceMoveUniqueCard);
+                                                return move!.Choices.Any(c => topCards[0].CommonId == c.CommonId)
+                                                && move.Choices.Any(c => topCards[1].CommonId == c.CommonId);
+                                            })};
+                    break;
+                case 2: // Best combination of two cards and best choice of 1 card only
+                    topCards = rankedCardList.Take(2).ToList();
+                    result = new List<Move>() {
+                                            moves.First(m =>
+                                            {
+                                                var move = (m as MakeChoiceMoveUniqueCard);
+                                                return move!.Choices.Any(c => topCards[0].CommonId == c.CommonId)
+                                                && move.Choices.Any(c => topCards[1].CommonId == c.CommonId);
+                                            })};
+                    var singleChoiceMove = moves.First(m =>
+                    {
+                        var move = m as MakeChoiceMoveUniqueCard;
+                        return move.Choices.Count == 1
+                            && move.Choices[0].CommonId == rankedCardList[0].CommonId;
+                    });
+                    result.Add(singleChoiceMove);
+                    break;
+                case 3: // Best combination of two cards, best choice of 1 card only and no choice
+                    topCards = rankedCardList.Take(2).ToList();
+                    result = new List<Move>() {
+                                            moves.First(m =>
+                                            {
+                                                var move = (m as MakeChoiceMoveUniqueCard);
+                                                return move!.Choices.Any(c => topCards[0].CommonId == c.CommonId)
+                                                && move.Choices.Any(c => topCards[1].CommonId == c.CommonId);
+                                            })};
+                    singleChoiceMove = moves.First(m =>
+                    {
+                        var move = m as MakeChoiceMoveUniqueCard;
+                        return move.Choices.Count == 1
+                            && move.Choices[0].CommonId == rankedCardList[0].CommonId;
+                    });
+                    result.Add(singleChoiceMove);
+                    var emptyMove = moves.First(m => (m as MakeChoiceMoveUniqueCard).Choices.Count == 0);
+                    break;
+                default: // 4 or more
+                    int singleChoiceMoveCount = moveCount / 2;
+                    int twoChoicesMoveCount = moveCount / 2;
+
+                    if (singleChoiceMoveCount + twoChoicesMoveCount == moveCount) // I need it to be 1 lower, so there is room the the no-choice move
+                    {
+                        singleChoiceMoveCount -= 1; // Lowering this rather than twoChoice, since twoChoice is generally the best move
+                    }
+
+                    var noChoiceMove = moves.First(m => (m as MakeChoiceMoveUniqueCard).Choices.Count == 0);
+
+                    topCards = rankedCardList.TakeLast(singleChoiceMoveCount).ToList();
+                    var singleChoiceMoves = moves.Where(m =>
+                    (m as MakeChoiceMoveUniqueCard).Choices.Count == 1
+                    && topCards.Any(c => (m as MakeChoiceMoveUniqueCard).Choices[0].CommonId == c.CommonId));
+
+                    var twoChoiceMoves = GetBestTwoChoiceMoves(moves, rankedCardList, twoChoicesMoveCount);
+
+                    result = singleChoiceMoves.Concat(twoChoiceMoves).ToList();
+                    result.Add(noChoiceMove);
+                    break;
+            }
+
             return result;
         }
-
-        for (int j = 1; j < rankedList.Count && result.Count < combinationAmount; j++)
+        else
         {
-            for (int i = 0; i < j && result.Count < combinationAmount; i++)
+            return GetBestTwoChoiceMoves(moves, rankedCardList, moveCount);
+        }
+    }
+
+    private static List<Move> GetBestTwoChoiceMoves(List<Move> moves, List<UniqueCard> rankedCardList, int moveCount)
+    {
+        var result = new List<Move>();
+
+        for (int j = 1; j < rankedCardList.Count && result.Count < moveCount; j++)
+        {
+            for (int i = 0; i < j && result.Count < moveCount; i++)
             {
-                result.Add((rankedList[i], rankedList[j]));
+                var move = moves.First(m =>
+                {
+                    var move = m as MakeChoiceMoveUniqueCard;
+                    return move!.Choices.Any(c => c.CommonId == rankedCardList[i].CommonId)
+                    && move!.Choices.Any(c => c.CommonId == rankedCardList[j].CommonId);
+                });
+                result.Add(move);
             }
         }
+
         return result;
     }
+
 }

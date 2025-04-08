@@ -50,8 +50,8 @@ public class MaltheMCTS : AI
 
     public override Move Play(GameState gameState, List<Move> possibleMoves, TimeSpan remainingTime)
     {
-        try
-        {
+        //try // REMOVED FOR DEBUGGING
+        //{
             var instantPlay = FindInstantPlayMove(possibleMoves);
             if (instantPlay != null)
             {
@@ -101,34 +101,34 @@ public class MaltheMCTS : AI
             }
 
             return Utility.FindOfficialMove(bestMove, possibleMoves);
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine("Something went wrong while trying to compute move. Playing random move instead. Exception:");
-            Console.WriteLine("Message: " + e.Message);
-            Console.WriteLine("Stacktrace: " + e.StackTrace);
-            Console.WriteLine("Data: " + e.Data);
-            if (e.InnerException != null)
-            {
-                Console.WriteLine("Inner excpetion: " + e.InnerException.Message);
-                Console.WriteLine("Inner stacktrace: " + e.InnerException.StackTrace);
-            }
+        //}
+        //catch (Exception e)
+        //{
+        //    Console.WriteLine("Something went wrong while trying to compute move. Playing random move instead. Exception:");
+        //    Console.WriteLine("Message: " + e.Message);
+        //    Console.WriteLine("Stacktrace: " + e.StackTrace);
+        //    Console.WriteLine("Data: " + e.Data);
+        //    if (e.InnerException != null)
+        //    {
+        //        Console.WriteLine("Inner excpetion: " + e.InnerException.Message);
+        //        Console.WriteLine("Inner stacktrace: " + e.InnerException.StackTrace);
+        //    }
 
-            var errorMessage = "Something went wrong while trying to compute move. Playing random move instead. Exception:" + "\n" ;
-            errorMessage += "Message: " + e.Message + "\n";
-            errorMessage += "Stacktrace: " + e.StackTrace + "\n";
-            errorMessage += "Data: " + e.Data + "\n";
-            if (e.InnerException != null)
-            {
-                errorMessage += "Inner excpetion: " + e.InnerException.Message + "\n";
-                errorMessage += "Inner stacktrace: " + e.InnerException.StackTrace + "\n";
-            }
+        //    var errorMessage = "Something went wrong while trying to compute move. Playing random move instead. Exception:" + "\n" ;
+        //    errorMessage += "Message: " + e.Message + "\n";
+        //    errorMessage += "Stacktrace: " + e.StackTrace + "\n";
+        //    errorMessage += "Data: " + e.Data + "\n";
+        //    if (e.InnerException != null)
+        //    {
+        //        errorMessage += "Inner excpetion: " + e.InnerException.Message + "\n";
+        //        errorMessage += "Inner stacktrace: " + e.InnerException.StackTrace + "\n";
+        //    }
 
-            errorMessage += "Settings was:\n" + Settings.ToString();
+        //    errorMessage += "Settings was:\n" + Settings.ToString();
 
-            SaveErrorLog(errorMessage);
-            return possibleMoves[0];
-        }
+        //    SaveErrorLog(errorMessage);
+        //    return possibleMoves[0];
+        //}
     }
 
     private void SaveErrorLog(string errorMessage)

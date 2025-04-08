@@ -175,12 +175,12 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
 
             foreach (var currCard in deck)
             {
-                patronToAmount[currCard.Deck]++;
+                patronToAmount[currCard.Deck]+=1;
             }
 
             foreach (var currPair in patronToAmount)
             {
-                patronToDeckRatio.Add(currPair.Key, currPair.Value / deck.Count);
+                patronToDeckRatio.Add(currPair.Key, (double)currPair.Value / deck.Count);
             }
 
             return patronToDeckRatio;

@@ -22,7 +22,7 @@ public class Settings
         public RegressionTrainer? FEATURE_SET_MODEL_TYPE { get; set; }
     public bool REUSE_TREE { get; set; }
     public bool SIMULATE_MULTIPLE_TURNS { get; set; }
-    public int? STANDARD_BRANCH_LIMIT { get; set; }
+    public int? CHOICE_BRANCH_LIMIT { get; set; }
     public bool ADDITiONAL_SELECTION_MOVE_FILTERING { get; set; }
 
     public Settings()
@@ -39,7 +39,7 @@ public class Settings
             FEATURE_SET_MODEL_TYPE = null;
         REUSE_TREE = true;
         SIMULATE_MULTIPLE_TURNS = false;
-        STANDARD_BRANCH_LIMIT = 10;
+        CHOICE_BRANCH_LIMIT = 3; // Should probably be higher than 3. This is for debugging
         ADDITiONAL_SELECTION_MOVE_FILTERING = true;
     }
 

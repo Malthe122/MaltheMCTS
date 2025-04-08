@@ -13,7 +13,22 @@ public class Node
     public double TotalScore = 0;
     public int GameStateHash { get; private set; }
     public SeededGameState GameState { get; private set; }
-    public List<Move> PossibleMoves;
+    private List<Move> possibleMoves;
+    public List<Move> PossibleMoves
+    {
+        get => possibleMoves;
+        set
+        {
+            if (value != null && value.Count == 0)
+            {
+                Console.WriteLine("Assigned an empty move list");
+            }
+            else
+            {
+                possibleMoves = value;
+            }
+        }
+    }
     internal MaltheMCTS Bot;
 
     private List<UniqueCard> CardsInHandRanked;
@@ -22,6 +37,7 @@ public class Node
     private List<UniqueCard> CardsInDrawPileRanked;
     private List<UniqueCard> CardsPlayedRanked;
     private List<UniqueCard> CardsInHandAndPlayedRanked;
+    private List<UniqueCard> OpponentAgentsRanked;
 
     /// <summary>
     /// Only used when SimulateMultipleTurns is disabled. It is a copy of this node, but representing the current score/visits of the node if end_turn is played, but without
@@ -32,10 +48,11 @@ public class Node
     public Node(SeededGameState gameState, List<Move> possibleMoves, MaltheMCTS bot)
     {
         GameState = gameState;
-        FilterMoves();
-        MoveToChildNode = new Dictionary<Move, Node>();
+        PossibleMoves = possibleMoves;
         Bot = bot;
         ApplyInstantMoves();
+        FilterMoves();
+        MoveToChildNode = new Dictionary<Move, Node>();
     }
 
     public virtual void Visit(out double score, HashSet<Node> visitedNodes)
@@ -356,9 +373,8 @@ public class Node
         //}
         #endregion
 
-        if (Bot.Settings.STANDARD_BRANCH_LIMIT != null && PossibleMoves.Count > Bot.Settings.STANDARD_BRANCH_LIMIT)
+        if (Bot.Settings.CHOICE_BRANCH_LIMIT != null && PossibleMoves.Count > Bot.Settings.CHOICE_BRANCH_LIMIT)
         {
-            Console.WriteLine("EXCEEDED BRANCH LIMIT");
             switch (GameState.BoardState)
             {
                 case ScriptsOfTribute.Board.CardAction.BoardState.CHOICE_PENDING:
@@ -370,55 +386,32 @@ public class Node
                         case ChoiceFollowUp.ACQUIRE_CARDS:
                             if (CardsInTavernRanked == null)
                             {
-                                CardsInTavernRanked = Utility.RankCardsInGameState(GameState, GameState.TavernAvailableCards.ToList());
+                                CardsInTavernRanked = Utility.RankCardsInGameState(GameState, GameState.TavernAvailableCards);
                             }
                             // Aquire in this patch, always is a maximum of 1 card
-                            var topTavernCards = CardsInTavernRanked.Take(Bot.Settings.STANDARD_BRANCH_LIMIT!.Value - 1);
+                            var topTavernCards = CardsInTavernRanked.Take(Bot.Settings.CHOICE_BRANCH_LIMIT!.Value - 1);
                             PossibleMoves = PossibleMoves.Where(m =>
-                                topTavernCards.Contains((m as MakeChoiceMoveUniqueCard).Choices[0])
-                                || (m as MakeChoiceMoveUniqueCard).Choices.Count == 0)
-                                .ToList();
+                                (m as MakeChoiceMoveUniqueCard).Choices.Count == 0
+                                || topTavernCards.Any(c => (m as MakeChoiceMoveUniqueCard).Choices[0].CommonId == c.CommonId)
+                                ).ToList();
                             break;
                         case ChoiceFollowUp.DESTROY_CARDS:
-                            if (CardsPlayedRanked == null)
+                            if (CardsPlayedRanked == null) // In SoT, the destroy also allows to destroy from hand, but to assist bot, i exclude this, cause its almost best to play the card first
                             {
-                                CardsPlayedRanked = Utility.RankCardsInGameState(GameState, GameState.CurrentPlayer.Played.ToList());
+                                CardsPlayedRanked = Utility.RankCardsInGameState(GameState, GameState.CurrentPlayer.Played);
                             }
                             int maxAmount = PossibleMoves.Max(m => (m as MakeChoiceMoveUniqueCard).Choices.Count);
                             if (maxAmount == 1)
                             {
-                                var bottumPlayedCards = CardsPlayedRanked.TakeLast(Bot.Settings.STANDARD_BRANCH_LIMIT!.Value - 1);
+                                var worstPlayedPileCards = CardsPlayedRanked.TakeLast(Bot.Settings.CHOICE_BRANCH_LIMIT!.Value - 1);
                                 PossibleMoves = PossibleMoves.Where(m =>
-                                bottumPlayedCards.Contains((m as MakeChoiceMoveUniqueCard).Choices[0])
-                                || (m as MakeChoiceMoveUniqueCard).Choices.Count == 0)
+                                (m as MakeChoiceMoveUniqueCard).Choices.Count == 0
+                                || worstPlayedPileCards.Any(c => (m as MakeChoiceMoveUniqueCard).Choices[0].CommonId == c.CommonId))
                                 .ToList();
                             }
                             else // Here the possible destroy amount is 2, since thats the max in the patch
                             {
-                                switch (Bot.Settings.STANDARD_BRANCH_LIMIT!.Value)
-                                {
-                                    case 1:
-                                    // Add the choice with the 2 worst cards
-                                    case 2:
-                                    // Add the choices with the 2 worst cards and with the worst card
-                                    case 3:
-                                    // Add the choices with the 2 worst cards and with the worst card and with no cards
-                                    default: // 4 or more
-                                        int singleChoiceMoveCount = Bot.Settings.STANDARD_BRANCH_LIMIT!.Value / 2;
-                                        int twoChoicesMoveCount = Bot.Settings.STANDARD_BRANCH_LIMIT!.Value / 2;
-
-                                        if (singleChoiceMoveCount + twoChoicesMoveCount == Bot.Settings.STANDARD_BRANCH_LIMIT) // I want the non-destroying move to be available
-                                        {
-                                            singleChoiceMoveCount -= 1; // Lowering this rather than twoChoice, since twoChoice is generally the best move
-                                        }
-
-                                        var bottumPlayedCards = CardsPlayedRanked.TakeLast(singleChoiceMoveCount);
-                                        var singleChoiceMoves = PossibleMoves.Where(m =>
-                                        (m as MakeChoiceMoveUniqueCard).Choices.Count == 1
-                                        && bottumPlayedCards.Contains((m as MakeChoiceMoveUniqueCard).Choices[0]));
-                                        // TODO find the logic for picking [0,1], [0,2] [1,2] etc. and Add the two choice moves here
-                                        break;
-                                }
+                                PossibleMoves = Utility.GetRankedCardCombinationMoves(PossibleMoves, CardsPlayedRanked.AsEnumerable().Reverse().ToList(), Bot.Settings.CHOICE_BRANCH_LIMIT!.Value, true);
                             }
                             break;
                         case ChoiceFollowUp.DISCARD_CARDS:
@@ -427,22 +420,29 @@ public class Node
                             {
                                 CardsInHandRanked = Utility.RankCardsInGameState(GameState, GameState.CurrentPlayer.Hand.ToList());
                             }
-                            var bottumHandCards = CardsInHandRanked.TakeLast(Bot.Settings.STANDARD_BRANCH_LIMIT!.Value).ToList();
-                            PossibleMoves = PossibleMoves.Where(m => bottumHandCards.Contains((m as MakeChoiceMoveUniqueCard).Choices[0])).ToList();
+                            var bottumHandCards = CardsInHandRanked.TakeLast(Bot.Settings.CHOICE_BRANCH_LIMIT!.Value).ToList();
+                            PossibleMoves = PossibleMoves.Where(m => 
+                                    bottumHandCards.Any(c => (m as MakeChoiceMoveUniqueCard).Choices[0].CommonId == c.CommonId))
+                                .ToList();
                             break;
                         case ChoiceFollowUp.REFRESH_CARDS: //Means moving cards from cooldown to top of drawpile
-                                                           // TODO, same complicated logic here as in destroy cards
-                                                           //int strongCardAmount = (uniqueMoves).Max(x => (x as MakeChoiceMove<UniqueCard>)!.Choices.Count);
-                                                           //availableMoves = FindStrongestCardCollections(availableMoves, strongCardAmount, branchLimit);
+                            //if (CardsInCooldownRanked == null)
+                            //{
+                            //    CardsInCooldownRanked = Utility.RankCardsInGameState(GameState, GameState.CurrentPlayer.CooldownPile);
+                            //}
+                            // Skips this. As its bit more complex. Excludes empty moves in SoT (unlike ToT, as far as i can see) refresh requires a minimum of 1
+                            // But can also allow more than 2
                             break;
                         case ChoiceFollowUp.TOSS_CARDS:
-                        // TODO same complicated logic here
-                        case ChoiceFollowUp.KNOCKOUT_AGENTS: // the possible amount is always 2 (if opponent has 2 more agents) in this patch
+                        // Not included in this patch
+                        case ChoiceFollowUp.KNOCKOUT_AGENTS:
                             // Theoretically it could make sense to leave agents up to stop opponent from playing even stronger agents, but i see this as purely theoretical and
-                            // not something that actually happens in games, so to optimize the MCTS-search, i excludea ny moves that does not knockout the maximum amount of agents
-                            int knockoutCount = Math.Min(GameState.EnemyPlayer.Agents.Count, 2);
+                            // not something that actually happens in games, so to optimize the MCTS-search, i exclude any moves that does not knockout the maximum amount of agents
+                            int allowedAmount = PossibleMoves.Max(m => (m as MakeChoiceMoveUniqueCard).Choices.Count);
+                            int knockoutCount = Math.Min(GameState.EnemyPlayer.Agents.Count, allowedAmount);
                             PossibleMoves = PossibleMoves.Where(m => (m as MakeChoiceMoveUniqueCard).Choices.Count == knockoutCount).ToList();
-                            // TODO same logic as for destroy cards
+                            // FUTURE consider checking branch limit here too (but other method cant be used, since these a serializedAgents not uniqueCard), but branching factor likely wont get
+                            // excessive here
                             break;
                         case ChoiceFollowUp.COMPLETE_HLAALU:
                             Console.WriteLine("UNEXPECTED BRANCH LIMIT VIOLATION (COMPLETE_HLAALU)");
@@ -454,18 +454,21 @@ public class Node
                             Console.WriteLine("UNEXPECTED BRANCH LIMIT VIOLATION (COMPLETE_PSIJIC)");
                             break;
                         case ChoiceFollowUp.COMPLETE_TREASURY:
-                            if (CardsInHandAndPlayedRanked == null)
+                            if (CardsPlayedRanked == null) // In SoT, the destroy also allows to destroy from hand, but to assist bot, i exclude this, cause its almost best to play the card first
                             {
-                                var cards = new List<UniqueCard>();
-                                cards.AddRange(GameState.CurrentPlayer.Hand.ToList());
-                                cards.AddRange(GameState.CurrentPlayer.Played.ToList());
-                                CardsInHandAndPlayedRanked = Utility.RankCardsInGameState(GameState, cards);
+                                CardsPlayedRanked = Utility.RankCardsInGameState(GameState, GameState.CurrentPlayer.Played);
                             }
+                            // Treasury is just a single destroy
+                            var worstPlayedCards = CardsPlayedRanked.TakeLast(Bot.Settings.CHOICE_BRANCH_LIMIT!.Value - 1);
+                            PossibleMoves = PossibleMoves.Where(m =>
+                            worstPlayedCards.Any(c => (m as MakeChoiceMoveUniqueCard).Choices[0].CommonId == c.CommonId)
+                            || (m as MakeChoiceMoveUniqueCard).Choices.Count == 0)
+                            .ToList();
                             break;
                         case ChoiceFollowUp.REPLACE_CARDS_IN_TAVERN:
                             // Not sure here how to make some good logic. Instead, just makes some random moves available
                             var indexes = new HashSet<int>();
-                            while (indexes.Count < Bot.Settings.STANDARD_BRANCH_LIMIT!.Value)
+                            while (indexes.Count < Bot.Settings.CHOICE_BRANCH_LIMIT!.Value)
                             {
                                 indexes.Add(Utility.Rng.Next(PossibleMoves.Count));
                             }
@@ -480,18 +483,36 @@ public class Node
                 case ScriptsOfTribute.Board.CardAction.BoardState.START_OF_TURN_CHOICE_PENDING:
                     switch (GameState.PendingChoice!.ChoiceFollowUp)
                     {
-                        case ChoiceFollowUp.DISCARD_CARDS:
-                            // TODO add discard logic from above here too
+                        case ChoiceFollowUp.DISCARD_CARDS: // Always only 1 in this patch
+                            if (CardsInHandRanked == null)
+                            {
+                                CardsInHandRanked = Utility.RankCardsInGameState(GameState, GameState.CurrentPlayer.Hand);
+                            }
+                            var topCards = CardsInHandRanked.TakeLast(Bot.Settings.CHOICE_BRANCH_LIMIT!.Value);
+                            PossibleMoves = PossibleMoves.Where(m => 
+                                    topCards.Any(c => (m as MakeChoiceMoveUniqueCard).Choices[0].CommonId == c.CommonId))
+                                .ToList();
                             break;
                         default:
                             Console.WriteLine("UNKNOWN choice type: " + GameState.PendingChoice!.ChoiceFollowUp);
                             break;
                     }
                     break;
+                // Complete treasury seems to be a patron choice, so not sure that the complete treasury enum value is for
                 case ScriptsOfTribute.Board.CardAction.BoardState.PATRON_CHOICE_PENDING:
-                    Console.WriteLine("UNEXPECTED BRANCH LIMIT EXCEEDED: PATRON CHOICE PENDING");
+                    if (CardsPlayedRanked == null) // In SoT, the destroy also allows to destroy from hand, but to assist bot, i exclude this, cause its almost best to play the card first
+                    {
+                        CardsPlayedRanked = Utility.RankCardsInGameState(GameState, GameState.CurrentPlayer.Played);
+                    }
+                    // Treasury is just a single destroy
+                    var bottumPlayedCards = CardsPlayedRanked.TakeLast(Bot.Settings.CHOICE_BRANCH_LIMIT!.Value - 1);
+                    PossibleMoves = PossibleMoves.Where(m =>
+                    bottumPlayedCards.Any(c => (m as MakeChoiceMoveUniqueCard).Choices[0].CommonId == c.CommonId)
+                    || (m as MakeChoiceMoveUniqueCard).Choices.Count == 0)
+                    .ToList();
                     break;
             }
         }
+        PossibleMoves = Utility.RemoveDuplicateMoves(PossibleMoves);
     }
 }
