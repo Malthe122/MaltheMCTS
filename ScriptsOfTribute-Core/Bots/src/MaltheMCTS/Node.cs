@@ -36,8 +36,6 @@ public class Node
     private List<UniqueCard> CardsInTavernRanked;
     private List<UniqueCard> CardsInDrawPileRanked;
     private List<UniqueCard> CardsPlayedRanked;
-    private List<UniqueCard> CardsInHandAndPlayedRanked;
-    private List<UniqueCard> OpponentAgentsRanked;
 
     /// <summary>
     /// Only used when SimulateMultipleTurns is disabled. It is a copy of this node, but representing the current score/visits of the node if end_turn is played, but without
@@ -304,73 +302,66 @@ public class Node
     {
         PossibleMoves = Utility.RemoveDuplicateMoves(PossibleMoves);
 
-        // TODO look at this one after the branchlimit one
         #region additionalFiltering
-        //if (Bot.Settings.ADDITiONAL_SELECTION_MOVE_FILTERING)
-        //{
-        //    switch (GameState.BoardState)
-        //    {
-        //        case ScriptsOfTribute.Board.CardAction.BoardState.CHOICE_PENDING:
-        //            switch (GameState.PendingChoice!.ChoiceFollowUp)
-        //            {
-        //                case ChoiceFollowUp.ENACT_CHOSEN_EFFECT:
-        //                case ChoiceFollowUp.ACQUIRE_CARDS:
-        //                    Console.WriteLine("WHAT IS THIS?");
-        //                    break;
-        //                case ChoiceFollowUp.DESTROY_CARDS:
-        //                case ChoiceFollowUp.DISCARD_CARDS:
-        //                    //int weakCardAmount = (uniqueMoves).Max(x => (x as MakeChoiceMove<UniqueCard>)!.Choices.Count);
-        //                    //if (CardsInDrawPileRanked == null)
-        //                    //{
-        //                    //    RankCardsInHand();
-        //                    //}
-        //                    //PossibleMoves = FindWeakestHandCollection(availableMoves, weakCardAmount, branchLimit.Value);
-        //                    //return;
-        //                    break;
-        //                case ChoiceFollowUp.REFRESH_CARDS: //Means moving cards from cooldown to top of drawpile
-        //                                                   // TODO, consider if i should not use all refreshes if cooldown is weak
-        //                                                   //int strongCardAmount = (uniqueMoves).Max(x => (x as MakeChoiceMove<UniqueCard>)!.Choices.Count);
-        //                                                   //PossibleMoves = FindStrongestCardCollections(availableMoves, strongCardAmount, branchLimit.Value);
-        //                    break;
-        //                case ChoiceFollowUp.TOSS_CARDS:
-        //                case ChoiceFollowUp.KNOCKOUT_AGENTS:
-        //                case ChoiceFollowUp.COMPLETE_HLAALU:
-        //                case ChoiceFollowUp.COMPLETE_PELLIN:
-        //                case ChoiceFollowUp.COMPLETE_PSIJIC:
-        //                case ChoiceFollowUp.COMPLETE_TREASURY:
-        //                    Console.WriteLine("Unexpected branch limit exceeded");
-        //                    break;
-        //                case ChoiceFollowUp.REPLACE_CARDS_IN_TAVERN:
-        //                    // Not sure here how to make some good logic. Instead, just makes some random moves available
-        //                    var indexes = new HashSet<int>();
-        //                    while (indexes.Count < branchLimit)
-        //                    {
-        //                        indexes.Add(Utility.Rng.Next(possibleMoves.Count));
-        //                    }
-        //                    availableMoves = indexes.Select(i => possibleMoves[i]).ToList();
-        //                    break;
-        //            }
-        //            break;
-        //        case ScriptsOfTribute.Board.CardAction.BoardState.NORMAL:
-        //            Console.WriteLine("Here i probably do not want to limit");
-        //            break;
-        //        case ScriptsOfTribute.Board.CardAction.BoardState.START_OF_TURN_CHOICE_PENDING:
-        //            switch (gameState.PendingChoice!.ChoiceFollowUp)
-        //            {
-        //                case ChoiceFollowUp.DISCARD_CARDS:
-        //                    int weakCardAmount = (uniqueMoves).Max(x => (x as MakeChoiceMove<UniqueCard>)!.Choices.Count);
-        //                    availableMoves = FindWeakestCardCollections(availableMoves, weakCardAmount);
-        //                    break;
-        //                default:
-        //                    Console.WriteLine("UNKNOWN choice type: " + gameState.PendingChoice!.ChoiceFollowUp);
-        //                    break;
-        //            }
-        //            break;
-        //        case ScriptsOfTribute.Board.CardAction.BoardState.PATRON_CHOICE_PENDING:
-        //            Console.WriteLine("UNEXPECTED");
-        //            break;
-        //    }
-        //}
+        switch (GameState.BoardState)
+        {
+            case ScriptsOfTribute.Board.CardAction.BoardState.CHOICE_PENDING:
+                switch (GameState.PendingChoice!.ChoiceFollowUp)
+                {
+                    case ChoiceFollowUp.ENACT_CHOSEN_EFFECT:
+                    case ChoiceFollowUp.ACQUIRE_CARDS:
+                    case ChoiceFollowUp.REFRESH_CARDS:
+                    case ChoiceFollowUp.TOSS_CARDS:
+                    case ChoiceFollowUp.KNOCKOUT_AGENTS:
+                    case ChoiceFollowUp.COMPLETE_HLAALU:
+                    case ChoiceFollowUp.COMPLETE_PELLIN:
+                    case ChoiceFollowUp.COMPLETE_PSIJIC:
+                    case ChoiceFollowUp.REPLACE_CARDS_IN_TAVERN:
+                        break;
+                    case ChoiceFollowUp.DESTROY_CARDS:
+                        var cardsInHandAndPlayed = GameState.CurrentPlayer.Played.Concat(GameState.CurrentPlayer.Hand);
+                        SetBewildermentGoldChoiceMoves(cardsInHandAndPlayed);
+                        break;
+                    case ChoiceFollowUp.DISCARD_CARDS:
+                        SetBewildermentGoldChoiceMoves(GameState.CurrentPlayer.Hand);
+                        break;
+                    case ChoiceFollowUp.COMPLETE_TREASURY:
+                        cardsInHandAndPlayed = GameState.CurrentPlayer.Played.Concat(GameState.CurrentPlayer.Hand);
+                        SetBewildermentGoldChoiceMoves(cardsInHandAndPlayed);
+                        break;
+                }
+                break;
+            case ScriptsOfTribute.Board.CardAction.BoardState.NORMAL:
+                // Limit to play all cards before buying from tavern or activating patrons
+                bool canPlayCards = GameState.CurrentPlayer.Hand.Count > 0;
+                if (canPlayCards)
+                {
+                    // buying is also SIMPLECARDMOVE. I need to check only if its a play-card move
+                    PossibleMoves = PossibleMoves.Where(m => m.Command == CommandEnum.PLAY_CARD).ToList();
+                }
+                break;
+            case ScriptsOfTribute.Board.CardAction.BoardState.START_OF_TURN_CHOICE_PENDING:
+                switch (GameState.PendingChoice!.ChoiceFollowUp)
+                {
+                    case ChoiceFollowUp.DISCARD_CARDS:
+                        var cardsHandAndPlayed = GameState.CurrentPlayer.Played.Concat(GameState.CurrentPlayer.Hand);
+                        SetBewildermentGoldChoiceMoves(cardsHandAndPlayed);
+                        break;
+                    default:
+                        throw new NotImplementedException("Unexpected choice follow up: " + GameState.PendingChoice!.ChoiceFollowUp);
+                }
+                break;
+            // Complete treasury seems to be a patron choice, so not sure that the complete treasury enum value is for
+            case ScriptsOfTribute.Board.CardAction.BoardState.PATRON_CHOICE_PENDING:
+                if (GameState.CompletedActions.Last().SourcePatron.Value != PatronId.TREASURY)
+                {
+                    Console.WriteLine("hello");
+                }
+                // TODO check if this can be other then treasury
+                var InHandAndPlayed = GameState.CurrentPlayer.Played.Concat(GameState.CurrentPlayer.Hand);
+                SetBewildermentGoldChoiceMoves(InHandAndPlayed);
+                break;
+        }
         #endregion
 
         if (Bot.Settings.CHOICE_BRANCH_LIMIT != null && PossibleMoves.Count > Bot.Settings.CHOICE_BRANCH_LIMIT)
@@ -389,7 +380,12 @@ public class Node
                                 CardsInTavernRanked = Utility.RankCardsInGameState(GameState, GameState.TavernAvailableCards);
                             }
                             // Aquire in this patch, always is a maximum of 1 card
-                            var topTavernCards = CardsInTavernRanked.Take(Bot.Settings.CHOICE_BRANCH_LIMIT!.Value - 1);
+                            var maxPrice = PossibleMoves.Max(m => {
+                                var move = (MakeChoiceMoveUniqueCard)m;
+                                return move.Choices.Count > 0 ? move.Choices[0].Cost : 0;
+                            });
+                            var allowedCards = CardsInTavernRanked.Where(c => c.Cost <= maxPrice);
+                            var topTavernCards = allowedCards.Take(Bot.Settings.CHOICE_BRANCH_LIMIT!.Value - 1);
                             PossibleMoves = PossibleMoves.Where(m =>
                                 (m as MakeChoiceMoveUniqueCard).Choices.Count == 0
                                 || topTavernCards.Any(c => (m as MakeChoiceMoveUniqueCard).Choices[0].CommonId == c.CommonId)
@@ -488,9 +484,9 @@ public class Node
                             {
                                 CardsInHandRanked = Utility.RankCardsInGameState(GameState, GameState.CurrentPlayer.Hand);
                             }
-                            var topCards = CardsInHandRanked.TakeLast(Bot.Settings.CHOICE_BRANCH_LIMIT!.Value);
+                            var worstCards = CardsInHandRanked.TakeLast(Bot.Settings.CHOICE_BRANCH_LIMIT!.Value);
                             PossibleMoves = PossibleMoves.Where(m => 
-                                    topCards.Any(c => (m as MakeChoiceMoveUniqueCard).Choices[0].CommonId == c.CommonId))
+                                    worstCards.Any(c => (m as MakeChoiceMoveUniqueCard).Choices[0].CommonId == c.CommonId))
                                 .ToList();
                             break;
                         default:
@@ -514,5 +510,33 @@ public class Node
             }
         }
         PossibleMoves = Utility.RemoveDuplicateMoves(PossibleMoves);
+    }
+
+    private void SetBewildermentGoldChoiceMoves(IEnumerable<UniqueCard> cardPool)
+    {
+        int maxAmount = PossibleMoves.Max(m => (m as MakeChoiceMoveUniqueCard).Choices.Count);
+        var bewilderments = cardPool.Count(c => c.CommonId == CardId.BEWILDERMENT);
+        if (bewilderments > 0)
+        {
+            if (bewilderments >= maxAmount)
+            {
+                PossibleMoves.RemoveAll(m => !(m as MakeChoiceMoveUniqueCard).Choices.All(m => m.CommonId == CardId.BEWILDERMENT));
+            }
+            else
+            {
+                PossibleMoves.RemoveAll(m => !(m as MakeChoiceMoveUniqueCard).Choices.Any(m => m.CommonId == CardId.BEWILDERMENT));
+            }
+        }
+
+        int remainingAmount = maxAmount - bewilderments;
+
+        if (remainingAmount > 0)
+        {
+            var gold = cardPool.Count(c => c.CommonId == CardId.GOLD);
+            if (gold > 0)
+            {
+                PossibleMoves.RemoveAll(m => !(m as MakeChoiceMoveUniqueCard).Choices.Any(c => c.CommonId == CardId.GOLD));
+            }
+        }
     }
 }

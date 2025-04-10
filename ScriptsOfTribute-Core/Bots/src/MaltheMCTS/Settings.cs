@@ -23,7 +23,7 @@ public class Settings
     public bool REUSE_TREE { get; set; }
     public bool SIMULATE_MULTIPLE_TURNS { get; set; }
     public int? CHOICE_BRANCH_LIMIT { get; set; }
-    public bool ADDITiONAL_SELECTION_MOVE_FILTERING { get; set; }
+    public bool ADDITIONAL_MOVE_FILTERING { get; set; }
 
     public Settings()
     {
@@ -39,8 +39,8 @@ public class Settings
             FEATURE_SET_MODEL_TYPE = null;
         REUSE_TREE = true;
         SIMULATE_MULTIPLE_TURNS = false;
-        CHOICE_BRANCH_LIMIT = 3; // Should probably be higher than 3. This is for debugging
-        ADDITiONAL_SELECTION_MOVE_FILTERING = true;
+        CHOICE_BRANCH_LIMIT = 7;
+        ADDITIONAL_MOVE_FILTERING = true;
     }
 
     public override string ToString()

@@ -43,10 +43,6 @@ public static class Utility
                 INSTANT_EFFECT_PLAY_CARDS.Add(card.CommonId);
             }
         }
-
-        //PRIMITIVE_CARD_RANKING = GlobalCardDatabase.Instance.AllCards.OrderBy(x => PrimitiveStrengthRanking(FeatureSetUtility.ScoreStrengthsInDeck(x, 0.25, 1))).Select(x => x.CommonId).ToList();
-
-        Console.WriteLine("TESTESTTEST");
     }
 
     private static double PrimitiveStrengthRanking(CardStrengths cardStrengths)

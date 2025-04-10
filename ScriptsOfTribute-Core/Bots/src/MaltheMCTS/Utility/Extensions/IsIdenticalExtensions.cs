@@ -222,17 +222,10 @@ public static class IsIdenticalExtensions{
     }
 
     public static bool IsIdentical(this List<UniqueCard> instance, List<UniqueCard> other) {
-        // (CardId, int) to regard instances of same agent seperately if they have different amount of HP
-        List<(CardId, int)> orderedInstanceCardIds = 
-            instance.OrderBy(card => card.CommonId)
-            .ThenBy(card => card.HP)
-            .Select(card => (card.CommonId, card.HP))
-            .ToList();
-        List<(CardId, int)> orderedOtherCardIds = 
-            other.OrderBy(card => card.CommonId)
-            .ThenBy(card => card.HP)
-            .Select(card => (card.CommonId, card.HP))
-            .ToList();
+        // Unfortunately this is imprecise on knockout effect, since the SoT framework uses UniqueCard instead of agent in the choices, so i cant check CurrentHP, meaning that destroying an agent of type A
+        // with full HP will be considered equal to destroying an agent of the same type with lower health
+        List<CardId> orderedInstanceCardIds = instance.OrderBy(card => card.CommonId).Select(card => card.CommonId).ToList();
+        List<CardId> orderedOtherCardIds = other.OrderBy(card => card.CommonId).Select(card => card.CommonId).ToList();
         return orderedInstanceCardIds.SequenceEqual(orderedOtherCardIds);
     }
 
