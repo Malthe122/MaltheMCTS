@@ -336,7 +336,6 @@ public class Node
                 bool canPlayCards = GameState.CurrentPlayer.Hand.Count > 0;
                 if (canPlayCards)
                 {
-                    // buying is also SIMPLECARDMOVE. I need to check only if its a play-card move
                     PossibleMoves = PossibleMoves.Where(m => m.Command == CommandEnum.PLAY_CARD).ToList();
                 }
                 break;
@@ -353,11 +352,6 @@ public class Node
                 break;
             // Complete treasury seems to be a patron choice, so not sure that the complete treasury enum value is for
             case ScriptsOfTribute.Board.CardAction.BoardState.PATRON_CHOICE_PENDING:
-                if (GameState.CompletedActions.Last().SourcePatron.Value != PatronId.TREASURY)
-                {
-                    Console.WriteLine("hello");
-                }
-                // TODO check if this can be other then treasury
                 var InHandAndPlayed = GameState.CurrentPlayer.Played.Concat(GameState.CurrentPlayer.Hand);
                 SetBewildermentGoldChoiceMoves(InHandAndPlayed);
                 break;
@@ -474,7 +468,6 @@ public class Node
                     break;
                 case ScriptsOfTribute.Board.CardAction.BoardState.NORMAL:
                     // Here i probably do not want to limit
-                    Console.WriteLine("EXCEEDED BRANCH LIMIT AT NORMAL BOARDSTATE");
                     break;
                 case ScriptsOfTribute.Board.CardAction.BoardState.START_OF_TURN_CHOICE_PENDING:
                     switch (GameState.PendingChoice!.ChoiceFollowUp)
