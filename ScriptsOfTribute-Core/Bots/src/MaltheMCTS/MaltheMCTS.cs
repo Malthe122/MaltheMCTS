@@ -50,7 +50,6 @@ public class MaltheMCTS : AI
 
     public override Move Play(GameState gameState, List<Move> possibleMoves, TimeSpan remainingTime)
     {
-
         try
         {
             var instantPlay = FindInstantPlayMove(possibleMoves);
@@ -115,7 +114,7 @@ public class MaltheMCTS : AI
                 Console.WriteLine("Inner stacktrace: " + e.InnerException.StackTrace);
             }
 
-            var errorMessage = "Something went wrong while trying to compute move. Playing random move instead. Exception:" + "\n" ;
+            var errorMessage = "Something went wrong while trying to compute move. Playing random move instead. Exception:" + "\n";
             errorMessage += "Message: " + e.Message + "\n";
             errorMessage += "Stacktrace: " + e.StackTrace + "\n";
             errorMessage += "Data: " + e.Data + "\n";

@@ -74,7 +74,7 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
 
     public static class FeatureSetUtility
     {
-        private const double BASE_AGENT_STRENGTH_MULTIPLIER = 1;
+        private const double BASE_AGENT_STRENGTH_MULTIPLIER = 1.5;
         private const double AGENT_HP_VALUE_MULTIPLIER = 0.1;
         private const double CHOICE_WEIGHT = 0.75;
 
@@ -162,7 +162,8 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
 
             return featureSet;
         }
-        private static Dictionary<PatronId, double> GetPatronRatios(List<Card> deck, List<PatronId> patrons)
+
+        public static Dictionary<PatronId, double> GetPatronRatios(List<Card> deck, List<PatronId> patrons)
         {
             var patronToAmount = new Dictionary<PatronId, int>();
             var patronToDeckRatio = new Dictionary<PatronId, double>();
@@ -174,12 +175,12 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
 
             foreach (var currCard in deck)
             {
-                patronToAmount[currCard.Deck]++;
+                patronToAmount[currCard.Deck]+=1;
             }
 
             foreach (var currPair in patronToAmount)
             {
-                patronToDeckRatio.Add(currPair.Key, currPair.Value / deck.Count);
+                patronToDeckRatio.Add(currPair.Key, (double)currPair.Value / deck.Count);
             }
 
             return patronToDeckRatio;
@@ -218,7 +219,7 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
             return summedStrengths / deck.Count;
         }
 
-        private static CardStrengths ScoreStrengthsInDeck(Card card, double patronToDeckRatio, int deckSize)
+        public static CardStrengths ScoreStrengthsInDeck(Card card, double patronToDeckRatio, int deckSize)
         {
             var result = new CardStrengths();
             foreach (var effect in card.Effects)
@@ -229,7 +230,16 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
                 }
                 else
                 {
-                    result += ScoreComplexEffectStrengthsInDeck(effect, patronToDeckRatio, deckSize);
+                    var cardStrength = ScoreComplexEffectStrengthsInDeck(effect, patronToDeckRatio, deckSize);
+                    // TODO update paper with this new addition
+                    if (card.Type == CardType.AGENT || card.Type == CardType.CONTRACT_AGENT) {
+                        cardStrength *= BASE_AGENT_STRENGTH_MULTIPLIER;
+                        if (card.Taunt)
+                        {
+                            cardStrength.PrestigeStrength += card.HP;
+                        }
+                    }
+                    result += cardStrength;
                 }
             }
 
