@@ -16,7 +16,7 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring.ModelEvaluation
 
         static EnsembledTreeModelEvaluation()
         {
-            string basePath = "MaltheMCTS/Ensemble_Tree_Models";
+            string basePath = "MaltheMCTS/Ensemble_Tree_Models/";
 
             var fastForestModel = mlContext.Model.Load(basePath + "FastForest", out var _);
             var fastTreeModel = mlContext.Model.Load(basePath + "FastTree", out var _);

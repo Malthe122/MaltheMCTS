@@ -83,6 +83,12 @@ public class Settings
                         var enumValue = Enum.Parse(property.PropertyType, value);
                         property.SetValue(result, enumValue);
                     }
+                    else if (Nullable.GetUnderlyingType(property.PropertyType)?.IsEnum == true)
+                    {
+                        var enumType = Nullable.GetUnderlyingType(property.PropertyType);
+                        var enumValue = Enum.Parse(enumType, value);
+                        property.SetValue(result, enumValue);
+                    }
                 }
             }
         }
