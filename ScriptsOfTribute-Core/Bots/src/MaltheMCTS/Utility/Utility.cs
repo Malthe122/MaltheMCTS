@@ -45,15 +45,6 @@ public static class Utility
         }
     }
 
-    private static double PrimitiveStrengthRanking(CardStrengths cardStrengths)
-    {
-        return
-            cardStrengths.GoldStrength +
-            cardStrengths.MiscellaneousStrength * 1.50 +
-            cardStrengths.PowerStrength * 1.50 +
-            cardStrengths.PrestigeStrength * 1.50;
-    }
-
     public static double UseBestMCTS3Heuristic(SeededGameState gameState, bool onlyEndOfTurns, bool normalize = true)
     {
 

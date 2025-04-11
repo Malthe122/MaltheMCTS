@@ -150,7 +150,6 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
             }
 
             // FUTURE maybe this is where we need to look at draw effects afterwards
-
             return summedStrengths / deck.Count;
         }
 

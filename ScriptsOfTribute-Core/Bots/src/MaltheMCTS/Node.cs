@@ -13,22 +13,8 @@ public class Node
     public double TotalScore = 0;
     public int GameStateHash { get; private set; }
     public SeededGameState GameState { get; private set; }
-    private List<Move> possibleMoves;
-    public List<Move> PossibleMoves
-    {
-        get => possibleMoves;
-        set
-        {
-            if (value != null && value.Count == 0)
-            {
-                Console.WriteLine("Assigned an empty move list");
-            }
-            else
-            {
-                possibleMoves = value;
-            }
-        }
-    }
+    public List<Move> PossibleMoves;
+
     internal MaltheMCTS Bot;
 
     private List<UniqueCard> CardsInHandRanked;
