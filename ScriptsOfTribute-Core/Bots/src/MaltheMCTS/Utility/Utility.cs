@@ -113,7 +113,6 @@ public static class Utility
 
         if (bot.Settings.REUSE_TREE)
         {
-
             if (bot.NodeGameStateHashMap.ContainsKey(result.GameStateHash))
             {
                 Node equalNode = null;

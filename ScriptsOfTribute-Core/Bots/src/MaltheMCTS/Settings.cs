@@ -30,7 +30,7 @@ public class Settings
         ITERATION_COMPLETION_MILLISECONDS_BUFFER = 100;
         UCT_EXPLORATION_CONSTANT = 1.41421356237; // sqrt(2) generally used default value
         FORCE_DELAY_TURN_END_IN_ROLLOUT = true;
-        INCLUDE_PLAY_MOVE_CHANCE_NODES = false;
+        INCLUDE_PLAY_MOVE_CHANCE_NODES = true;
         INCLUDE_END_TURN_CHANCE_NODES = false;
         CHANCE_NODE_BRANCH_LIMIT = 3;
         CHOSEN_SELECTION_METHOD = SelectionMethod.UCT;
