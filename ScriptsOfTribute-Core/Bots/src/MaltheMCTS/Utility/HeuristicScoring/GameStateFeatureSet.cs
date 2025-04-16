@@ -74,8 +74,7 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
 
     public static class FeatureSetUtility
     {
-        private const double BASE_AGENT_STRENGTH_MULTIPLIER = 1.5;
-        private const double AGENT_HP_VALUE_MULTIPLIER = 0.1;
+        private const double AGENT_HP_MULTIPLIER = 0.15;
         private const double CHOICE_WEIGHT = 0.75;
 
         public static GameStateFeatureSet BuildFeatureSet(SeededGameState gameState)
@@ -192,8 +191,8 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
 
             foreach (var agent in agents)
             {
-                var agentCardStrength = ScoreStrengthsInDeck(agent.RepresentingCard, patronToDeckRatio[agent.RepresentingCard.Deck], deckSize) * BASE_AGENT_STRENGTH_MULTIPLIER;
-                var agentStrength = agentCardStrength + agentCardStrength * AGENT_HP_VALUE_MULTIPLIER * agent.CurrentHp; // A way of contributing extra strengths to the agent, the more HP it has
+                var agentCardStrength = ScoreStrengthsInDeck(agent.RepresentingCard, patronToDeckRatio[agent.RepresentingCard.Deck], deckSize);
+                var agentStrength = agentCardStrength + (agentCardStrength * AGENT_HP_MULTIPLIER * agent.CurrentHp); // A way of contributing extra strengths to the agent, the more HP it has
                 if (agent.RepresentingCard.Taunt)
                 {
                     agentStrength.PrestigeStrength += agent.CurrentHp;
@@ -231,9 +230,8 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
                 else
                 {
                     var cardStrength = ScoreComplexEffectStrengthsInDeck(effect, patronToDeckRatio, deckSize);
-                    // TODO update paper with this new addition
                     if (card.Type == CardType.AGENT || card.Type == CardType.CONTRACT_AGENT) {
-                        cardStrength *= BASE_AGENT_STRENGTH_MULTIPLIER;
+                        cardStrength += cardStrength * (AGENT_HP_MULTIPLIER * card.HP);
                         if (card.Taunt)
                         {
                             cardStrength.PrestigeStrength += card.HP;
