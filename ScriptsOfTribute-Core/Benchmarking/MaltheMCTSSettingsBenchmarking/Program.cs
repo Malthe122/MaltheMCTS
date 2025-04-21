@@ -72,7 +72,7 @@ namespace MaltheMCTSSettingsBenchmarking
                 foreach(var filePath in filePaths)
                 {
                     var settingSet = Settings.LoadFromFile(filePath);
-                    var fileName = filePath.Substring(filePath.LastIndexOf('/') + 1);
+                    var fileName = filePath.Substring(filePath.LastIndexOf('\\') + 1);
                     settingSets.Add((fileName, settingSet));
                 }
 
