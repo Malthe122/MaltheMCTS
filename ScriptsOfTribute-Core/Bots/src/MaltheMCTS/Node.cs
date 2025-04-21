@@ -1,3 +1,4 @@
+using Bots;
 using ScriptsOfTribute;
 using ScriptsOfTribute.Board.Cards;
 using ScriptsOfTribute.Serializers;
@@ -138,11 +139,39 @@ public class Node
             case ScoringMethod.RolloutTurnsCompletionsThenHeuristic:
                 return RolloutTillTurnsEndThenHeuristic(Bot.Settings.ROLLOUT_TURNS_BEFORE_HEURISTIC);
             case ScoringMethod.MaltheScoring:
-                // TODO add rollout to end of turn before scoring
-                return HeuristicScoring.Score(GameState, Bot.Settings.FEATURE_SET_MODEL_TYPE);
+                var gameState = RollOutTillEndOfTurn();
+                return HeuristicScoring.Score(gameState, Bot.Settings.FEATURE_SET_MODEL_TYPE);
             default:
                 throw new NotImplementedException("Tried to applied non-implemented scoring method: " + Bot.Settings.CHOSEN_SCORING_METHOD);
         }
+    }
+
+    private SeededGameState RollOutTillEndOfTurn()
+    {
+        var rolloutPossibleMoves = PossibleMoves.ToList();
+        var gameState = GameState;
+
+        while(rolloutPossibleMoves.Count > 1 || rolloutPossibleMoves[0].Command != CommandEnum.END_TURN)
+        {
+            if (Bot.Settings.FORCE_DELAY_TURN_END_IN_ROLLOUT)
+            {
+                rolloutPossibleMoves.RemoveAll(m => m.Command == CommandEnum.END_TURN);
+            }
+
+            var chosenIndex = Utility.Rng.Next(rolloutPossibleMoves.Count);
+            var randomMove = rolloutPossibleMoves[chosenIndex];
+
+            if(randomMove.Command == CommandEnum.END_TURN)
+            {
+                return gameState;
+            }
+            else
+            {
+                (gameState, rolloutPossibleMoves) = gameState.ApplyMove(randomMove);
+            }
+        }
+
+        return gameState;
     }
 
     private double RolloutTillTurnsEndThenHeuristic(int turnsToComplete) //TODO fix, so that rollout till end of turn, does not end turn
@@ -150,7 +179,7 @@ public class Node
         int rolloutTurnsCompleted = 0;
         var rolloutPlayer = GameState.CurrentPlayer;
         var rolloutGameState = GameState;
-        var rolloutPossibleMoves = PossibleMoves;
+        var rolloutPossibleMoves = PossibleMoves.ToList();
 
         while (rolloutTurnsCompleted < turnsToComplete && rolloutGameState.GameEndState == null)
         {
