@@ -37,7 +37,7 @@ namespace MaltheMCTSSettingsBenchmarking
             var timeoutOption = new Option<int>(
                 aliases: new[] { "--timeout", "-to" },
                 description: "Timeout in seconds",
-                getDefaultValue: () => 10
+                getDefaultValue: () => 100_000_000
             );
 
             var nameOption = new Option<string>(

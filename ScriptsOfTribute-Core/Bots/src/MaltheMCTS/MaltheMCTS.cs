@@ -68,20 +68,19 @@ public class MaltheMCTS : AI
 
             var rootNode = Utility.FindOrBuildNode(seededGameState, null, possibleMoves, this);
 
-            var moveTimer = new Stopwatch();
-            moveTimer.Start();
-            int estimatedRemainingMovesInTurn = EstimateRemainingMovesInTurn(gameState, possibleMoves);
-            double millisecondsForMove = (remainingTime.TotalMilliseconds / estimatedRemainingMovesInTurn) - Settings.ITERATION_COMPLETION_MILLISECONDS_BUFFER;
-            while (moveTimer.ElapsedMilliseconds < millisecondsForMove)
+            int iterationCount = 10_000;
+            var iterationTimer = new Stopwatch();
+            iterationTimer.Start();
+
+            for(int i = 0; i < iterationCount; i++)
             {
-                // var iterationTimer = new Stopwatch();
-                // iterationTimer.Start();
-                // iterationCounter++;
+
                 rootNode.Visit(out double score, new HashSet<Node>());
-                computationsCompleted++;
-                // iterationTimer.Stop();
-                // Console.WriteLine("Iteration took: " + iterationTimer.ElapsedMilliseconds + " milliseconds");
             }
+
+            iterationTimer.Stop();
+
+            Console.WriteLine(InstanceName + ": Average iteration time was: " + (double)iterationTimer.ElapsedMilliseconds / iterationCount + " milliseconds");
 
             if (rootNode.MoveToChildNode.Count == 0)
             {
