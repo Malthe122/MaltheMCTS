@@ -3,6 +3,7 @@ using ExternalHeuristic;
 using ScriptsOfTribute;
 using ScriptsOfTribute.Board.Cards;
 using ScriptsOfTribute.Serializers;
+using SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring;
 
 namespace MaltheMCTS;
 
@@ -17,29 +18,34 @@ public static class Utility
     /// </summary>
     private const double average_bestmcts3_heuristic_score = 0.4855746429f;
     public static Random Rng = new Random();
-    
+
     public static readonly List<CardId> RANDOM_EFFECT_CARDS = new List<CardId>();
 
     public static readonly List<CardId> INSTANT_EFFECT_PLAY_CARDS = new List<CardId>();
+    public static List<CardId> PRIMITIVE_CARD_RANKING = new List<CardId>();
 
     internal static void CategorizeCards()
     {
-        foreach(var card in GlobalCardDatabase.Instance.AllCards) {
+        foreach (var card in GlobalCardDatabase.Instance.AllCards)
+        {
             // Effect 0 is play/activation effect
             // FUTURE handle combos
-            if (card.Effects[0].IsStochastic()) {
+            if (card.Effects[0].IsStochastic())
+            {
                 RANDOM_EFFECT_CARDS.Add(card.CommonId);
             }
 
-            if (card.Effects.All(e => {
+            if (card.Effects.All(e =>
+            {
                 return e.IsInstantPlayEffect();
-            })) {
+            }))
+            {
                 INSTANT_EFFECT_PLAY_CARDS.Add(card.CommonId);
             }
         }
     }
 
-    public static double UseBestMCTS3Heuristic(SeededGameState gameState, bool onlyEndOfTurns)
+    public static double UseBestMCTS3Heuristic(SeededGameState gameState, bool onlyEndOfTurns, bool normalize = true)
     {
 
         GameStrategy strategy;
@@ -62,9 +68,12 @@ public static class Utility
 
         var result = strategy.Heuristic(gameState);
 
-        return NormalizeBestMCTS3Score(result, onlyEndOfTurns);
+        if (normalize)
+        {
+            return NormalizeBestMCTS3Score(result, onlyEndOfTurns);
+        }
 
-        // return result;
+        return result;
     }
 
     /// <summary>
@@ -74,7 +83,8 @@ public static class Utility
     /// </summary>
     private static double NormalizeBestMCTS3Score(double score, bool onlyEndOfTurns)
     {
-        if (onlyEndOfTurns){
+        if (onlyEndOfTurns)
+        {
             if (score < average_bestmcts3_heuristic_end_of_turn_score)
             {
                 return (score - average_bestmcts3_heuristic_end_of_turn_score) / average_bestmcts3_heuristic_end_of_turn_score;
@@ -84,7 +94,8 @@ public static class Utility
                 return (score - average_bestmcts3_heuristic_end_of_turn_score) / (1 - average_bestmcts3_heuristic_end_of_turn_score);
             }
         }
-        else {
+        else
+        {
             if (score < average_bestmcts3_heuristic_score)
             {
                 return (score - average_bestmcts3_heuristic_score) / average_bestmcts3_heuristic_score;
@@ -102,17 +113,18 @@ public static class Utility
 
         if (bot.Settings.REUSE_TREE)
         {
-
             if (bot.NodeGameStateHashMap.ContainsKey(result.GameStateHash))
             {
                 Node equalNode = null;
-                try{
+                try
+                {
                     equalNode = bot.NodeGameStateHashMap[result.GameStateHash].SingleOrDefault(node => node.GameState.IsIdentical(result.GameState));
                 }
-                catch(Exception e) {
+                catch (Exception e)
+                {
                     var error = "Somehow two identical states were both added to hashmap.\n";
                     error += "State hashes:\n";
-                    bot.NodeGameStateHashMap[result.GameStateHash].ToList().ForEach(n => {error += n.GameStateHash + "\n";});
+                    bot.NodeGameStateHashMap[result.GameStateHash].ToList().ForEach(n => { error += n.GameStateHash + "\n"; });
                     error += "Full states:\n";
                     bot.NodeGameStateHashMap[result.GameStateHash].ToList().ForEach(n => n.GameState.Log());
                 }
@@ -136,22 +148,6 @@ public static class Utility
     }
 
     /// <summary>
-    /// SoT framework handles moves equal moves like different moves if they refer to different card ids of the same type. I consider pla
-    /// </summary>
-    /// 
-    internal static List<Move> GetUniqueMoves(List<Move> possibleMoves)
-    {
-        var result = new List<Move>();
-
-        foreach(var currMove in possibleMoves) {
-            if (!result.Any(m => m.IsIdentical(currMove))){
-                result.Add(currMove);
-            }
-        }
-
-        return result;
-    }
-    /// <summary>
     /// Since we reuse identical states, our move will not be identical to the move in the official gamestate, since although gamestates are logically identical
     /// we might have a specific card on hand with ID 1 in our gamestate, while the official gamestate has an identical card in our hand but with a different id.
     /// Becuase of this, we need to find the offical move that is logically identcal to our move
@@ -170,4 +166,188 @@ public static class Utility
 
         return arg1 / arg2;
     }
+
+    /// <summary>
+    /// SoT framework handles moves equal moves like different moves if they refer to different card ids of the same type. I consider
+    /// playing the same card (with different ids) as identical moves, since their impact on the game is 100 % identical
+    /// </summary>
+    public static List<Move> RemoveDuplicateMoves(List<Move> moves)
+    {
+        var uniqueMoves = new List<Move>();
+        foreach (var currMove in moves)
+        {
+            if (!uniqueMoves.Any(m => m.IsIdentical(currMove)))
+            {
+                uniqueMoves.Add(currMove);
+            }
+        }
+
+        return uniqueMoves;
+    }
+
+    public static List<UniqueCard> RankCardsInGameState(SeededGameState gameState, IEnumerable<UniqueCard> cards)
+    {
+        // Add hashsets with common ids, so calculation only needs to be done ones for each type
+        var rankedCardTypes = new Dictionary<CardId, double>();
+        var completeDeck = GetCurrentPlayerCompleteDeck(gameState);
+        var patronRatios = FeatureSetUtility.GetPatronRatios(completeDeck, gameState.Patrons);
+
+        var orderedCards = cards.OrderByDescending(c =>
+        {
+            if (rankedCardTypes.ContainsKey(c.CommonId))
+            {
+                return rankedCardTypes[c.CommonId];
+            }
+            else
+            {
+                var score = CardStrengthsToScore(FeatureSetUtility.ScoreStrengthsInDeck(c, patronRatios[c.Deck], completeDeck.Count));
+                if(c.Deck != PatronId.TREASURY)
+                {
+                    score += 0.1 * patronRatios[c.Deck]; // To favor cards that fit into the deck, if their effects are equal
+                }
+                rankedCardTypes.Add(c.CommonId, score);
+                return score;
+            }
+        });
+
+        return orderedCards.ToList();
+    }
+
+    private static List<Card> GetCurrentPlayerCompleteDeck(SeededGameState gameState)
+    {
+        var currentPlayerCompleteDeck = new List<Card>();
+        currentPlayerCompleteDeck.AddRange(gameState.CurrentPlayer.Hand);
+        currentPlayerCompleteDeck.AddRange(gameState.CurrentPlayer.DrawPile);
+        currentPlayerCompleteDeck.AddRange(gameState.CurrentPlayer.Played);
+        currentPlayerCompleteDeck.AddRange(gameState.CurrentPlayer.CooldownPile);
+        currentPlayerCompleteDeck.AddRange(gameState.CurrentPlayer.Agents.Where(a => a.RepresentingCard.Type != CardType.CONTRACT_AGENT).Select(a => a.RepresentingCard));
+
+        return currentPlayerCompleteDeck;
+    }
+
+    private static double CardStrengthsToScore(CardStrengths cardStrengths)
+    {
+        // TODO maybe there should be some logic here that prefers power and prestige later in the game and coins early in the game
+        return cardStrengths.GoldStrength
+            + cardStrengths.MiscellaneousStrength
+            + cardStrengths.PowerStrength
+            + cardStrengths.PrestigeStrength;
+    }
+
+    /// <returns>
+    /// combinationAmount amount of combination in the following order using the rankedList:
+    /// 1. [0, 1]
+    /// 2. [0, 2]
+    /// 3. [1, 2]
+    /// 4. [0, 3]
+    /// 5. [1, 3]
+    /// 6. [2, 3]
+    /// etc.
+    /// Unless includeSingle and/or includeEmpty flags are enabled
+    /// </returns>
+    public static List<Move> GetRankedCardCombinationMoves(List<Move> moves, List<UniqueCard> rankedCardList, int moveCount, bool includeEmptyAndSingleChoice)
+    {
+        var result = new List<Move>();
+
+        if (includeEmptyAndSingleChoice)
+        {
+            switch (moveCount)
+            {
+                case 1: // Just best combination of two cards
+                    var topCards = rankedCardList.Take(2).ToList();
+                    result = new List<Move>() {
+                                            moves.First(m =>
+                                            {
+                                                var move = (m as MakeChoiceMoveUniqueCard);
+                                                return move!.Choices.Any(c => topCards[0].CommonId == c.CommonId)
+                                                && move.Choices.Any(c => topCards[1].CommonId == c.CommonId);
+                                            })};
+                    break;
+                case 2: // Best combination of two cards and best choice of 1 card only
+                    topCards = rankedCardList.Take(2).ToList();
+                    result = new List<Move>() {
+                                            moves.First(m =>
+                                            {
+                                                var move = (m as MakeChoiceMoveUniqueCard);
+                                                return move!.Choices.Any(c => topCards[0].CommonId == c.CommonId)
+                                                && move.Choices.Any(c => topCards[1].CommonId == c.CommonId);
+                                            })};
+                    var singleChoiceMove = moves.First(m =>
+                    {
+                        var move = m as MakeChoiceMoveUniqueCard;
+                        return move.Choices.Count == 1
+                            && move.Choices[0].CommonId == rankedCardList[0].CommonId;
+                    });
+                    result.Add(singleChoiceMove);
+                    break;
+                case 3: // Best combination of two cards, best choice of 1 card only and no choice
+                    topCards = rankedCardList.Take(2).ToList();
+                    result = new List<Move>() {
+                                            moves.First(m =>
+                                            {
+                                                var move = (m as MakeChoiceMoveUniqueCard);
+                                                return move!.Choices.Any(c => topCards[0].CommonId == c.CommonId)
+                                                && move.Choices.Any(c => topCards[1].CommonId == c.CommonId);
+                                            })};
+                    singleChoiceMove = moves.First(m =>
+                    {
+                        var move = m as MakeChoiceMoveUniqueCard;
+                        return move.Choices.Count == 1
+                            && move.Choices[0].CommonId == rankedCardList[0].CommonId;
+                    });
+                    result.Add(singleChoiceMove);
+                    var emptyMove = moves.First(m => (m as MakeChoiceMoveUniqueCard).Choices.Count == 0);
+                    break;
+                default: // 4 or more
+                    int singleChoiceMoveCount = moveCount / 2;
+                    int twoChoicesMoveCount = moveCount / 2;
+
+                    if (singleChoiceMoveCount + twoChoicesMoveCount == moveCount) // I need it to be 1 lower, so there is room the the no-choice move
+                    {
+                        singleChoiceMoveCount -= 1; // Lowering this rather than twoChoice, since twoChoice is generally the best move
+                    }
+
+                    var noChoiceMove = moves.First(m => (m as MakeChoiceMoveUniqueCard).Choices.Count == 0);
+
+                    topCards = rankedCardList.TakeLast(singleChoiceMoveCount).ToList();
+                    var singleChoiceMoves = moves.Where(m =>
+                    (m as MakeChoiceMoveUniqueCard).Choices.Count == 1
+                    && topCards.Any(c => (m as MakeChoiceMoveUniqueCard).Choices[0].CommonId == c.CommonId));
+
+                    var twoChoiceMoves = GetBestTwoChoiceMoves(moves, rankedCardList, twoChoicesMoveCount);
+
+                    result = singleChoiceMoves.Concat(twoChoiceMoves).ToList();
+                    result.Add(noChoiceMove);
+                    break;
+            }
+
+            return result;
+        }
+        else
+        {
+            return GetBestTwoChoiceMoves(moves, rankedCardList, moveCount);
+        }
+    }
+
+    private static List<Move> GetBestTwoChoiceMoves(List<Move> moves, List<UniqueCard> rankedCardList, int moveCount)
+    {
+        var result = new List<Move>();
+
+        for (int j = 1; j < rankedCardList.Count && result.Count < moveCount; j++)
+        {
+            for (int i = 0; i < j && result.Count < moveCount; i++)
+            {
+                var move = moves.First(m =>
+                {
+                    var move = m as MakeChoiceMoveUniqueCard;
+                    return move!.Choices.Any(c => c.CommonId == rankedCardList[i].CommonId)
+                    && move!.Choices.Any(c => c.CommonId == rankedCardList[j].CommonId);
+                });
+                result.Add(move);
+            }
+        }
+
+        return result;
+    }
+
 }

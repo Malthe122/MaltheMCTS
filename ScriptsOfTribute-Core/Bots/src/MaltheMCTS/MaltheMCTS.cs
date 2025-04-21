@@ -12,14 +12,14 @@ public class MaltheMCTS : AI
     public Settings Settings { get; set; }
 
 
-    private string instanceName;
+    public string InstanceName;
 
     // FOR COMPUTATION BENCHMARK
     private int computationsCompleted = 0;
 
     public MaltheMCTS(string? instanceName = null, Settings? settings = null) : base()
     {
-        this.instanceName = instanceName ?? "MaltheMCTS_" + Guid.NewGuid();
+        this.InstanceName = instanceName ?? "MaltheMCTS_" + Guid.NewGuid();
         Settings = settings ?? new Settings(); // Hardcoded
     }
 
@@ -29,7 +29,7 @@ public class MaltheMCTS : AI
     /// </summary>
     public MaltheMCTS() : base()
     {
-        instanceName = "MaltheMCTS_" + Guid.NewGuid();
+        InstanceName = "MaltheMCTS_" + Guid.NewGuid();
         Settings = new Settings(); // Hardcoded
     }
 
@@ -50,7 +50,6 @@ public class MaltheMCTS : AI
 
     public override Move Play(GameState gameState, List<Move> possibleMoves, TimeSpan remainingTime)
     {
-
         try
         {
             var instantPlay = FindInstantPlayMove(possibleMoves);
@@ -115,7 +114,7 @@ public class MaltheMCTS : AI
                 Console.WriteLine("Inner stacktrace: " + e.InnerException.StackTrace);
             }
 
-            var errorMessage = "Something went wrong while trying to compute move. Playing random move instead. Exception:" + "\n" ;
+            var errorMessage = "Something went wrong while trying to compute move. Playing random move instead. Exception:" + "\n";
             errorMessage += "Message: " + e.Message + "\n";
             errorMessage += "Stacktrace: " + e.StackTrace + "\n";
             errorMessage += "Data: " + e.Data + "\n";
@@ -134,7 +133,7 @@ public class MaltheMCTS : AI
 
     private void SaveErrorLog(string errorMessage)
     {
-        var filePath = instanceName + "_Error.txt";
+        var filePath = InstanceName + "_Error.txt";
 
         string directoryPath = Path.GetDirectoryName(filePath);
         if (!string.IsNullOrEmpty(directoryPath))

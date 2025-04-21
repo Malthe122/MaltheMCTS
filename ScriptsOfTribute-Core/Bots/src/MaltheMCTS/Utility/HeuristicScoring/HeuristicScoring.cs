@@ -1,4 +1,5 @@
-﻿using ScriptsOfTribute;
+﻿using Microsoft.ML.AutoML;
+using ScriptsOfTribute;
 using ScriptsOfTribute.Board.Cards;
 using ScriptsOfTribute.Serializers;
 using SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring.ModelEvaluation;
@@ -20,10 +21,10 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
         /// To lower the amount of variables (hand strengths, patron moves available, coins, power, whether agents have been activated) the model needs to process,
         /// this model scores states just before ending turn
         /// </summary>
-        public static double Score(SeededGameState gameState, bool useManualModel, bool endOfTurnExclusive = true)
+        public static double Score(SeededGameState gameState, RegressionTrainer? featureSetModelType, bool endOfTurnExclusive = true)
         {
-            // The manual model does not return either 0 and 1 or -1 and 1, so this logic does not apply for it
-            if (!useManualModel)
+            // The manual model (null) does not return either 0 and 1 or -1 and 1, so this logic does not apply for it
+            if (featureSetModelType != null)
             {
                 var winner = CheckWinner(gameState, endOfTurnExclusive);
 
@@ -39,7 +40,7 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
 
             var featureSet = FeatureSetUtility.BuildFeatureSet(gameState);
 
-            return ModelEvaluation(featureSet, useManualModel);
+            return ModelEvaluation(featureSet, featureSetModelType);
         }
 
         private static PlayerEnum CheckWinner(SeededGameState gameState, bool endOfTurnExclusiveEvaluation)
@@ -84,16 +85,16 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
             return PlayerEnum.NO_PLAYER_SELECTED;
         }
 
-        private static double ModelEvaluation(GameStateFeatureSet featureSet, bool useManualModel)
+        private static double ModelEvaluation(GameStateFeatureSet featureSet, RegressionTrainer? featureSetModelType)
         {
-            if (useManualModel)
+            if (featureSetModelType == null)
             {
                 return SimpleManualEvaluation.Evaluate(featureSet);
             }
             else
             {
                 var csvFeatureSet = featureSet.ToCsvRow();
-                return EnsembledTreeModelEvaluation.GetWinProbability(csvFeatureSet);
+                return EnsembledTreeModelEvaluation.GetWinProbability(csvFeatureSet, featureSetModelType!.Value);
             }
         }
 
@@ -149,7 +150,6 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
             }
 
             // FUTURE maybe this is where we need to look at draw effects afterwards
-
             return summedStrengths / deck.Count;
         }
 

@@ -2,7 +2,7 @@
   "profiles": {
     "MaltheMCTSSettingsBenchmarking": {
       "commandName": "Project",
-      "commandLineArgs": "-f1 settings1 -f2 settings2 -n 5 -to 10 -t 1 -bm TestBenchmark"
+      "commandLineArgs": "-sf MaltheMCTS/SettingsTEST -n 3 -to 5 -bm LogChangeCheck2"
     }
   }
 }
