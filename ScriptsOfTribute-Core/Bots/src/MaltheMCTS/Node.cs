@@ -287,13 +287,13 @@ public class Node
                     var simulatedTotalScore = (edge.Child.TotalScore / edge.Child.VisitCount) * edge.VisitCount;
                     double exploitation = simulatedTotalScore / edge.VisitCount;
                     double exploration = Bot.Settings.UCT_EXPLORATION_CONSTANT * Math.Sqrt(Math.Log(VisitCount) / edge.VisitCount);
-                    return exploitation * exploration;
+                    return exploitation + exploration;
                 }
                 else
                 {
                     double exploitation = edge.Child.TotalScore / edge.Child.VisitCount;
                     double exploration = Bot.Settings.UCT_EXPLORATION_CONSTANT * Math.Sqrt(Math.Log(VisitCount) / edge.Child.VisitCount);
-                    return exploitation * exploration;
+                    return exploitation + exploration;
                 }
             case SelectionMethod.Custom:
                 return TotalScore - VisitCount;
