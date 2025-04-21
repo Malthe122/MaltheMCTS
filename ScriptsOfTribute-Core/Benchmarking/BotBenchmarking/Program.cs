@@ -105,7 +105,7 @@ namespace BotBenchmarking
             var matchupWinrates = Utility.MatchResultsToCsv(results, numberOfMatchups);
             await File.WriteAllTextAsync(Path.Combine(benchmarkName, "matchup_winrate.csv"), matchupWinrates);
 
-            var overallWinrates = Utility.GetOverallWinRatesText(results, numberOfMatchups);
+            var overallWinrates = Utility.GetOverallWinRatesText(results, numberOfMatchups * (bots.Count - 1));
             await File.WriteAllTextAsync(Path.Combine(benchmarkName, "overall_winrates.txt"), overallWinrates);
 
             var sb = new StringBuilder();

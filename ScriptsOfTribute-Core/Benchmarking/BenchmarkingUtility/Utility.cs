@@ -122,37 +122,49 @@ public static class Utility
         {
             sb.Append(";").Append(bot);
         }
+        sb.Append(";Total Winrate %");
         sb.AppendLine();
 
         foreach (var bot1 in bots)
         {
+            var totalMatches = 0;
+            var totalWins = 0;
+
             sb.Append(bot1);
             foreach (var bot2 in bots)
             {
+                if (bot2 != bot1)
+                {
+                    totalMatches += matchesPerMatchup;
+                }
+
                 if (results[bot1].TryGetValue(bot2, out int wins))
                 {
                     double winRate = (double)wins / matchesPerMatchup * 100.0;
                     sb.Append(";").Append(winRate.ToString("F2"));
+                    totalWins += wins;
                 }
                 else
                 {
                     sb.Append(";0");
                 }
             }
+            var winrate = ((double)totalWins / totalMatches) * 100.0;
+            sb.Append(";" + winrate);
             sb.AppendLine();
         }
 
         return sb.ToString();
     }
 
-    public static string GetOverallWinRatesText(Dictionary<string, Dictionary<string, int>> data, int matches)
+    public static string GetOverallWinRatesText(Dictionary<string, Dictionary<string, int>> data, int totalMatchesByBot)
     {
         var sb = new System.Text.StringBuilder();
 
         foreach (var bot in data.Keys)
         {
             int totalWins = data[bot].Values.Sum();
-            double overallWinRate = (double)totalWins / (data[bot].Count * matches) * 100.0;
+            double overallWinRate = ((double)totalWins / totalMatchesByBot) * 100.0;
             sb.AppendLine($"{bot}: {overallWinRate}");
         }
 

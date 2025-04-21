@@ -9,6 +9,7 @@ using BenchmarkingUtility;
 using System.Collections.Concurrent;
 using System.Text;
 using MaltheMCTS;
+using System.IO;
 
 namespace MaltheMCTSSettingsBenchmarking
 {
@@ -66,11 +67,12 @@ namespace MaltheMCTSSettingsBenchmarking
             rootCommand.SetHandler(async (settingsFolder, numberOfMatchups, timeout, benchmarkName) =>
             {
                 var settingSets = new List<(string,Settings)>();
-                var fileNames = Directory.GetFiles(settingsFolder);
+                var filePaths = Directory.GetFiles(settingsFolder);
 
-                foreach(var fileName in fileNames)
+                foreach(var filePath in filePaths)
                 {
-                    var settingSet = Settings.LoadFromFile(fileName);
+                    var settingSet = Settings.LoadFromFile(filePath);
+                    var fileName = filePath.Substring(filePath.LastIndexOf('/') + 1);
                     settingSets.Add((fileName, settingSet));
                 }
 
@@ -104,7 +106,7 @@ namespace MaltheMCTSSettingsBenchmarking
                 var bot = result.Key;
                 settingsLog += bot.InstanceName + ":\n";
                 settingsLog += bot.Settings.ToString();
-                settingsLog += "\n";
+                settingsLog += "\n\n";
             }
 
             var stringResults = results.ToDictionary(
@@ -116,6 +118,9 @@ namespace MaltheMCTSSettingsBenchmarking
             );
 
             var csvString = Utility.MatchResultsToCsv(stringResults, numberOfMatchups);
+
+            var overallWinrates = Utility.GetOverallWinRatesText(stringResults, numberOfMatchups * (bots.Count - 1));
+            await File.WriteAllTextAsync(Path.Combine(benchmarkName, "overall_winrates.txt"), overallWinrates);
 
             var sb = new StringBuilder();
             sb.AppendLine("Benchmark Details Log:");
