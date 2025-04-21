@@ -21,6 +21,7 @@ public class Settings
         /// </summary>
         public RegressionTrainer? FEATURE_SET_MODEL_TYPE { get; set; }
     public bool REUSE_TREE { get; set; }
+        public bool UPDATED_TREE_REUSE { get; set; }
     public bool SIMULATE_MULTIPLE_TURNS { get; set; }
     public int? CHOICE_BRANCH_LIMIT { get; set; }
     public bool ADDITIONAL_MOVE_FILTERING { get; set; }
@@ -38,6 +39,7 @@ public class Settings
             ROLLOUT_TURNS_BEFORE_HEURISTIC = 1;
             FEATURE_SET_MODEL_TYPE = null;
         REUSE_TREE = true;
+            UPDATED_TREE_REUSE = true;
         SIMULATE_MULTIPLE_TURNS = false;
         CHOICE_BRANCH_LIMIT = 7;
         ADDITIONAL_MOVE_FILTERING = true;
