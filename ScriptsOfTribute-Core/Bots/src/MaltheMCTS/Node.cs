@@ -139,7 +139,6 @@ public class Node
             case ScoringMethod.RolloutTurnsCompletionsThenHeuristic:
                 return RolloutTillTurnsEndThenHeuristic(Bot.Settings.ROLLOUT_TURNS_BEFORE_HEURISTIC);
             case ScoringMethod.MaltheScoring:
-                return HeuristicScoring.Score(gameState, Bot.Settings.MANUAL_MODEL);
                 var gameState = RollOutTillEndOfTurn();
                 return HeuristicScoring.Score(gameState, Bot.Settings.FEATURE_SET_MODEL_TYPE);
             default:
