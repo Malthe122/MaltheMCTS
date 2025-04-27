@@ -68,17 +68,14 @@ public class MaltheMCTS : AI
 
             var rootNode = Utility.FindOrBuildNode(seededGameState, null, possibleMoves, this);
 
-            int iterationCount = 10_000;
+            int iterationCount = 2000;
             var iterationTimer = new Stopwatch();
-            iterationTimer.Start();
 
             for(int i = 0; i < iterationCount; i++)
             {
 
                 rootNode.Visit(out double score, new HashSet<Node>());
             }
-
-            iterationTimer.Stop();
 
             Console.WriteLine(InstanceName + ": Average iteration time was: " + (double)iterationTimer.ElapsedMilliseconds / iterationCount + " milliseconds");
 
