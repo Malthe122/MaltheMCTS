@@ -9,7 +9,7 @@ namespace MaltheMCTS;
 
 public class Node
 {
-    public Dictionary<Move, Node> MoveToChildNode;
+    public Dictionary<Move, Edge> MoveToChildNode;
     public int VisitCount = 0;
     public double TotalScore = 0;
     public int GameStateHash { get; private set; }
@@ -37,7 +37,7 @@ public class Node
         Bot = bot;
         ApplyInstantMoves();
         FilterMoves();
-        MoveToChildNode = new Dictionary<Move, Node>();
+        MoveToChildNode = new Dictionary<Move, Edge>();
     }
 
     public virtual void Visit(out double score, HashSet<Node> visitedNodes)
@@ -64,15 +64,17 @@ public class Node
             }
             else if (PossibleMoves.Count > MoveToChildNode.Count)
             {
-                var expandedChild = Expand();
-                expandedChild.Visit(out score, visitedNodes);
+                var expandedEdge = Expand();
+                expandedEdge.Child.Visit(out score, visitedNodes);
+                expandedEdge.VisitCount++;
             }
             else
             {
-                var selectedChild = Select();
-                selectedChild.Visit(out score, visitedNodes);
+                var selectedEdge = Select();
+                selectedEdge.Child.Visit(out score, visitedNodes);
+                selectedEdge.VisitCount++;
 
-                if (selectedChild.GameState.CurrentPlayer.PlayerID != playerId)
+                if (selectedEdge.Child.GameState.CurrentPlayer.PlayerID != playerId)
                 {
                     score *= -1; // this assumes the score is representing a winrate in a zero-sum-game format
                 }
@@ -88,7 +90,7 @@ public class Node
     }
 
 
-    internal Node Expand()
+    internal Edge Expand()
     {
         foreach (var currMove in PossibleMoves)
         {
@@ -120,8 +122,9 @@ public class Node
                     newChild = new EndNode(GameState, PossibleMoves, Bot);
                 }
 
-                MoveToChildNode.Add(currMove, newChild);
-                return newChild;
+                var newEdge = new Edge(newChild, 0);
+                MoveToChildNode.Add(currMove, newEdge);
+                return newEdge;
             }
         }
 
@@ -256,34 +259,42 @@ public class Node
         return result;
     }
 
-    internal virtual Node Select()
+    internal virtual Edge Select()
     {
         double maxConfidence = -double.MaxValue;
         var highestConfidenceChild = MoveToChildNode.First().Value;
 
-        foreach (var childNode in MoveToChildNode.Values)
+        foreach (var childEdge in MoveToChildNode.Values)
         {
-            double confidence = childNode.GetConfidenceScore(VisitCount);
+            double confidence = GetConfidenceScore(childEdge);
             if (confidence > maxConfidence)
             {
                 maxConfidence = confidence;
-                highestConfidenceChild = childNode;
+                highestConfidenceChild = childEdge;
             }
         }
 
         return highestConfidenceChild;
     }
 
-    /// <param name="parentVisitCount"> Must be supplied here as Nodes does not have a single fixed parent becuase of tree-reusal</param>
-    /// <returns></returns>
-    public double GetConfidenceScore(int parentVisitCount)
+    public double GetConfidenceScore(Edge edge)
     {
         switch (Bot.Settings.CHOSEN_SELECTION_METHOD)
         {
             case SelectionMethod.UCT:
-                double exploitation = TotalScore / VisitCount;
-                double exploration = Bot.Settings.UCT_EXPLORATION_CONSTANT * Math.Sqrt(Math.Log(parentVisitCount) / VisitCount);
-                return exploitation + exploration;
+                if (Bot.Settings.UPDATED_TREE_REUSE)
+                {
+                    var simulatedTotalScore = (edge.Child.TotalScore / edge.Child.VisitCount) * edge.VisitCount;
+                    double exploitation = simulatedTotalScore / edge.VisitCount;
+                    double exploration = Bot.Settings.UCT_EXPLORATION_CONSTANT * Math.Sqrt(Math.Log(VisitCount) / edge.VisitCount);
+                    return exploitation + exploration;
+                }
+                else
+                {
+                    double exploitation = edge.Child.TotalScore / edge.Child.VisitCount;
+                    double exploration = Bot.Settings.UCT_EXPLORATION_CONSTANT * Math.Sqrt(Math.Log(VisitCount) / edge.Child.VisitCount);
+                    return exploitation + exploration;
+                }
             case SelectionMethod.Custom:
                 return TotalScore - VisitCount;
             default:
@@ -545,6 +556,18 @@ public class Node
             {
                 PossibleMoves.RemoveAll(m => !(m as MakeChoiceMoveUniqueCard).Choices.Any(c => c.CommonId == CardId.GOLD));
             }
+        }
+    }
+
+    public class Edge
+    {
+        public Node Child;
+        public int VisitCount;
+
+        public Edge(Node child, int visitCount)
+        {
+            Child = child;
+            VisitCount = visitCount;
         }
     }
 }

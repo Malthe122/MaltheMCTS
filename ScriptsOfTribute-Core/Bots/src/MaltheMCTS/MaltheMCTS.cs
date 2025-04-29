@@ -90,7 +90,7 @@ public class MaltheMCTS : AI
             }
 
             var bestMove = rootNode.MoveToChildNode
-                .OrderByDescending(moveNodePair => (moveNodePair.Value.TotalScore / moveNodePair.Value.VisitCount))
+                .OrderByDescending(moveNodePair => (moveNodePair.Value.Child.TotalScore / moveNodePair.Value.VisitCount))
                 .FirstOrDefault()
                 .Key;
 
