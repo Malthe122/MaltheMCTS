@@ -139,7 +139,7 @@ namespace EnsembleTreeModelBuilder
                         .First().Model;
                     AddEnsembleTreeModelInfo(info, fastForest.TrainedTreeEnsemble);
                     break;
-                case RegressionTrainer.FastTree:
+                case RegressionTrainer.FastTree: // same parameter object type for FastTree and FastTreeTweedie. They still have different trainers added above
                 case RegressionTrainer.FastTreeTweedie:
                     var fastTree = ((TransformerChain<ITransformer>)bestRun.Model)
                            .OfType<RegressionPredictionTransformer<FastTreeRegressionModelParameters>>()
