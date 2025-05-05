@@ -122,7 +122,7 @@ namespace EnsembleTreeModelBuilder
                         LabelColumnName = labelColumnName,
                         FeatureColumnName = "Features",
                         NumberOfTrees = treesPerModel,
-                        NumberOfLeaves = 2^depthPerTree
+                        NumberOfLeaves = (int)Math.Pow(2, depthPerTree)
                     });;
                     break;
                 case RegressionTrainer.FastTree:
@@ -131,7 +131,7 @@ namespace EnsembleTreeModelBuilder
                         LabelColumnName = labelColumnName,
                         FeatureColumnName = "Features",
                         NumberOfTrees = treesPerModel,
-                        NumberOfLeaves = 2 ^ depthPerTree
+                        NumberOfLeaves = (int)Math.Pow(2, depthPerTree)
                     });
                     break;
                 case RegressionTrainer.FastTreeTweedie:
@@ -140,7 +140,7 @@ namespace EnsembleTreeModelBuilder
                         LabelColumnName = labelColumnName,
                         FeatureColumnName = "Features",
                         NumberOfTrees = treesPerModel,
-                        NumberOfLeaves = 2 ^ depthPerTree
+                        NumberOfLeaves = (int)Math.Pow(2, depthPerTree)
                     });
                     break;
                 case RegressionTrainer.LightGbm:
@@ -149,7 +149,7 @@ namespace EnsembleTreeModelBuilder
                         LabelColumnName = labelColumnName,
                         FeatureColumnName = "Features",
                         NumberOfIterations = treesPerModel,
-                        NumberOfLeaves = 2 ^ depthPerTree
+                        NumberOfLeaves = (int)Math.Pow(2, depthPerTree)
                     });
                     break;
                 case RegressionTrainer.LbfgsPoissonRegression:
@@ -190,11 +190,18 @@ namespace EnsembleTreeModelBuilder
                     AddEnsembleTreeModelInfo(info, fastForest.TrainedTreeEnsemble);
                     break;
                 case RegressionTrainer.FastTree:
-                case RegressionTrainer.FastTreeTweedie:
                     var fastTree = model
                         .OfType<RegressionPredictionTransformer<FastTreeRegressionModelParameters>>()
                         .First().Model;
+                    var all = model
+                        .OfType<RegressionPredictionTransformer<FastTreeRegressionModelParameters>>().ToList();
                     AddEnsembleTreeModelInfo(info, fastTree.TrainedTreeEnsemble);
+                    break;
+                case RegressionTrainer.FastTreeTweedie:
+                    var fastTreeTweedie = model
+                        .OfType<RegressionPredictionTransformer<FastTreeTweedieModelParameters>>()
+                        .First().Model;
+                    AddEnsembleTreeModelInfo(info, fastTreeTweedie.TrainedTreeEnsemble);
                     break;
                 case RegressionTrainer.LightGbm:
                     var lightGbm = model
