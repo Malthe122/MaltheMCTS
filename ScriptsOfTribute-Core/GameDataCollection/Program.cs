@@ -201,7 +201,7 @@ namespace GameDataCollection
                           "CurrentPlayerPatronFavour_0;CurrentPlayerPatronFavour_1;CurrentPlayerPatronFavour_2;CurrentPlayerPatronFavour_3;" +
                           "OpponentPrestige;OpponentDeck_PrestigeStrength;OpponentDeck_PowerStrength;OpponentDeck_GoldStrength;OpponentDeck_MiscStrength;" +
                           "OpponentAgent_PowerStrength;OpponentAgent_GoldStrength;OpponentAgent_MiscStrength;" +
-                          "OpponentPatronFavour_0;OpponentPatronFavour_1;OpponentPatronFavour_2;OpponentPatronFavour_3" +
+                          "OpponentPatronFavour_0;OpponentPatronFavour_1;OpponentPatronFavour_2;OpponentPatronFavour_3;" +
                           "WinProbability");
 
             foreach (var entry in featureSetToResultRates)
@@ -254,7 +254,7 @@ namespace GameDataCollection
               $"{featureSet.OpponentPrestige};" +
               $"{featureSet.OpponentDeck_PrestigeStrength};{featureSet.OpponentDeck_PowerStrength};{featureSet.OpponentDeck_GoldStrength};{featureSet.OpponentDeck_MiscStrength};" +
               $"{featureSet.OpponentAgent_PowerStrength};{featureSet.OpponentAgent_GoldStrength};{featureSet.OpponentAgent_MiscStrength};" +
-              $"{(featureSet.OpponentPatronFavour == 0 ? 1 : 0)};{(featureSet.OpponentPatronFavour == 1 ? 1 : 0)};{(featureSet.OpponentPatronFavour == 2 ? 1 : 0)};{(featureSet.OpponentPatronFavour == 3 ? 1 : 0)}" +
+              $"{(featureSet.OpponentPatronFavour == 0 ? 1 : 0)};{(featureSet.OpponentPatronFavour == 1 ? 1 : 0)};{(featureSet.OpponentPatronFavour == 2 ? 1 : 0)};{(featureSet.OpponentPatronFavour == 3 ? 1 : 0)};" +
               $"{winProbability}");
         }
 
