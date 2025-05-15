@@ -57,45 +57,71 @@ namespace EnsembleTreeModelBuilder
             await rootCommand.InvokeAsync(args);
         }
 
-        private static void TrainModel(string trainingDataFilePath, string modelName, uint experiementTime, bool individualExperiementsPerModel)
+        private static void TrainModel(string trainingDataPath, string experiementFolder, uint experiementTime, bool individualExperiementsPerModel)
         {
 
-            Console.WriteLine("Running training on " + trainingDataFilePath + "...");
+            Console.WriteLine("Running training on " + trainingDataPath + "...");
 
-            Directory.CreateDirectory(MODELS_FOLDER + "/" + modelName);
-
-            //CleanIntegersFromCsv(trainingDataFilePath); // Check if this is neccessary or puttin the properties as floats in class is enough
+            Directory.CreateDirectory(MODELS_FOLDER + "/" + experiementFolder);
+            Directory.CreateDirectory(MODELS_FOLDER + "/" + experiementFolder + "/early");
+            Directory.CreateDirectory(MODELS_FOLDER + "/" + experiementFolder + "/mid");
+            Directory.CreateDirectory(MODELS_FOLDER + "/" + experiementFolder + "/late");
+            Directory.CreateDirectory(MODELS_FOLDER + "/" + experiementFolder + "/end");
 
             var mlContext = new MLContext();
 
-            var columnInference = mlContext.Auto().InferColumns(trainingDataFilePath, labelColumnName: "WinProbability", groupColumns: false);
-            IDataView fullData = mlContext.Data.LoadFromTextFile<GameStateFeatureSetCsvRow>(trainingDataFilePath, columnInference.TextLoaderOptions);
+            var etmTrainingDataPath = trainingDataPath + "/for_etm.csv";
+            var columnInference = mlContext.Auto().InferColumns(etmTrainingDataPath, labelColumnName: "WinProbability", groupColumns: false);
+            IDataView fullData = mlContext.Data.LoadFromTextFile<GameStateFeatureSetCsvRow>(etmTrainingDataPath, columnInference.TextLoaderOptions);
             var trainTestSplit = mlContext.Data.TrainTestSplit(fullData, testFraction: 0.2);
             IDataView trainData = trainTestSplit.TrainSet;
             IDataView testData = trainTestSplit.TestSet;
 
             dataViewSchema = trainData.Schema;
-            columnInferenceResults = columnInference;
+            columnInferenceResults = columnInference;            
 
             string labelName = columnInference.ColumnInformation.LabelColumnName;
             if (individualExperiementsPerModel)
             {
-                RunIndividualExperiementsPerModel(modelName, experiementTime, mlContext, fullData, trainData, testData);
+                RunIndividualExperiementsPerETMModel(experiementFolder, experiementTime, mlContext, fullData, trainData, testData);
+
+                IDataView fullEarlyData = mlContext.Data.LoadFromTextFile<GameStateLinearFeatureSetCsvRow>(trainingDataPath + "/for_linear/" + "/earlyGame.csv", columnInference.TextLoaderOptions);
+                var earlyTrainTestSplit = mlContext.Data.TrainTestSplit(fullEarlyData, testFraction: 0.2);
+                IDataView fullMidData = mlContext.Data.LoadFromTextFile<GameStateLinearFeatureSetCsvRow>(trainingDataPath + "/for_linear/" + "/midGame.csv", columnInference.TextLoaderOptions);
+                var midTrainTestSplit = mlContext.Data.TrainTestSplit(fullMidData, testFraction: 0.2);
+                IDataView fullLateData = mlContext.Data.LoadFromTextFile<GameStateLinearFeatureSetCsvRow>(trainingDataPath + "/for_linear/" + "/lateGame.csv", columnInference.TextLoaderOptions);
+                var lateTrainTestSplit = mlContext.Data.TrainTestSplit(fullLateData, testFraction: 0.2);
+                IDataView fullEndData = mlContext.Data.LoadFromTextFile<GameStateLinearFeatureSetCsvRow>(trainingDataPath + "/for_linear/" + "/endGame.csv", columnInference.TextLoaderOptions);
+                var endTrainTestSplit = mlContext.Data.TrainTestSplit(fullEndData, testFraction: 0.2);
+                RunIndividualExperiementPerLinearModel(experiementFolder, experiementTime, mlContext, fullEarlyData, earlyTrainTestSplit, "early");
+                RunIndividualExperiementPerLinearModel(experiementFolder, experiementTime, mlContext, fullMidData, midTrainTestSplit, "mid");
+                RunIndividualExperiementPerLinearModel(experiementFolder, experiementTime, mlContext, fullLateData, lateTrainTestSplit, "late");
+                RunIndividualExperiementPerLinearModel(experiementFolder, experiementTime, mlContext, fullEndData, endTrainTestSplit, "end");
+
             }
             else
             {
-                RunMostPreciseModelExperiement(modelName, experiementTime, mlContext, fullData, trainData, testData);
+                RunMostPreciseModelExperiement(experiementFolder, experiementTime, mlContext, fullData, trainData, testData);
             }
         }
 
-        private static void RunIndividualExperiementsPerModel(string experiementFolderName, uint experiementTime, MLContext mlContext, IDataView fullData, IDataView trainData, IDataView testData)
+        private static void RunIndividualExperiementsPerETMModel(string modelName, uint experiementTime, MLContext mlContext, IDataView fullData, IDataView trainData, IDataView testData)
         {
-            RunIndividualExperiement(experiementFolderName, experiementTime, mlContext, fullData, trainData, testData, RegressionTrainer.FastForest);
-            RunIndividualExperiement(experiementFolderName, experiementTime, mlContext, fullData, trainData, testData, RegressionTrainer.FastTree);
-            RunIndividualExperiement(experiementFolderName, experiementTime, mlContext, fullData, trainData, testData, RegressionTrainer.FastTreeTweedie);
-            RunIndividualExperiement(experiementFolderName, experiementTime, mlContext, fullData, trainData, testData, RegressionTrainer.LightGbm);
-            RunIndividualExperiement(experiementFolderName, experiementTime, mlContext, fullData, trainData, testData, RegressionTrainer.LbfgsPoissonRegression);
-            RunIndividualExperiement(experiementFolderName, experiementTime, mlContext, fullData, trainData, testData, RegressionTrainer.StochasticDualCoordinateAscent);
+            RunIndividualExperiement(modelName, experiementTime, mlContext, fullData, trainData, testData, RegressionTrainer.FastForest);
+            RunIndividualExperiement(modelName, experiementTime, mlContext, fullData, trainData, testData, RegressionTrainer.FastTree);
+            RunIndividualExperiement(modelName, experiementTime, mlContext, fullData, trainData, testData, RegressionTrainer.FastTreeTweedie);
+            RunIndividualExperiement(modelName, experiementTime, mlContext, fullData, trainData, testData, RegressionTrainer.LightGbm);
+            //RunIndividualExperiement(experiementFolderName, experiementTime, mlContext, fullData, trainData, testData, RegressionTrainer.LbfgsPoissonRegression);
+            //RunIndividualExperiement(experiementFolderName, experiementTime, mlContext, fullData, trainData, testData, RegressionTrainer.StochasticDualCoordinateAscent);
+        }
+
+        private static void RunIndividualExperiementPerLinearModel(string experiementFolder, uint experiementTime, MLContext mlContext, IDataView fullData, DataOperationsCatalog.TrainTestData trainTestSplit, string stage)
+        {
+            IDataView trainData = trainTestSplit.TrainSet;
+            IDataView testData = trainTestSplit.TestSet;
+
+            RunIndividualExperiement(experiementFolder + "/" + stage, experiementTime, mlContext, fullData, trainData, testData, RegressionTrainer.LbfgsPoissonRegression);
+            RunIndividualExperiement(experiementFolder + "/" + stage, experiementTime, mlContext, fullData, trainData, testData, RegressionTrainer.StochasticDualCoordinateAscent);
         }
 
         private static void RunIndividualExperiement(string experiementFolderName, uint experiementTime, MLContext mlContext, IDataView fullData, IDataView trainData, IDataView testData, RegressionTrainer modelType)
