@@ -2,7 +2,7 @@
   "profiles": {
     "GameRunner": {
       "commandName": "Project",
-      "commandLineArgs": "MaltheMCTS MaltheMCTS -n 50 -to 10"
+      "commandLineArgs": "BestMCTS3 BestMCTS3 -n 50 -to 30"
     }
   }
 }

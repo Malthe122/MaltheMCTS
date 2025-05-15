@@ -263,15 +263,15 @@ namespace GameDataCollection
             for (int i = 0; i < numberOfMatchups; i++)
             {
                 Console.WriteLine("Playing match " + (i + 1) + "...");
-                var bot1 = CreateBot(botString);
-                var bot2 = CreateBot(botString);
+                var bot1 = CreateBot(botString, timeout);
+                var bot2 = CreateBot(botString, timeout);
                 var match = new ScriptsOfTribute.AI.ScriptsOfTribute(bot1, bot2, TimeSpan.FromSeconds(timeout));
                 match.Play();
                 Console.WriteLine("Finished match " + (i + 1));
             }
         }
 
-        public static AI CreateBot(string botName)
+        public static AI CreateBot(string botName, int timeout)
         {
             switch (botName)
             {
@@ -304,7 +304,9 @@ namespace GameDataCollection
                 //case "TurnTimeoutBot":
                 //    return new TurnTimeoutBot();
                 case "BestMCTS3":
-                    return new DataCollectors_BestMCTS3.BestMCTS3();
+                    var res = new DataCollectors_BestMCTS3.BestMCTS3();
+                    res.turnTimeout = TimeSpan.FromSeconds(timeout - 0.1);
+                    return res;
                 default:
                     throw new ArgumentException($"Does not have a data collector for: '{botName}'");
             }
