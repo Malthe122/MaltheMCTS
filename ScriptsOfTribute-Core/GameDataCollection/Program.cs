@@ -250,7 +250,7 @@ namespace GameDataCollection
               $"{featureSet.CurrentPlayerDeck_PrestigeStrength};{featureSet.CurrentPlayerDeck_PowerStrength};{featureSet.CurrentPlayerDeck_GoldStrength};{featureSet.CurrentPlayerDeck_MiscStrength};" +
               $"{featureSet.CurrentPlayerDeckComboProportion};" +
               $"{featureSet.CurrentPlayerAgent_PowerStrength};{featureSet.CurrentPlayerAgent_GoldStrength};{featureSet.CurrentPlayerAgent_MiscStrength};" +
-              $"{(featureSet.CurrentPlayerPatronFavour == 0 ? 1 : 0)};{(featureSet.CurrentPlayerPatronFavour == 1 ? 1 : 0)};{(featureSet.CurrentPlayerPatronFavour == 2 ? 1 : 0)};{(featureSet.CurrentPlayerPatronFavour == 3 ? 1 : 0)}" +
+              $"{(featureSet.CurrentPlayerPatronFavour == 0 ? 1 : 0)};{(featureSet.CurrentPlayerPatronFavour == 1 ? 1 : 0)};{(featureSet.CurrentPlayerPatronFavour == 2 ? 1 : 0)};{(featureSet.CurrentPlayerPatronFavour == 3 ? 1 : 0)};" +
               $"{featureSet.OpponentPrestige};" +
               $"{featureSet.OpponentDeck_PrestigeStrength};{featureSet.OpponentDeck_PowerStrength};{featureSet.OpponentDeck_GoldStrength};{featureSet.OpponentDeck_MiscStrength};" +
               $"{featureSet.OpponentAgent_PowerStrength};{featureSet.OpponentAgent_GoldStrength};{featureSet.OpponentAgent_MiscStrength};" +
