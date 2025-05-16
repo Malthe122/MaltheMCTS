@@ -209,7 +209,7 @@ public class Node
             rolloutPossibleMoves = newPossibleMoves;
         }
 
-        var stateScore = Utility.UseBestMCTS3Heuristic(rolloutGameState, true);
+        var stateScore = Utility.UseBestMCTS3Heuristic(rolloutGameState, false);
 
         if (GameState.CurrentPlayer != rolloutGameState.CurrentPlayer)
         {

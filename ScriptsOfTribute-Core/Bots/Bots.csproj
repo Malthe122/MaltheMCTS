@@ -25,12 +25,6 @@
       <PackageReference Include="Microsoft.ML.LightGbm" Version="4.0.2" />
     </ItemGroup>
 
-    <ItemGroup>
-      <None Update="src\MaltheMCTS\Utility\HeuristicScoring\ModelEvaluation\MaltheMCTS_Model">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
-    </ItemGroup>
-
     <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
     <DebugType>portable</DebugType>
     <DebugSymbols>true</DebugSymbols>
