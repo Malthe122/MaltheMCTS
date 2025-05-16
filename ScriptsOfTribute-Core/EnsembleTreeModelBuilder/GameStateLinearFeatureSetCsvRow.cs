@@ -22,23 +22,23 @@ namespace EnsembleTreeModelBuilder
         [LoadColumn(7)] public float CurrentPlayerAgent_GoldStrength { get; set; }
         [LoadColumn(8)] public float CurrentPlayerAgent_MiscStrength { get; set; }
         [LoadColumn(9)] public float CurrentPlayerPatronFavour_0 { get; set; }
-        [LoadColumn(9)] public float CurrentPlayerPatronFavour_1 { get; set; }
-        [LoadColumn(9)] public float CurrentPlayerPatronFavour_2 { get; set; }
-        [LoadColumn(9)] public float CurrentPlayerPatronFavour_3 { get; set; }
-        [LoadColumn(10)] public float OpponentPrestige { get; set; }
-        [LoadColumn(11)] public float OpponentDeck_PrestigeStrength { get; set; }
-        [LoadColumn(12)] public float OpponentDeck_PowerStrength { get; set; }
-        [LoadColumn(13)] public float OpponentDeck_GoldStrength { get; set; }
-        [LoadColumn(14)] public float OpponentDeck_MiscStrength { get; set; }
-        [LoadColumn(15)] public float OpponentAgent_PowerStrength { get; set; }
-        [LoadColumn(16)] public float OpponentAgent_GoldStrength { get; set; }
-        [LoadColumn(17)] public float OpponentAgent_MiscStrength { get; set; }
-        [LoadColumn(18)] public float OpponentPatronFavour_0 { get; set; }
-        [LoadColumn(18)] public float OpponentPatronFavour_1 { get; set; }
-        [LoadColumn(18)] public float OpponentPatronFavour_2 { get; set; }
-        [LoadColumn(18)] public float OpponentPatronFavour_3 { get; set; }
+        [LoadColumn(10)] public float CurrentPlayerPatronFavour_1 { get; set; }
+        [LoadColumn(11)] public float CurrentPlayerPatronFavour_2 { get; set; }
+        [LoadColumn(12)] public float CurrentPlayerPatronFavour_3 { get; set; }
+        [LoadColumn(13)] public float OpponentPrestige { get; set; }
+        [LoadColumn(14)] public float OpponentDeck_PrestigeStrength { get; set; }
+        [LoadColumn(15)] public float OpponentDeck_PowerStrength { get; set; }
+        [LoadColumn(16)] public float OpponentDeck_GoldStrength { get; set; }
+        [LoadColumn(17)] public float OpponentDeck_MiscStrength { get; set; }
+        [LoadColumn(18)] public float OpponentAgent_PowerStrength { get; set; }
+        [LoadColumn(19)] public float OpponentAgent_GoldStrength { get; set; }
+        [LoadColumn(20)] public float OpponentAgent_MiscStrength { get; set; }
+        [LoadColumn(21)] public float OpponentPatronFavour_0 { get; set; }
+        [LoadColumn(22)] public float OpponentPatronFavour_1 { get; set; }
+        [LoadColumn(23)] public float OpponentPatronFavour_2 { get; set; }
+        [LoadColumn(24)] public float OpponentPatronFavour_3 { get; set; }
 
-        [LoadColumn(19)] public float WinProbability { get; set; }
+        [LoadColumn(25)] public float WinProbability { get; set; }
     }
 
 }

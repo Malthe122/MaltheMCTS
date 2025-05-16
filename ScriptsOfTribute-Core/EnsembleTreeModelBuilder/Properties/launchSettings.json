@@ -2,7 +2,7 @@
   "profiles": {
     "EnsembleTreeModelBuilder": {
       "commandName": "Project",
-      "commandLineArgs": "-t DataCollection_4 -et 30 -m test6 -fi true"
+      "commandLineArgs": "-t DataCollection_4 -et 30 -m test7 -fi true"
     }
   }
 }
