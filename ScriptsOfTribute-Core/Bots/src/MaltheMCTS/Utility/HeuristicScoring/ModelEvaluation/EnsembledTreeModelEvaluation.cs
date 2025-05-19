@@ -42,10 +42,10 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring.ModelEvaluation
             var lbfgsPoissonLateModel = mlContext.Model.Load(basePath + "/late/LbfgsPoissonRegression", out var _);
             var lbfgsPoissonEndModel = mlContext.Model.Load(basePath + "/end/LbfgsPoissonRegression", out var _);
 
-            var sdcaEarlyModel = mlContext.Model.Load(basePath + "/early/sdca", out var _);
-            var sdcaMidModel = mlContext.Model.Load(basePath + "/mid/sdca", out var _);
-            var sdcaLateModel = mlContext.Model.Load(basePath + "/late/sdca", out var _);
-            var sdcaEndModel = mlContext.Model.Load(basePath + "/end/sdca", out var _);
+            var sdcaEarlyModel = mlContext.Model.Load(basePath + "/early/StochasticDualCoordinateAscent", out var _);
+            var sdcaMidModel = mlContext.Model.Load(basePath + "/mid/StochasticDualCoordinateAscent", out var _);
+            var sdcaLateModel = mlContext.Model.Load(basePath + "/late/StochasticDualCoordinateAscent", out var _);
+            var sdcaEndModel = mlContext.Model.Load(basePath + "/end/StochasticDualCoordinateAscent", out var _);
 
 
             LINEAR_PREDICTION_ENGINES = new Dictionary<(RegressionTrainer, GameStage), PredictionEngine<GameStateLinearFeatureSetCsvRow, ModelOutput>>
