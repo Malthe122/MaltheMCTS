@@ -141,7 +141,7 @@ public class Node
                 return Utility.UseBestMCTS3Heuristic(GameState, false, Bot.Settings.SIMULATE_MULTIPLE_TURNS);
             case ScoringMethod.RolloutTurnsCompletionsThenHeuristic:
                 return RolloutTillTurnsEndThenHeuristic(Bot.Settings.ROLLOUT_TURNS_BEFORE_HEURISTIC);
-            case ScoringMethod.MaltheScoring:
+            case ScoringMethod.ModelScoring:
                 var gameState = RollOutTillEndOfTurn();
                 return HeuristicScoring.Score(gameState, Bot.Settings.FEATURE_SET_MODEL_TYPE);
             default:
@@ -209,7 +209,7 @@ public class Node
             rolloutPossibleMoves = newPossibleMoves;
         }
 
-        var stateScore = Utility.UseBestMCTS3Heuristic(rolloutGameState, true);
+        var stateScore = Utility.UseBestMCTS3Heuristic(rolloutGameState, false, Bot.Settings.SIMULATE_MULTIPLE_TURNS);
 
         if (GameState.CurrentPlayer != rolloutGameState.CurrentPlayer)
         {

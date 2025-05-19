@@ -108,7 +108,7 @@ public class BestMCTS3 : AI
     int noOfRoots = maxNoOfRoots;
     readonly MCTSNode?[] roots = new MCTSNode?[maxNoOfRoots];
     TimeSpan usedTimeInTurn = TimeSpan.FromSeconds(0);
-    readonly TimeSpan turnTimeout = TimeSpan.FromSeconds(9.9);
+    public TimeSpan turnTimeout = TimeSpan.FromSeconds(9.9);
     bool startOfTurn = true;
     GameStrategy strategy = new(10, GamePhase.EarlyGame);
 

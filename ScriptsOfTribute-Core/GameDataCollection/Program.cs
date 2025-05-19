@@ -95,6 +95,8 @@ namespace GameDataCollection
 
             Console.WriteLine("Saving dataset...");
             ExportDatasetToCSV(datasetName);
+            Console.WriteLine("Saving datasets into structure for linear models...");
+            ExportDatasetToLinearModelCSVs(datasetName);
 
             var sb = new StringBuilder();
             sb.AppendLine($"DatasetName Name: {datasetName}");
@@ -164,6 +166,68 @@ namespace GameDataCollection
             File.WriteAllText(datasetName + "/" + datasetName + ".csv", sb.ToString());
         }
 
+        private static void ExportDatasetToLinearModelCSVs(string datasetName)
+        {
+            var earlyGame = FeatureSetToResultRates.Where(p => Math.Max(p.Key.CurrentPlayerPrestige, p.Key.OpponentPrestige) < 16).ToDictionary();
+            var midGame = FeatureSetToResultRates.Where(p => Math.Max(p.Key.CurrentPlayerPrestige, p.Key.OpponentPrestige) < 30 &&
+                                                                Math.Max(p.Key.CurrentPlayerPrestige, p.Key.OpponentPrestige) > 15
+                                                                ).ToDictionary();
+            var lateGame = FeatureSetToResultRates.Where(p => Math.Max(p.Key.CurrentPlayerPrestige, p.Key.OpponentPrestige) < 40 &&
+                                                                Math.Max(p.Key.CurrentPlayerPrestige, p.Key.OpponentPrestige) > 29
+                                                                ).ToDictionary();
+            var endGame = FeatureSetToResultRates.Where(p => Math.Max(p.Key.CurrentPlayerPrestige, p.Key.OpponentPrestige) > 39).ToDictionary();
+
+
+            var earlyCSVString = DatasetToLinearModelCSVString(earlyGame);
+            var midCSVString = DatasetToLinearModelCSVString(midGame);
+            var lateCSVString = DatasetToLinearModelCSVString(lateGame);
+            var endCSVString = DatasetToLinearModelCSVString(endGame);
+
+            Directory.CreateDirectory(datasetName + "/" + "for_linear");
+            File.WriteAllText(datasetName + "/" + "for_linear/" + "earlyGame.csv", earlyCSVString);
+            File.WriteAllText(datasetName + "/" + "for_linear/" + "midGame.csv", midCSVString);
+            File.WriteAllText(datasetName + "/" + "for_linear/" + "lateGame.csv", lateCSVString);
+            File.WriteAllText(datasetName + "/" + "for_linear/" + "endGame.csv", endCSVString);
+        }
+
+        private static string DatasetToLinearModelCSVString(Dictionary<GameStateFeatureSet, ResultRates> featureSetToResultRates)
+        {
+            var sb = new StringBuilder();
+
+            // Headers (Excluding agent prestige strength from both players in the data, as no agent is the current decks has that effect)
+            sb.AppendLine(
+                          "CurrentPlayerPrestige;CurrentPlayerDeck_PrestigeStrength;CurrentPlayerDeck_PowerStrength;CurrentPlayerDeck_GoldStrength;CurrentPlayerDeck_MiscStrength;" +
+                          "CurrentPlayerDeckComboProportion;CurrentPlayerAgent_PowerStrength;CurrentPlayerAgent_GoldStrength;CurrentPlayerAgent_MiscStrength;" +
+                          "CurrentPlayerPatronFavour_0;CurrentPlayerPatronFavour_1;CurrentPlayerPatronFavour_2;CurrentPlayerPatronFavour_3;" +
+                          "OpponentPrestige;OpponentDeck_PrestigeStrength;OpponentDeck_PowerStrength;OpponentDeck_GoldStrength;OpponentDeck_MiscStrength;" +
+                          "OpponentAgent_PowerStrength;OpponentAgent_GoldStrength;OpponentAgent_MiscStrength;" +
+                          "OpponentPatronFavour_0;OpponentPatronFavour_1;OpponentPatronFavour_2;OpponentPatronFavour_3;" +
+                          "WinProbability");
+
+            foreach (var entry in featureSetToResultRates)
+            {
+                var featureSet = entry.Key;
+                var results = entry.Value;
+
+                for (int i = 0; i < results.Looses; i++)
+                {
+                    AddLinearModelDataRow(sb, featureSet, 0);
+                }
+
+                for (int i = 0; i < results.Draws; i++)
+                {
+                    AddLinearModelDataRow(sb, featureSet, 0.5);
+                }
+
+                for (int i = 0; i < results.Wins; i++)
+                {
+                    AddLinearModelDataRow(sb, featureSet, 1);
+                }
+            }
+
+            return sb.ToString();
+        }
+
         private static void AddDataRow(StringBuilder sb, GameStateFeatureSet featureSet, double winProbability)
         {
             sb.AppendLine($"{featureSet.Patron_1};{featureSet.Patron_2};{featureSet.Patron_3};{featureSet.Patron_4};" +
@@ -176,7 +240,22 @@ namespace GameDataCollection
               $"{featureSet.OpponentDeck_PrestigeStrength};{featureSet.OpponentDeck_PowerStrength};{featureSet.OpponentDeck_GoldStrength};{featureSet.OpponentDeck_MiscStrength};" +
               $"{featureSet.OpponentAgent_PowerStrength};{featureSet.OpponentAgent_GoldStrength};{featureSet.OpponentAgent_MiscStrength};" +
               $"{featureSet.OpponentPatronFavour};" +
-              $"{featureSet.WinProbability!.Value.ToString(CultureInfo.InvariantCulture)}");
+              $"{winProbability}");
+        }
+
+        private static void AddLinearModelDataRow(StringBuilder sb, GameStateFeatureSet featureSet, double winProbability)
+        {
+            sb.AppendLine(
+              $"{featureSet.CurrentPlayerPrestige};" +
+              $"{featureSet.CurrentPlayerDeck_PrestigeStrength};{featureSet.CurrentPlayerDeck_PowerStrength};{featureSet.CurrentPlayerDeck_GoldStrength};{featureSet.CurrentPlayerDeck_MiscStrength};" +
+              $"{featureSet.CurrentPlayerDeckComboProportion};" +
+              $"{featureSet.CurrentPlayerAgent_PowerStrength};{featureSet.CurrentPlayerAgent_GoldStrength};{featureSet.CurrentPlayerAgent_MiscStrength};" +
+              $"{(featureSet.CurrentPlayerPatronFavour == 0 ? 1 : 0)};{(featureSet.CurrentPlayerPatronFavour == 1 ? 1 : 0)};{(featureSet.CurrentPlayerPatronFavour == 2 ? 1 : 0)};{(featureSet.CurrentPlayerPatronFavour == 3 ? 1 : 0)};" +
+              $"{featureSet.OpponentPrestige};" +
+              $"{featureSet.OpponentDeck_PrestigeStrength};{featureSet.OpponentDeck_PowerStrength};{featureSet.OpponentDeck_GoldStrength};{featureSet.OpponentDeck_MiscStrength};" +
+              $"{featureSet.OpponentAgent_PowerStrength};{featureSet.OpponentAgent_GoldStrength};{featureSet.OpponentAgent_MiscStrength};" +
+              $"{(featureSet.OpponentPatronFavour == 0 ? 1 : 0)};{(featureSet.OpponentPatronFavour == 1 ? 1 : 0)};{(featureSet.OpponentPatronFavour == 2 ? 1 : 0)};{(featureSet.OpponentPatronFavour == 3 ? 1 : 0)};" +
+              $"{winProbability}");
         }
 
         private static void PlayMatches(string botString, int numberOfMatchups, int timeout)
@@ -184,15 +263,15 @@ namespace GameDataCollection
             for (int i = 0; i < numberOfMatchups; i++)
             {
                 Console.WriteLine("Playing match " + (i + 1) + "...");
-                var bot1 = CreateBot(botString);
-                var bot2 = CreateBot(botString);
+                var bot1 = CreateBot(botString, timeout);
+                var bot2 = CreateBot(botString, timeout);
                 var match = new ScriptsOfTribute.AI.ScriptsOfTribute(bot1, bot2, TimeSpan.FromSeconds(timeout));
                 match.Play();
                 Console.WriteLine("Finished match " + (i + 1));
             }
         }
 
-        public static AI CreateBot(string botName)
+        public static AI CreateBot(string botName, int timeout)
         {
             switch (botName)
             {
@@ -225,7 +304,9 @@ namespace GameDataCollection
                 //case "TurnTimeoutBot":
                 //    return new TurnTimeoutBot();
                 case "BestMCTS3":
-                    return new DataCollectors_BestMCTS3.BestMCTS3();
+                    var res = new DataCollectors_BestMCTS3.BestMCTS3();
+                    res.turnTimeout = TimeSpan.FromSeconds(timeout - 0.1);
+                    return res;
                 default:
                     throw new ArgumentException($"Does not have a data collector for: '{botName}'");
             }
