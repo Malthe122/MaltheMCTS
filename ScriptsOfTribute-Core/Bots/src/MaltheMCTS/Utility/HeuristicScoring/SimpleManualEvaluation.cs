@@ -24,21 +24,53 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
             double currentPlayerPrestigeValue = featureSet.CurrentPlayerPrestige * lateGameMultiplier;
             double opponentPrestigeValue = featureSet.OpponentPrestige * lateGameMultiplier;
 
-            //double currentPlayerDeckValue = GetDeckValue(featureSet.CurrentPlayerDeckStrengths, lateGameMultiplier, earlyGameMultiplier);
-            //double opponentDeckValue = GetDeckValue(featureSet.OpponentDeckStrengths, lateGameMultiplier, earlyGameMultiplier);
 
-            //double currentPlayerAgentValue = GetAgentValue(featureSet.CurrentPlayerAgentStrengths, lateGameMultiplier, earlyGameMultiplier);
-            //double opponentAgentValue = GetAgentValue(featureSet.OpponentAgentStrengths, lateGameMultiplier, earlyGameMultiplier);
+            var currentPlayerDeckStrength = new CardStrengths
+            {
+                GoldStrength = featureSet.CurrentPlayerDeck_GoldStrength,
+                MiscellaneousStrength = featureSet.CurrentPlayerDeck_MiscStrength,
+                PowerStrength = featureSet.CurrentPlayerDeck_PowerStrength,
+                PrestigeStrength = featureSet.CurrentPlayerDeck_PrestigeStrength
+            };
+
+            var opponentPlayerDeckStrength = new CardStrengths
+            {
+                GoldStrength = featureSet.OpponentDeck_GoldStrength,
+                MiscellaneousStrength = featureSet.OpponentDeck_MiscStrength,
+                PowerStrength = featureSet.OpponentDeck_PowerStrength,
+                PrestigeStrength = featureSet.OpponentDeck_PrestigeStrength
+            };
+
+            double currentPlayerDeckValue = GetDeckValue(currentPlayerDeckStrength, lateGameMultiplier, earlyGameMultiplier);
+            double opponentDeckValue = GetDeckValue(opponentPlayerDeckStrength, lateGameMultiplier, earlyGameMultiplier);
+
+            var currentPlayerAgentStrength = new CardStrengths
+            {
+                GoldStrength = featureSet.CurrentPlayerAgent_GoldStrength,
+                MiscellaneousStrength = featureSet.CurrentPlayerAgent_MiscStrength,
+                PowerStrength = featureSet.CurrentPlayerAgent_PowerStrength,
+                PrestigeStrength = 0
+            };
+
+            var opponentPlayerAgentStrength = new CardStrengths
+            {
+                GoldStrength = featureSet.OpponentAgent_GoldStrength,
+                MiscellaneousStrength = featureSet.OpponentAgent_MiscStrength,
+                PowerStrength = featureSet.OpponentAgent_PowerStrength,
+                PrestigeStrength = 0
+            };
+
+            double currentPlayerAgentValue = GetAgentValue(currentPlayerAgentStrength, lateGameMultiplier, earlyGameMultiplier);
+            double opponentAgentValue = GetAgentValue(opponentPlayerAgentStrength, lateGameMultiplier, earlyGameMultiplier);
+
 
             double currentPlayerPatronValue = Math.Pow(BASE_PATRON_VALUE, featureSet.CurrentPlayerPatronFavour);
             double opponentPatronValue = Math.Pow(BASE_PATRON_VALUE, featureSet.OpponentPatronFavour);
 
-            //var currentPlayerValue = currentPlayerPrestigeValue + currentPlayerDeckValue + currentPlayerAgentValue + currentPlayerPatronValue;
-            //var opponentValue = opponentPrestigeValue + opponentDeckValue + opponentAgentValue + opponentPatronValue;
+            var currentPlayerValue = currentPlayerPrestigeValue + currentPlayerDeckValue + currentPlayerAgentValue + currentPlayerPatronValue;
+            var opponentValue = opponentPrestigeValue + opponentDeckValue + opponentAgentValue + opponentPatronValue;
 
-            //return currentPlayerValue - opponentValue;
-
-            throw new NotImplementedException(); // TODO fix before use. Outcommented code after refactor
+            return currentPlayerValue - opponentValue;
         }
 
         private static double GetAgentValue(CardStrengths agentStrengths, double lateGameMultiplier, double earlyGameMultiplier)
