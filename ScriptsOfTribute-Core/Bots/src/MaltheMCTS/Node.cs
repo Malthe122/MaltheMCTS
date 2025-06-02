@@ -36,7 +36,10 @@ public class Node
         PossibleMoves = possibleMoves;
         Bot = bot;
         ApplyInstantMoves();
-        FilterMoves();
+        if (gameState.GameEndState == null)
+        {
+            FilterMoves();
+        }
         MoveToChildNode = new Dictionary<Move, Edge>();
     }
 
