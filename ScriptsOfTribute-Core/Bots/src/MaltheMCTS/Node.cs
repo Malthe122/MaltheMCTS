@@ -154,6 +154,11 @@ public class Node
         var rolloutPossibleMoves = PossibleMoves.ToList();
         var gameState = GameState;
 
+        if (gameState.GameEndState != null)
+        {
+            return gameState;
+        }
+
         while(rolloutPossibleMoves.Count > 1 || rolloutPossibleMoves[0].Command != CommandEnum.END_TURN)
         {
             if (Bot.Settings.FORCE_DELAY_TURN_END_IN_ROLLOUT)
