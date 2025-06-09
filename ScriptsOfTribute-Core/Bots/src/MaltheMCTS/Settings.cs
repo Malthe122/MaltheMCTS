@@ -68,7 +68,11 @@ public class Settings
                 var property = typeof(Settings).GetProperty(key);
                 if (property != null)
                 {
-                    if (property.PropertyType == typeof(int))
+                    if (value.Equals("null", StringComparison.OrdinalIgnoreCase))
+                    {
+                        property.SetValue(result, null);
+                    }
+                    else if (property.PropertyType == typeof(int))
                     {
                         property.SetValue(result, int.Parse(value));
                     }

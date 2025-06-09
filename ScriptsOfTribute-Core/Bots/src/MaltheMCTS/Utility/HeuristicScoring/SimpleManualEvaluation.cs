@@ -63,7 +63,6 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
             double currentPlayerAgentValue = GetAgentValue(currentPlayerAgentStrength, lateGameMultiplier, earlyGameMultiplier);
             double opponentAgentValue = GetAgentValue(opponentPlayerAgentStrength, lateGameMultiplier, earlyGameMultiplier);
 
-
             double currentPlayerPatronValue = Math.Pow(BASE_PATRON_VALUE, featureSet.CurrentPlayerPatronFavour);
             double opponentPatronValue = Math.Pow(BASE_PATRON_VALUE, featureSet.OpponentPatronFavour);
 
