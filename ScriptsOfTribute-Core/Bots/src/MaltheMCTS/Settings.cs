@@ -64,7 +64,6 @@ public class Settings
                 var key = parts[0].Trim();
                 var value = parts[1].Trim();
 
-                // Use reflection to set the property dynamically
                 var property = typeof(Settings).GetProperty(key);
                 if (property != null)
                 {
@@ -72,15 +71,15 @@ public class Settings
                     {
                         property.SetValue(result, null);
                     }
-                    else if (property.PropertyType == typeof(int))
+                    else if (property.PropertyType == typeof(int) || property.PropertyType == typeof(int?))
                     {
                         property.SetValue(result, int.Parse(value));
                     }
-                    else if (property.PropertyType == typeof(double))
+                    else if (property.PropertyType == typeof(double) || property.PropertyType == typeof(double?))
                     {
                         property.SetValue(result, double.Parse(value));
                     }
-                    else if (property.PropertyType == typeof(bool))
+                    else if (property.PropertyType == typeof(bool) || property.PropertyType == typeof(bool?))
                     {
                         property.SetValue(result, bool.Parse(value));
                     }
