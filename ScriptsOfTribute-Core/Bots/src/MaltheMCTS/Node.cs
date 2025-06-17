@@ -337,58 +337,61 @@ public class Node
         PossibleMoves = Utility.RemoveDuplicateMoves(PossibleMoves);
 
         #region additionalFiltering
-        switch (GameState.BoardState)
+        if (Bot.Settings.ADDITIONAL_MOVE_FILTERING)
         {
-            case ScriptsOfTribute.Board.CardAction.BoardState.CHOICE_PENDING:
-                switch (GameState.PendingChoice!.ChoiceFollowUp)
-                {
-                    case ChoiceFollowUp.ENACT_CHOSEN_EFFECT:
-                    case ChoiceFollowUp.ACQUIRE_CARDS:
-                    case ChoiceFollowUp.REFRESH_CARDS:
-                    case ChoiceFollowUp.TOSS_CARDS:
-                    case ChoiceFollowUp.KNOCKOUT_AGENTS:
-                    case ChoiceFollowUp.COMPLETE_HLAALU:
-                    case ChoiceFollowUp.COMPLETE_PELLIN:
-                    case ChoiceFollowUp.COMPLETE_PSIJIC:
-                    case ChoiceFollowUp.REPLACE_CARDS_IN_TAVERN:
-                        break;
-                    case ChoiceFollowUp.DESTROY_CARDS:
-                        var cardsInHandAndPlayed = GameState.CurrentPlayer.Played.Concat(GameState.CurrentPlayer.Hand);
-                        SetBewildermentGoldChoiceMoves(cardsInHandAndPlayed);
-                        break;
-                    case ChoiceFollowUp.DISCARD_CARDS:
-                        SetBewildermentGoldChoiceMoves(GameState.CurrentPlayer.Hand);
-                        break;
-                    case ChoiceFollowUp.COMPLETE_TREASURY:
-                        cardsInHandAndPlayed = GameState.CurrentPlayer.Played.Concat(GameState.CurrentPlayer.Hand);
-                        SetBewildermentGoldChoiceMoves(cardsInHandAndPlayed);
-                        break;
-                }
-                break;
-            case ScriptsOfTribute.Board.CardAction.BoardState.NORMAL:
-                // Limit to play all cards before buying from tavern or activating patrons
-                bool canPlayCards = GameState.CurrentPlayer.Hand.Count > 0;
-                if (canPlayCards)
-                {
-                    PossibleMoves = PossibleMoves.Where(m => m.Command == CommandEnum.PLAY_CARD).ToList();
-                }
-                break;
-            case ScriptsOfTribute.Board.CardAction.BoardState.START_OF_TURN_CHOICE_PENDING:
-                switch (GameState.PendingChoice!.ChoiceFollowUp)
-                {
-                    case ChoiceFollowUp.DISCARD_CARDS:
-                        var cardsHandAndPlayed = GameState.CurrentPlayer.Played.Concat(GameState.CurrentPlayer.Hand);
-                        SetBewildermentGoldChoiceMoves(cardsHandAndPlayed);
-                        break;
-                    default:
-                        throw new NotImplementedException("Unexpected choice follow up: " + GameState.PendingChoice!.ChoiceFollowUp);
-                }
-                break;
-            // Complete treasury seems to be a patron choice, so not sure that the complete treasury enum value is for
-            case ScriptsOfTribute.Board.CardAction.BoardState.PATRON_CHOICE_PENDING:
-                var InHandAndPlayed = GameState.CurrentPlayer.Played.Concat(GameState.CurrentPlayer.Hand);
-                SetBewildermentGoldChoiceMoves(InHandAndPlayed);
-                break;
+            switch (GameState.BoardState)
+            {
+                case ScriptsOfTribute.Board.CardAction.BoardState.CHOICE_PENDING:
+                    switch (GameState.PendingChoice!.ChoiceFollowUp)
+                    {
+                        case ChoiceFollowUp.ENACT_CHOSEN_EFFECT:
+                        case ChoiceFollowUp.ACQUIRE_CARDS:
+                        case ChoiceFollowUp.REFRESH_CARDS:
+                        case ChoiceFollowUp.TOSS_CARDS:
+                        case ChoiceFollowUp.KNOCKOUT_AGENTS:
+                        case ChoiceFollowUp.COMPLETE_HLAALU:
+                        case ChoiceFollowUp.COMPLETE_PELLIN:
+                        case ChoiceFollowUp.COMPLETE_PSIJIC:
+                        case ChoiceFollowUp.REPLACE_CARDS_IN_TAVERN:
+                            break;
+                        case ChoiceFollowUp.DESTROY_CARDS:
+                            var cardsInHandAndPlayed = GameState.CurrentPlayer.Played.Concat(GameState.CurrentPlayer.Hand);
+                            SetBewildermentGoldChoiceMoves(cardsInHandAndPlayed);
+                            break;
+                        case ChoiceFollowUp.DISCARD_CARDS:
+                            SetBewildermentGoldChoiceMoves(GameState.CurrentPlayer.Hand);
+                            break;
+                        case ChoiceFollowUp.COMPLETE_TREASURY:
+                            cardsInHandAndPlayed = GameState.CurrentPlayer.Played.Concat(GameState.CurrentPlayer.Hand);
+                            SetBewildermentGoldChoiceMoves(cardsInHandAndPlayed);
+                            break;
+                    }
+                    break;
+                case ScriptsOfTribute.Board.CardAction.BoardState.NORMAL:
+                    // Limit to play all cards before buying from tavern or activating patrons
+                    bool canPlayCards = GameState.CurrentPlayer.Hand.Count > 0;
+                    if (canPlayCards)
+                    {
+                        PossibleMoves = PossibleMoves.Where(m => m.Command == CommandEnum.PLAY_CARD).ToList();
+                    }
+                    break;
+                case ScriptsOfTribute.Board.CardAction.BoardState.START_OF_TURN_CHOICE_PENDING:
+                    switch (GameState.PendingChoice!.ChoiceFollowUp)
+                    {
+                        case ChoiceFollowUp.DISCARD_CARDS:
+                            var cardsHandAndPlayed = GameState.CurrentPlayer.Played.Concat(GameState.CurrentPlayer.Hand);
+                            SetBewildermentGoldChoiceMoves(cardsHandAndPlayed);
+                            break;
+                        default:
+                            throw new NotImplementedException("Unexpected choice follow up: " + GameState.PendingChoice!.ChoiceFollowUp);
+                    }
+                    break;
+                // Complete treasury seems to be a patron choice, so not sure that the complete treasury enum value is for
+                case ScriptsOfTribute.Board.CardAction.BoardState.PATRON_CHOICE_PENDING:
+                    var InHandAndPlayed = GameState.CurrentPlayer.Played.Concat(GameState.CurrentPlayer.Hand);
+                    SetBewildermentGoldChoiceMoves(InHandAndPlayed);
+                    break;
+            }
         }
         #endregion
 
