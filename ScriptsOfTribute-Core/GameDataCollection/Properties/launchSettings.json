@@ -2,7 +2,7 @@
   "profiles": {
     "GameDataCollection": {
       "commandName": "Project",
-      "commandLineArgs": "-b BestMCTS3 -n 10 -to 30 -dn test8"
+      "commandLineArgs": "-b MaltheMCTS -n 2 -to 30 -s MaltheMCTS/Settings/settings1 -dn MCTS_test"
     }
   }
 }

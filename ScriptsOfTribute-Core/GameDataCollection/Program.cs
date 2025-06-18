@@ -86,11 +86,10 @@ namespace GameDataCollection
         {
             Directory.CreateDirectory(datasetName);
 
-            // FUTURE load settings if i start training using MaltheMCTS
-            //var maltheMCTSSettings = maltheMCTSSettingsFile != null ? Settings.LoadFromFile(maltheMCTSSettingsFile) : new Settings();
+            var maltheMCTSSettings = maltheMCTSSettingsFile != null ? DataCollectors_MaltheMCTS.Settings.LoadFromFile(maltheMCTSSettingsFile) : new DataCollectors_MaltheMCTS.Settings();
 
             Console.WriteLine("Starting playing matches...");
-            PlayMatches(botString, numberOfMatchups, timeout);
+            PlayMatches(botString, numberOfMatchups, timeout, maltheMCTSSettings);
             Console.WriteLine("Finished matches");
 
             Console.WriteLine("Saving dataset...");
@@ -258,20 +257,20 @@ namespace GameDataCollection
               $"{winProbability}");
         }
 
-        private static void PlayMatches(string botString, int numberOfMatchups, int timeout)
+        private static void PlayMatches(string botString, int numberOfMatchups, int timeout, DataCollectors_MaltheMCTS.Settings? maltheMCTSSettings = null)
         {
             for (int i = 0; i < numberOfMatchups; i++)
             {
                 Console.WriteLine("Playing match " + (i + 1) + "...");
-                var bot1 = CreateBot(botString, timeout);
-                var bot2 = CreateBot(botString, timeout);
+                var bot1 = CreateBot(botString, timeout, maltheMCTSSettings);
+                var bot2 = CreateBot(botString, timeout, maltheMCTSSettings);
                 var match = new ScriptsOfTribute.AI.ScriptsOfTribute(bot1, bot2, TimeSpan.FromSeconds(timeout));
                 match.Play();
                 Console.WriteLine("Finished match " + (i + 1));
             }
         }
 
-        public static AI CreateBot(string botName, int timeout)
+        public static AI CreateBot(string botName, int timeout, DataCollectors_MaltheMCTS.Settings? maltheMCTSSettings = null)
         {
             switch (botName)
             {
@@ -287,8 +286,8 @@ namespace GameDataCollection
                 //    return new MaxPrestigeBot();
                 //case "MCTSBot":
                 //    return new MCTSBot();
-                //case "MaltheMCTS":
-                //    return new MaltheMCTS.MaltheMCTS(instanceName: Guid.NewGuid().ToString());
+                case "MaltheMCTS":
+                    return new DataCollectors_MaltheMCTS.MaltheMCTS(instanceName: Guid.NewGuid().ToString(), settings: maltheMCTSSettings);
                 //case "PatronFavorsBot":
                 //    return new PatronFavorsBot();
                 //case "PatronSelectionTimeoutBot":
