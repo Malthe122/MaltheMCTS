@@ -1,8 +1,10 @@
 using System.Diagnostics;
+using GameDataCollection;
 using ScriptsOfTribute;
 using ScriptsOfTribute.AI;
 using ScriptsOfTribute.Board;
 using ScriptsOfTribute.Serializers;
+using SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring;
 
 namespace DataCollectors_MaltheMCTS;
 
@@ -13,6 +15,8 @@ public class MaltheMCTS : AI
 
 
     public string InstanceName;
+
+    public List<GameStateFeatureSet> GameStateFeatureSetsFromMatch;
 
     // FOR COMPUTATION BENCHMARK
     private int computationsCompleted = 0;
@@ -39,6 +43,14 @@ public class MaltheMCTS : AI
 
         Utility.CategorizeCards();
         NodeGameStateHashMap = new Dictionary<int, List<Node>>();
+
+        GameStateFeatureSetsFromMatch = new List<GameStateFeatureSet>();
+    }
+
+    private void AddFeatureSet(GameState gameState)
+    {
+        var featureSet = FeatureSetUtility.BuildFeatureSet(gameState.ToSeededGameState(0));
+        GameStateFeatureSetsFromMatch.Add(featureSet);
     }
 
     public override void GameEnd(EndGameState state, FullGameState? finalBoardState)
@@ -46,6 +58,23 @@ public class MaltheMCTS : AI
         state.AverageComputationsPerTurn = Utility.SaveDivision(computationsCompleted, state.TurnsTaken / 2);
         Console.WriteLine("@@@ Game ended because of " + state.Reason + " @@@");
         Console.WriteLine("@@@ Winner was " + state.Winner + " @@@");
+
+        foreach (var featureSet in GameStateFeatureSetsFromMatch)
+        {
+            Program.FeatureSetToResultRates.TryAdd(featureSet, new Program.ResultRates());
+            if (state.Winner == Id)
+            {
+                Program.FeatureSetToResultRates[featureSet].Wins++;
+            }
+            else if (state.Winner == PlayerEnum.NO_PLAYER_SELECTED)
+            {
+                Program.FeatureSetToResultRates[featureSet].Draws++;
+            }
+            else
+            {
+                Program.FeatureSetToResultRates[featureSet].Looses++;
+            }
+        }
     }
 
     public override Move Play(GameState gameState, List<Move> possibleMoves, TimeSpan remainingTime)
@@ -55,11 +84,19 @@ public class MaltheMCTS : AI
             var instantPlay = FindInstantPlayMove(possibleMoves);
             if (instantPlay != null)
             {
+                if(instantPlay.Command == CommandEnum.END_TURN)
+                {
+                    AddFeatureSet(gameState);
+                }
                 return instantPlay;
             }
 
             if (possibleMoves.Count == 1)
             {
+                if (possibleMoves[0].Command == CommandEnum.END_TURN)
+                {
+                    AddFeatureSet(gameState);
+                }
                 return possibleMoves[0];
             }
 
@@ -99,8 +136,14 @@ public class MaltheMCTS : AI
                 errorMessage += "Settings:\n" + Settings.ToString();
                 SaveErrorLog(errorMessage);
             }
+            var officialMove = Utility.FindOfficialMove(bestMove, possibleMoves); ;
+            
+            if(officialMove.Command == CommandEnum.END_TURN)
+            {
+                AddFeatureSet(gameState);
+            }
 
-            return Utility.FindOfficialMove(bestMove, possibleMoves);
+            return officialMove;
         }
         catch (Exception e)
         {

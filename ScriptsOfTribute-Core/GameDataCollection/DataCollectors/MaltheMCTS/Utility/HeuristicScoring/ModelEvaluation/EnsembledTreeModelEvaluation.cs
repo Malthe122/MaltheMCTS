@@ -20,46 +20,52 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring.ModelEvaluation
         {
             string basePath = "MaltheMCTS/Ensemble_Tree_Models/";
 
+            // Quickfix removed other types for datacollection as i use solely use fastforest here for research
+            // FUTURE Readd the others
+
             var fastForestModel = mlContext.Model.Load(basePath + "FastForest", out var _);
-            var fastTreeModel = mlContext.Model.Load(basePath + "FastTree", out var _);
-            var fastTreeTweedieModel = mlContext.Model.Load(basePath + "FastTreeTweedie", out var _);
+            //var fastTreeModel = mlContext.Model.Load(basePath + "FastTree", out var _);
+            //var fastTreeTweedieModel = mlContext.Model.Load(basePath + "FastTreeTweedie", out var _);
             //var lbfgsPoissonModel = mlContext.Model.Load(basePath + "LbfgsPoissonRegression", out var _);
-            var lightGbmModel = mlContext.Model.Load(basePath + "LightGbm", out var _);
+            //var lightGbmModel = mlContext.Model.Load(basePath + "LightGbm", out var _);
             //var sdcaModel = mlContext.Model.Load(basePath + "StochasticDualCoordinateAscent", out var _);
 
             PREDICTION_ENGINES = new Dictionary<RegressionTrainer, PredictionEngine<GameStateFeatureSetCsvRow, ModelOutput>>
             {
                 [RegressionTrainer.FastForest] = mlContext.Model.CreatePredictionEngine<GameStateFeatureSetCsvRow, ModelOutput>(fastForestModel),
-                [RegressionTrainer.FastTree] = mlContext.Model.CreatePredictionEngine<GameStateFeatureSetCsvRow, ModelOutput>(fastTreeModel),
-                [RegressionTrainer.FastTreeTweedie] = mlContext.Model.CreatePredictionEngine<GameStateFeatureSetCsvRow, ModelOutput>(fastTreeTweedieModel),
+                //[RegressionTrainer.FastTree] = mlContext.Model.CreatePredictionEngine<GameStateFeatureSetCsvRow, ModelOutput>(fastTreeModel),
+                //[RegressionTrainer.FastTreeTweedie] = mlContext.Model.CreatePredictionEngine<GameStateFeatureSetCsvRow, ModelOutput>(fastTreeTweedieModel),
                 //[RegressionTrainer.LbfgsPoissonRegression] = mlContext.Model.CreatePredictionEngine<GameStateFeatureSetCsvRow, ModelOutput>(lbfgsPoissonModel),
-                [RegressionTrainer.LightGbm] = mlContext.Model.CreatePredictionEngine<GameStateFeatureSetCsvRow, ModelOutput>(lightGbmModel),
+                //[RegressionTrainer.LightGbm] = mlContext.Model.CreatePredictionEngine<GameStateFeatureSetCsvRow, ModelOutput>(lightGbmModel),
                 //[RegressionTrainer.StochasticDualCoordinateAscent] = mlContext.Model.CreatePredictionEngine<GameStateFeatureSetCsvRow, ModelOutput>(sdcaModel)
             };
 
-            var lbfgsPoissonEarlyModel = mlContext.Model.Load(basePath + "/early/LbfgsPoissonRegression", out var _);
-            var lbfgsPoissonMidModel = mlContext.Model.Load(basePath + "/mid/LbfgsPoissonRegression", out var _);
-            var lbfgsPoissonLateModel = mlContext.Model.Load(basePath + "/late/LbfgsPoissonRegression", out var _);
-            var lbfgsPoissonEndModel = mlContext.Model.Load(basePath + "/end/LbfgsPoissonRegression", out var _);
+            // Quickfix removed other types for datacollection as i use solely use fastforest here for research
+            // FUTURE Readd the others
 
-            var sdcaEarlyModel = mlContext.Model.Load(basePath + "/early/StochasticDualCoordinateAscent", out var _);
-            var sdcaMidModel = mlContext.Model.Load(basePath + "/mid/StochasticDualCoordinateAscent", out var _);
-            var sdcaLateModel = mlContext.Model.Load(basePath + "/late/StochasticDualCoordinateAscent", out var _);
-            var sdcaEndModel = mlContext.Model.Load(basePath + "/end/StochasticDualCoordinateAscent", out var _);
+            //var lbfgsPoissonEarlyModel = mlContext.Model.Load(basePath + "/early/LbfgsPoissonRegression", out var _);
+            //var lbfgsPoissonMidModel = mlContext.Model.Load(basePath + "/mid/LbfgsPoissonRegression", out var _);
+            //var lbfgsPoissonLateModel = mlContext.Model.Load(basePath + "/late/LbfgsPoissonRegression", out var _);
+            //var lbfgsPoissonEndModel = mlContext.Model.Load(basePath + "/end/LbfgsPoissonRegression", out var _);
+
+            //var sdcaEarlyModel = mlContext.Model.Load(basePath + "/early/StochasticDualCoordinateAscent", out var _);
+            //var sdcaMidModel = mlContext.Model.Load(basePath + "/mid/StochasticDualCoordinateAscent", out var _);
+            //var sdcaLateModel = mlContext.Model.Load(basePath + "/late/StochasticDualCoordinateAscent", out var _);
+            //var sdcaEndModel = mlContext.Model.Load(basePath + "/end/StochasticDualCoordinateAscent", out var _);
 
 
-            LINEAR_PREDICTION_ENGINES = new Dictionary<(RegressionTrainer, GameStage), PredictionEngine<GameStateLinearFeatureSetCsvRow, ModelOutput>>
-            {
-                [(RegressionTrainer.LbfgsPoissonRegression, GameStage.Early)] = mlContext.Model.CreatePredictionEngine<GameStateLinearFeatureSetCsvRow, ModelOutput>(lbfgsPoissonEarlyModel),
-                [(RegressionTrainer.LbfgsPoissonRegression, GameStage.Mid)] = mlContext.Model.CreatePredictionEngine<GameStateLinearFeatureSetCsvRow, ModelOutput>(lbfgsPoissonMidModel),
-                [(RegressionTrainer.LbfgsPoissonRegression, GameStage.Late)] = mlContext.Model.CreatePredictionEngine<GameStateLinearFeatureSetCsvRow, ModelOutput>(lbfgsPoissonLateModel),
-                [(RegressionTrainer.LbfgsPoissonRegression, GameStage.End)] = mlContext.Model.CreatePredictionEngine<GameStateLinearFeatureSetCsvRow, ModelOutput>(lbfgsPoissonEndModel),
+            //LINEAR_PREDICTION_ENGINES = new Dictionary<(RegressionTrainer, GameStage), PredictionEngine<GameStateLinearFeatureSetCsvRow, ModelOutput>>
+            //{
+            //    [(RegressionTrainer.LbfgsPoissonRegression, GameStage.Early)] = mlContext.Model.CreatePredictionEngine<GameStateLinearFeatureSetCsvRow, ModelOutput>(lbfgsPoissonEarlyModel),
+            //    [(RegressionTrainer.LbfgsPoissonRegression, GameStage.Mid)] = mlContext.Model.CreatePredictionEngine<GameStateLinearFeatureSetCsvRow, ModelOutput>(lbfgsPoissonMidModel),
+            //    [(RegressionTrainer.LbfgsPoissonRegression, GameStage.Late)] = mlContext.Model.CreatePredictionEngine<GameStateLinearFeatureSetCsvRow, ModelOutput>(lbfgsPoissonLateModel),
+            //    [(RegressionTrainer.LbfgsPoissonRegression, GameStage.End)] = mlContext.Model.CreatePredictionEngine<GameStateLinearFeatureSetCsvRow, ModelOutput>(lbfgsPoissonEndModel),
 
-                [(RegressionTrainer.StochasticDualCoordinateAscent, GameStage.Early)] = mlContext.Model.CreatePredictionEngine<GameStateLinearFeatureSetCsvRow, ModelOutput>(sdcaEarlyModel),
-                [(RegressionTrainer.StochasticDualCoordinateAscent, GameStage.Mid)] = mlContext.Model.CreatePredictionEngine<GameStateLinearFeatureSetCsvRow, ModelOutput>(sdcaMidModel),
-                [(RegressionTrainer.StochasticDualCoordinateAscent, GameStage.Late)] = mlContext.Model.CreatePredictionEngine<GameStateLinearFeatureSetCsvRow, ModelOutput>(sdcaLateModel),
-                [(RegressionTrainer.StochasticDualCoordinateAscent, GameStage.End)] = mlContext.Model.CreatePredictionEngine<GameStateLinearFeatureSetCsvRow, ModelOutput>(sdcaEndModel),
-            };
+            //    [(RegressionTrainer.StochasticDualCoordinateAscent, GameStage.Early)] = mlContext.Model.CreatePredictionEngine<GameStateLinearFeatureSetCsvRow, ModelOutput>(sdcaEarlyModel),
+            //    [(RegressionTrainer.StochasticDualCoordinateAscent, GameStage.Mid)] = mlContext.Model.CreatePredictionEngine<GameStateLinearFeatureSetCsvRow, ModelOutput>(sdcaMidModel),
+            //    [(RegressionTrainer.StochasticDualCoordinateAscent, GameStage.Late)] = mlContext.Model.CreatePredictionEngine<GameStateLinearFeatureSetCsvRow, ModelOutput>(sdcaLateModel),
+            //    [(RegressionTrainer.StochasticDualCoordinateAscent, GameStage.End)] = mlContext.Model.CreatePredictionEngine<GameStateLinearFeatureSetCsvRow, ModelOutput>(sdcaEndModel),
+            //};
 
 
         }
