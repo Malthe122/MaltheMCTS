@@ -20,6 +20,10 @@ public class Settings
         /// Uses manual (non-ensembled tree) model, if set as null
         /// </summary>
         public RegressionTrainer? FEATURE_SET_MODEL_TYPE { get; set; }
+        /// <summary>
+        /// temp variable to benchmark fast forest models against each other 
+        /// </summary>
+        public bool NEW_FAST_FORREST { get; set; }
     public bool REUSE_TREE { get; set; }
         public bool UPDATED_TREE_REUSE { get; set; }
     public bool SIMULATE_MULTIPLE_TURNS { get; set; }

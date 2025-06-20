@@ -14,6 +14,12 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring.ModelEvaluation
     {
         private static readonly MLContext mlContext = new MLContext();
         private static readonly Dictionary<RegressionTrainer, PredictionEngine<GameStateFeatureSetCsvRow, ModelOutput>> PREDICTION_ENGINES;
+
+        /// <summary>
+        /// Temp quick fix variable for benchmarking fast forest engines against each other
+        /// </summary>
+        private static readonly PredictionEngine<GameStateFeatureSetCsvRow, ModelOutput> NEW_FAST_FOREST_PREDICTION_ENGINE;
+
         private static readonly Dictionary<(RegressionTrainer, GameStage), PredictionEngine<GameStateLinearFeatureSetCsvRow, ModelOutput>> LINEAR_PREDICTION_ENGINES;
 
         static EnsembledTreeModelEvaluation()
@@ -36,6 +42,11 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring.ModelEvaluation
                 [RegressionTrainer.LightGbm] = mlContext.Model.CreatePredictionEngine<GameStateFeatureSetCsvRow, ModelOutput>(lightGbmModel),
                 //[RegressionTrainer.StochasticDualCoordinateAscent] = mlContext.Model.CreatePredictionEngine<GameStateFeatureSetCsvRow, ModelOutput>(sdcaModel)
             };
+            
+            // Temp quick fix stuff should be deleted
+            var NEW_FAST_FOREST = mlContext.Model.Load(basePath + "FastForest_new", out var _);
+            NEW_FAST_FOREST_PREDICTION_ENGINE = mlContext.Model.CreatePredictionEngine<GameStateFeatureSetCsvRow, ModelOutput>(NEW_FAST_FOREST);
+
 
             var lbfgsPoissonEarlyModel = mlContext.Model.Load(basePath + "/early/LbfgsPoissonRegression", out var _);
             var lbfgsPoissonMidModel = mlContext.Model.Load(basePath + "/mid/LbfgsPoissonRegression", out var _);
@@ -68,6 +79,13 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring.ModelEvaluation
         {
             var predictionEngine = PREDICTION_ENGINES[modelType];
             return predictionEngine.Predict(row).WinProbability;
+        }
+
+        /// <summary>
+        /// Temp quick fix method should be deleted
+        public static float GetNewForestWinProbability(GameStateFeatureSetCsvRow row)
+        {
+            return NEW_FAST_FOREST_PREDICTION_ENGINE.Predict(row).WinProbability;
         }
 
         public static float GetWinProbability(GameStateLinearFeatureSetCsvRow row, RegressionTrainer modelType, GameStage stage)
