@@ -146,7 +146,7 @@ public class Node
                 return RolloutTillTurnsEndThenHeuristic(Bot.Settings.ROLLOUT_TURNS_BEFORE_HEURISTIC);
             case ScoringMethod.ModelScoring:
                 var gameState = RollOutTillEndOfTurn();
-                return HeuristicScoring.Score(gameState, Bot.Settings.FEATURE_SET_MODEL_TYPE, true, Bot.Settings.NEW_FAST_FORREST);
+                return HeuristicScoring.Score(gameState, Bot.Settings.FEATURE_SET_MODEL_TYPE, Bot.Settings.NEW_FAST_FORREST, true);
             default:
                 throw new NotImplementedException("Tried to applied non-implemented scoring method: " + Bot.Settings.CHOSEN_SCORING_METHOD);
         }

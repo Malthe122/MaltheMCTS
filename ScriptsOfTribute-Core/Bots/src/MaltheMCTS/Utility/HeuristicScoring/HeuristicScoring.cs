@@ -22,7 +22,7 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
         /// To lower the amount of variables (hand strengths, patron moves available, coins, power, whether agents have been activated) the model needs to process,
         /// this model scores states just before ending turn
         /// </summary>
-        public static double Score(SeededGameState gameState, RegressionTrainer? featureSetModelType, bool endOfTurnExclusive = true, bool newFastForest)
+        public static double Score(SeededGameState gameState, RegressionTrainer? featureSetModelType, bool newFastForest, bool endOfTurnExclusive = true)
         {
             // The manual model (null) does not return either 0 and 1 or -1 and 1, so this logic does not apply for it
             if (featureSetModelType != null)
