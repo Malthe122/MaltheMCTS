@@ -30,7 +30,7 @@ public static class Utility
         {
             matchups.RemoveAll(m => 
             {
-                return !(m.Item1 != "MaltheMCTS") && !(m.Item2 != "MaltheMCTS");
+                return m.Item1 != "MaltheMCTS" && m.Item2 != "MaltheMCTS";
             }
             );
         }

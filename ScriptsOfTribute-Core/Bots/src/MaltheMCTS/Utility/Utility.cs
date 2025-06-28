@@ -307,7 +307,7 @@ public static class Utility
                         singleChoiceMoveCount -= 1; // Lowering this rather than twoChoice, since twoChoice is generally the best move
                     }
 
-                    var noChoiceMove = moves.First(m => (m as MakeChoiceMoveUniqueCard).Choices.Count == 0);
+                    var noChoiceMove = moves.FirstOrDefault(m => (m as MakeChoiceMoveUniqueCard).Choices.Count == 0);
 
                     topCards = rankedCardList.TakeLast(singleChoiceMoveCount).ToList();
                     var singleChoiceMoves = moves.Where(m =>
@@ -317,7 +317,16 @@ public static class Utility
                     var twoChoiceMoves = GetBestTwoChoiceMoves(moves, rankedCardList, twoChoicesMoveCount);
 
                     result = singleChoiceMoves.Concat(twoChoiceMoves).ToList();
-                    result.Add(noChoiceMove);
+
+                    //Quick fix for when the additional filtering has removed the empty move. In reality another move should be added instead
+                    //To follow the set branching size, but this is a quick fix, making sure that we do not try to play null move.
+                    //This only happens in edge cases (e.g when bot has the chance to destroy curses and additional filter, removes
+                    //the possibility to destroy nothing
+                    if (noChoiceMove != null)
+                    {
+                        result.Add(noChoiceMove);
+                    }
+                    
                     break;
             }
 
