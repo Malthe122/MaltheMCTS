@@ -103,6 +103,8 @@ public static class Utility
                 return new HQL_BOT.HQL_BOT();
             case "Sakkiring":
                 return new Sakkirin.Sakkirin();
+            case "Aau903Bot:":
+                return new Aau903Bot.Aau903Bot();
             case "SOISMCTS":
                 return new SOISMCTS.SOISMCTS();
             case "ToT-BoT":
