@@ -59,7 +59,7 @@ namespace BotBenchmarking
             };
 
             var skipExternalOption = new Option<bool>(
-                aliases: new[] { "--skipExt", "s" },
+                aliases: new[] { "--skipExt", "-se" },
                 description: "Whether matches between external (non MaltheMCTS) bots should be skipped",
                 getDefaultValue: () => true
             );
