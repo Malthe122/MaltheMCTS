@@ -157,12 +157,7 @@ public class Node
         var rolloutPossibleMoves = PossibleMoves.ToList();
         var gameState = GameState;
 
-        if (gameState.GameEndState != null)
-        {
-            return gameState;
-        }
-
-        while(rolloutPossibleMoves.Count > 1 || rolloutPossibleMoves[0].Command != CommandEnum.END_TURN)
+        while(gameState.GameEndState != null && (rolloutPossibleMoves.Count > 1 || rolloutPossibleMoves[0].Command != CommandEnum.END_TURN))
         {
             if (Bot.Settings.FORCE_DELAY_TURN_END_IN_ROLLOUT)
             {
@@ -334,6 +329,13 @@ public class Node
 
     private void FilterMoves()
     {
+        var sourceCard = GameState.CompletedActions?.Last().SourceCard?.CommonId;
+        if (sourceCard == CardId.BRIARHEART_RITUAL)
+        {
+            Console.WriteLine("Hello");
+        }
+
+
         PossibleMoves = Utility.RemoveDuplicateMoves(PossibleMoves);
 
         #region additionalFiltering
@@ -397,6 +399,7 @@ public class Node
 
         if (Bot.Settings.CHOICE_BRANCH_LIMIT != null && PossibleMoves.Count > Bot.Settings.CHOICE_BRANCH_LIMIT)
         {
+            
             switch (GameState.BoardState)
             {
                 case ScriptsOfTribute.Board.CardAction.BoardState.CHOICE_PENDING:
@@ -423,7 +426,7 @@ public class Node
                                 ).ToList();
                             break;
                         case ChoiceFollowUp.DESTROY_CARDS:
-                            if (CardsPlayedRanked == null) // In SoT, the destroy also allows to destroy from hand, but to assist bot, i exclude this, cause its almost best to play the card first
+                            if (CardsPlayedRanked == null) // In SoT, the destroy also allows to destroy from hand, but to assist bot, i exclude this, cause its almost always best to play the card first
                             {
                                 CardsPlayedRanked = Utility.RankCardsInGameState(GameState, GameState.CurrentPlayer.Played);
                             }
