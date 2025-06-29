@@ -161,6 +161,7 @@ namespace BotBenchmarking
                 }
 
                 var match = new ScriptsOfTribute.AI.ScriptsOfTribute(bot1, bot2, TimeSpan.FromSeconds(timeout));
+                Console.WriteLine("Playing match between " + matchup.Item1 + " and " + matchup.Item2 + "...");
                 var result = match.Play().Item1;
                 switch (result.Winner)
                 {

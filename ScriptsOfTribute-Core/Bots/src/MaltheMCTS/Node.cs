@@ -330,11 +330,6 @@ public class Node
     private void FilterMoves()
     {
         var sourceCard = GameState.CompletedActions?.Last().SourceCard?.CommonId;
-        if (sourceCard == CardId.BRIARHEART_RITUAL)
-        {
-            Console.WriteLine("Hello");
-        }
-
 
         PossibleMoves = Utility.RemoveDuplicateMoves(PossibleMoves);
 
@@ -391,7 +386,11 @@ public class Node
                 // Complete treasury seems to be a patron choice, so not sure that the complete treasury enum value is for
                 case ScriptsOfTribute.Board.CardAction.BoardState.PATRON_CHOICE_PENDING:
                     var InHandAndPlayed = GameState.CurrentPlayer.Played.Concat(GameState.CurrentPlayer.Hand);
-                    SetBewildermentGoldChoiceMoves(InHandAndPlayed);
+                    // Hlaalu cant destroy 0 cost cards like gold or bewilderment
+                    if (GameState.PendingChoice?.ChoiceFollowUp != ChoiceFollowUp.COMPLETE_HLAALU)
+                    {
+                        SetBewildermentGoldChoiceMoves(InHandAndPlayed);
+                    }
                     break;
             }
         }
