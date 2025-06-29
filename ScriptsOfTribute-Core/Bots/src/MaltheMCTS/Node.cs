@@ -387,7 +387,7 @@ public class Node
                 case ScriptsOfTribute.Board.CardAction.BoardState.PATRON_CHOICE_PENDING:
                     var InHandAndPlayed = GameState.CurrentPlayer.Played.Concat(GameState.CurrentPlayer.Hand);
                     // Hlaalu cant destroy 0 cost cards like gold or bewilderment
-                    if (GameState.PendingChoice?.ChoiceFollowUp != ChoiceFollowUp.COMPLETE_HLAALU)
+                    if (GameState.PendingChoice?.ChoiceFollowUp == ChoiceFollowUp.COMPLETE_TREASURY)
                     {
                         SetBewildermentGoldChoiceMoves(InHandAndPlayed);
                     }
@@ -542,6 +542,10 @@ public class Node
             }
         }
         PossibleMoves = Utility.RemoveDuplicateMoves(PossibleMoves);
+
+        if(PossibleMoves.Count == 0) {
+            Console.WriteLine("Hello");
+        }
     }
 
     private void SetBewildermentGoldChoiceMoves(IEnumerable<UniqueCard> cardPool)
