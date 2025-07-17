@@ -4,6 +4,7 @@ namespace ScriptsOfTribute.Serializers;
 
 public class ComboState
 {
+    // TODO: Make this readonly.
     public List<UniqueBaseEffect>[] All { get; } = new List<UniqueBaseEffect>[Combo.MAX_COMBO];
     public readonly int CurrentCombo;
 
@@ -16,6 +17,7 @@ public class ComboState
 
 public class ComboStates
 {
+    // TODO: Make this Immutable/ReadOnly
     public Dictionary<PatronId, ComboState> All = new();
     
     public ComboStates(Dictionary<PatronId, ComboState> states)

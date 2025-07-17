@@ -7,6 +7,7 @@ namespace ScriptsOfTribute.Serializers;
 
 public class GameState
 {
+    public string StateId => _board.StateId;
     public PatronStates PatronStates => _board.PatronStates;
     public List<PatronId> Patrons => PatronStates.All.Select(p => p.Key).ToList();
     public List<UniqueCard> TavernAvailableCards => _board.TavernAvailableCards;
@@ -27,6 +28,7 @@ public class GameState
     
     // Completed actions are problematic, because they show what enemy player did on his turn, so may reveal
     // what cards he has.
+    // TODO: Figure out what to do and probably hide some.
     public List<CompletedAction> CompletedActions => _board.CompletedActions;
 
     // Bot should know what cards are left in tavern, but not the exact order.
@@ -61,6 +63,8 @@ public class GameState
 
         return (new SeededGameState(newBoard, seed), newMoves);
     }
+
+    // TODO: Add rollout simulation: from this GameState start simulating random moves
 
     /// <summary>
     /// Serialize GameState object to string that is converted JSON file, suited

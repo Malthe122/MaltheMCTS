@@ -2,7 +2,6 @@ using ScriptsOfTribute.Board.CardAction;
 using ScriptsOfTribute.Board.Cards;
 using ScriptsOfTribute.Serializers;
 using ScriptsOfTribute.utils;
-using System.Xml.Linq;
 
 namespace ScriptsOfTribute.Board;
 
@@ -112,12 +111,12 @@ public class ScriptsOfTributeApi : IScriptsOfTributeApi
         }
         catch (EngineException e)
         {
-            _endGameState = new EndGameState(EnemyPlayerId, GameEndReason.INCORRECT_MOVE, _turnCount, e.Message);
+            _endGameState = new EndGameState(EnemyPlayerId, GameEndReason.INCORRECT_MOVE, e.Message);
             return _endGameState;
         }
         catch (Exception e)
         {
-            _endGameState = new EndGameState(EnemyPlayerId, GameEndReason.INTERNAL_ERROR, _turnCount, $"MESSAGE:\n{e.Message}\n\nSTACKTRACE:\n{e.StackTrace}\n\nSOURCE:{e.Source}\n");
+            _endGameState = new EndGameState(EnemyPlayerId, GameEndReason.INTERNAL_ERROR, $"MESSAGE:\n{e.Message}\n\nSTACKTRACE:\n{e.StackTrace}\n\nSOURCE:{e.Source}\n");
             return _endGameState;
         }
 
@@ -225,7 +224,7 @@ public class ScriptsOfTributeApi : IScriptsOfTributeApi
             return _endGameState;
         }
 
-        _endGameState = _boardManager.CheckAndGetWinner(_turnCount);
+        _endGameState = _boardManager.CheckAndGetWinner();
         return _endGameState;
     }
 

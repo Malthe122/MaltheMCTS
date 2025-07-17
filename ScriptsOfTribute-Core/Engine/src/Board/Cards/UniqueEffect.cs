@@ -12,11 +12,14 @@ public enum EffectType
     DRAW,
     OPP_DISCARD,
     RETURN_TOP,
+    RETURN_AGENT_TOP,
     TOSS,
     KNOCKOUT,
     PATRON_CALL,
     CREATE_SUMMERSET_SACKING,
     HEAL,
+    KNOCKOUT_ALL,
+    DONATE,
 }
 
 public interface UniqueBaseEffect
@@ -140,7 +143,7 @@ public class UniqueEffect : Effect, UniqueBaseEffect, UniqueComplexEffect
                     ChoiceFollowUp.REFRESH_CARDS,
                     context,
                     amount,
-                    amount
+                    0
                 ), new List<CompletedAction>());
             }
             case EffectType.TOSS:
@@ -192,6 +195,36 @@ public class UniqueEffect : Effect, UniqueBaseEffect, UniqueComplexEffect
                     new(player.ID, CompletedActionType.HEAL_AGENT,
                         ParentCard, healAmount, ParentCard)
                 });
+            case EffectType.KNOCKOUT_ALL:
+                player.KnockOutAll(tavern);
+                enemy.KnockOutAll(tavern);
+                return (
+                    new Success(), new List<CompletedAction>
+                    {
+                        new(player.ID, CompletedActionType.KNOCKOUT_ALL, ParentCard)
+                    }
+                );
+            case EffectType.RETURN_AGENT_TOP:
+                var agentsList = player.CooldownPile.Where(card => card.Type == CardType.AGENT).ToList();
+                var agentsCount = agentsList.Count < Amount ? agentsList.Count : Amount;
+                context = new ChoiceContext(this.ParentCard, ChoiceType.CARD_EFFECT, Combo);
+                return (new Choice(
+                    agentsList,
+                    ChoiceFollowUp.REFRESH_CARDS,
+                    context,
+                    agentsCount,
+                    0
+                ), new List<CompletedAction>());
+            case EffectType.DONATE:
+            {
+                context = new ChoiceContext(this.ParentCard, ChoiceType.CARD_EFFECT, Combo);
+                return (new Choice(
+                    player.Hand,
+                    ChoiceFollowUp.DONATE,
+                    context,
+                    Amount
+                ), new List<CompletedAction>());
+            }
         }
 
         throw new EngineException($"Unknown effect - {Type}.");
@@ -216,6 +249,8 @@ public class UniqueEffect : Effect, UniqueBaseEffect, UniqueComplexEffect
             EffectType.PATRON_CALL => $"Get {Amount} patron calls",
             EffectType.CREATE_SUMMERSET_SACKING => $"Create {Amount} Summerset Sacking cards and place it in CD pile",
             EffectType.HEAL => $"Heal this agent by {Amount}",
+            EffectType.DONATE => $"Discard up to {Amount} cards from hand, draw {Amount} cards",
+            EffectType.KNOCKOUT_ALL => $"Knockout all agents",
             _ => ""
         };
     }
@@ -225,28 +260,6 @@ public class UniqueEffect : Effect, UniqueBaseEffect, UniqueComplexEffect
         return new List<UniqueBaseEffect> { this };
     }
 
-    public static EffectType MapEffectType(string effect)
-    {
-        return effect switch
-        {
-            "Coin" => EffectType.GAIN_COIN,
-            "Power" => EffectType.GAIN_POWER,
-            "Prestige" => EffectType.GAIN_PRESTIGE,
-            "OppLosePrestige" => EffectType.OPP_LOSE_PRESTIGE,
-            "Remove" => EffectType.REPLACE_TAVERN,
-            "Acquire" => EffectType.ACQUIRE_TAVERN,
-            "Destroy" => EffectType.DESTROY_CARD,
-            "Draw" => EffectType.DRAW,
-            "Discard" => EffectType.OPP_DISCARD,
-            "Return" => EffectType.RETURN_TOP,
-            "Toss" => EffectType.TOSS,
-            "KnockOut" => EffectType.KNOCKOUT,
-            "Patron" => EffectType.PATRON_CALL,
-            "Create" => EffectType.CREATE_SUMMERSET_SACKING,
-            "Heal" => EffectType.HEAL,
-            _ => throw new EngineException("Invalid effect type.")
-        };
-    }
 }
 
 public class UniqueEffectOr : EffectOr, UniqueComplexEffect, UniqueBaseEffect
@@ -267,16 +280,8 @@ public class UniqueEffectOr : EffectOr, UniqueComplexEffect, UniqueBaseEffect
         return new List<UniqueBaseEffect> { this };
     }
 
-    public UniqueComplexEffect MakeUniqueCopy(UniqueCard card)
-    {
-        return new UniqueEffectOr(
-            _left.MakeUniqueCopy(card) as UniqueEffect ?? throw new InvalidOperationException(),
-            _right.MakeUniqueCopy(card) as UniqueEffect ?? throw new InvalidOperationException(),
-            Combo,
-            card
-        );
-    }
-
+    public UniqueEffect GetLeft() { return _left; }
+    public UniqueEffect GetRight() { return _right; }
     public (PlayResult, List<CompletedAction>) Enact(IPlayer player, IPlayer enemy, ITavern tavern)
     {
         var context = new ChoiceContext(ParentCard, ChoiceType.EFFECT_CHOICE, Combo);
@@ -312,14 +317,8 @@ public class UniqueEffectComposite : EffectComposite, UniqueComplexEffect
         return new List<UniqueBaseEffect> { _left, _right };
     }
 
-    public UniqueComplexEffect MakeUniqueCopy(UniqueCard parentCard)
-    {
-        return new UniqueEffectComposite(
-            _left.MakeUniqueCopy(parentCard) as UniqueEffect ?? throw new InvalidOperationException(),
-            _right.MakeUniqueCopy(parentCard) as UniqueEffect ?? throw new InvalidOperationException(),
-            parentCard
-        );
-    }
+    public UniqueEffect GetLeft() { return _left; }
+    public UniqueEffect GetRight() { return _right; }
 
     public override string ToString()
     {
