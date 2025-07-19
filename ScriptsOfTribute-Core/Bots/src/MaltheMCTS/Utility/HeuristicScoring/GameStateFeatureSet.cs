@@ -261,7 +261,8 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
                 }
                 else
                 {
-                    var cardStrength = ScoreComplexEffectStrengthsInDeck(effect, patronToDeckRatio, deckSize);
+                    var uniqueEffect = effect.MakeUniqueCopy(card.CreateUniqueCopy()); // TODO refactor to simply use left and right on effect if it gets readable
+                    var cardStrength = ScoreComplexEffectStrengthsInDeck(uniqueEffect, patronToDeckRatio, deckSize);
                     if (card.Type == CardType.AGENT || card.Type == CardType.CONTRACT_AGENT) {
                         cardStrength += cardStrength * (AGENT_HP_MULTIPLIER * card.HP);
                         if (card.Taunt)
@@ -276,21 +277,24 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
             return result;
         }
 
-        private static CardStrengths ScoreComplexEffectStrengthsInDeck(ComplexEffect effect, double patronToDeckRatio, int deckSize)
+        /// <summary>
+        /// TODO refactor to simply use ComplexEffect if left and right are made readable there
+        /// </summary>
+        private static CardStrengths ScoreComplexEffectStrengthsInDeck(UniqueComplexEffect effect, double patronToDeckRatio, int deckSize)
         {
             switch (effect)
             {
-                case Effect:
-                    return ScoreEffectStrengthsInDeck((effect as Effect)!, patronToDeckRatio, deckSize);
-                case EffectComposite:
-                    var effectComposite = (effect as EffectComposite)!;
-                    var effect1Strengths = ScoreEffectStrengthsInDeck(effectComposite._right, patronToDeckRatio, deckSize);
-                    var effect2Strengths = ScoreEffectStrengthsInDeck(effectComposite._left, patronToDeckRatio, deckSize);
+                case UniqueEffect:
+                    return ScoreEffectStrengthsInDeck((effect as UniqueEffect)!, patronToDeckRatio, deckSize);
+                case UniqueEffectComposite:
+                    var effectComposite = (effect as UniqueEffectComposite)!;
+                    var effect1Strengths = ScoreEffectStrengthsInDeck(effectComposite.GetRight(), patronToDeckRatio, deckSize); //TODO remove null
+                    var effect2Strengths = ScoreEffectStrengthsInDeck(effectComposite.GetLeft(), patronToDeckRatio, deckSize); //TODO remove null
                     return effect1Strengths + effect2Strengths;
-                case EffectOr:
-                    var effectOr = (effect as EffectOr)!;
-                    var effectaStrengths = ScoreEffectStrengthsInDeck(effectOr._right, patronToDeckRatio, deckSize);
-                    var effectbStrengths = ScoreEffectStrengthsInDeck(effectOr._left, patronToDeckRatio, deckSize);
+                case UniqueEffectOr:
+                    var effectOr = (effect as UniqueEffectOr)!;
+                    var effectaStrengths = ScoreEffectStrengthsInDeck(effectOr.GetRight(), patronToDeckRatio, deckSize); //TODO remove null
+                    var effectbStrengths = ScoreEffectStrengthsInDeck(effectOr.GetLeft(), patronToDeckRatio, deckSize); ; //TODO remove null
                     // A way to give reward for both choices, but give a penalty for not being able to apply both
                     return effectaStrengths * CHOICE_WEIGHT + effectbStrengths * CHOICE_WEIGHT;
                 default:

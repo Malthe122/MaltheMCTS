@@ -208,13 +208,13 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
                     return ScoreEffectStrengthsInDeck((effect as Effect)!, patronToDeckRatio, deckSize);
                 case EffectComposite:
                     var effectComposite = (effect as EffectComposite)!;
-                    var effect1Strengths = ScoreEffectStrengthsInDeck(effectComposite._right, patronToDeckRatio, deckSize);
-                    var effect2Strengths = ScoreEffectStrengthsInDeck(effectComposite._left, patronToDeckRatio, deckSize);
+                    var effect1Strengths = ScoreEffectStrengthsInDeck(null, patronToDeckRatio, deckSize); //TODO remove null
+                    var effect2Strengths = ScoreEffectStrengthsInDeck(null, patronToDeckRatio, deckSize); //TODO remove null
                     return effect1Strengths + effect2Strengths;
                 case EffectOr:
                     var effectOr = (effect as EffectOr)!;
-                    var effectaStrengths = ScoreEffectStrengthsInDeck(effectOr._right, patronToDeckRatio, deckSize);
-                    var effectbStrengths = ScoreEffectStrengthsInDeck(effectOr._left, patronToDeckRatio, deckSize);
+                    var effectaStrengths = ScoreEffectStrengthsInDeck(null, patronToDeckRatio, deckSize); //TODO remove null
+                    var effectbStrengths = ScoreEffectStrengthsInDeck(null, patronToDeckRatio, deckSize); //TODO remove null
                     // A way to give reward for both choices, but give a penalty for not being able to apply both
                     return effectaStrengths * CHOICE_WEIGHT + effectbStrengths * CHOICE_WEIGHT;
                 default:
