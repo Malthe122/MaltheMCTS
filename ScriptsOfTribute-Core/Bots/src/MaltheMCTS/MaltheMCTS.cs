@@ -43,7 +43,6 @@ public class MaltheMCTS : AI
 
     public override void GameEnd(EndGameState state, FullGameState? finalBoardState)
     {
-        state.AverageComputationsPerTurn = Utility.SaveDivision(computationsCompleted, state.TurnsTaken / 2);
         Console.WriteLine("@@@ Game ended because of " + state.Reason + " @@@");
         Console.WriteLine("@@@ Winner was " + state.Winner + " @@@");
     }

@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Configuration;
 
 namespace Aau903Bot;
 
@@ -129,13 +128,13 @@ public class Settings
         }
     }
 
-    public static IConfiguration GetConfiguration()
-    {
-        var builder = new ConfigurationBuilder()
-            .AddEnvironmentVariables();
+    //public static IConfiguration GetConfiguration()
+    //{
+    //    var builder = new ConfigurationBuilder()
+    //        .AddEnvironmentVariables();
 
-        IConfiguration configuration = builder.Build();
+    //    IConfiguration configuration = builder.Build();
 
-        return configuration;
-    }
+    //    return configuration;
+    //}
 }
