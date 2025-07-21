@@ -40,6 +40,7 @@ namespace ScriptsOfTribute
             combo = card["Combo 4"]?.ToObject<string>();
             effects[3] = ParseEffect(combo, 4);
 
+            // TODO: Add ability for user to configure if he wants upgraded or basic cards only.
             // For now, we add upgraded cards.
             // That is why Copies are replaced by PostUpgradeCopies if the card is upgradeable and has this field.
             var copies = card["Copies"]?.ToObject<int>() ?? throw new Exception(InvalidJsonMessage);

@@ -40,6 +40,7 @@ public class ComplexEffectExecutor
             ChoiceFollowUp.COMPLETE_PELLIN => (CompletePelin(choice, choices), new List<CompletedAction>()),
             ChoiceFollowUp.COMPLETE_PSIJIC => (CompletePsijic(choice, choices), new List<CompletedAction>()),
             ChoiceFollowUp.COMPLETE_TREASURY => (CompleteTreasury(choice, choices), new List<CompletedAction>()),
+            ChoiceFollowUp.DONATE => (Donate(choice, choices), new List<CompletedAction>()),
             _ => throw new ArgumentOutOfRangeException(nameof(choice), choice, null)
         };
     }
@@ -117,6 +118,7 @@ public class ComplexEffectExecutor
 
     public PlayResult Knockout(Choice choice, List<UniqueCard> choices)
     {
+        handleSaintAlessiaTriggers(choices);
         var contractAgents = choices.FindAll(card => card.Type == CardType.CONTRACT_AGENT);
         var normalAgents = choices.FindAll(card => card.Type == CardType.AGENT);
         contractAgents.ForEach(_enemyPlayer.Destroy);
@@ -144,7 +146,12 @@ public class ComplexEffectExecutor
         {
             _currentPlayer.Hand.Remove(card);
         }
-        else // if not in hand, then it must be in a played pile
+        else if (_currentPlayer.Agents.Any(agent => agent.RepresentingCard.UniqueId == card.UniqueId))
+        {
+            var toRemove = _currentPlayer.Agents.First(agent => agent.RepresentingCard.UniqueId == card.UniqueId);
+            _currentPlayer.Agents.Remove(toRemove);
+        }
+        else // if not in hand and agents, then it must be in a played pile
         {
             _currentPlayer.Played.Remove(card);
         }
@@ -205,11 +212,48 @@ public class ComplexEffectExecutor
             _currentPlayer.Played.Remove(choice);
             _currentPlayer.CooldownPile.Add(writOfCoin);
         }
+        else if (_currentPlayer.Agents.Any(agent => agent.RepresentingCard.UniqueId == choice.UniqueId))
+        {
+            var toRemove = _currentPlayer.Agents.First(agent => agent.RepresentingCard.UniqueId == choice.UniqueId);
+            _currentPlayer.Agents.Remove(toRemove);
+            _currentPlayer.CooldownPile.Add(writOfCoin);
+        }
         else
         {
             _currentPlayer.Hand.Remove(choice);
             _currentPlayer.CooldownPile.Add(writOfCoin);
         }
         return new Success();
+    }
+
+    public PlayResult Donate(Choice choice, List<UniqueCard> choices)
+    {
+        choices.ForEach(_currentPlayer.Discard);
+        choices.ForEach(c => _parent.AddToCompletedActionsList(new CompletedAction(_currentPlayer.ID, CompletedActionType.DISCARD, choice.Context!.CardSource!, c)));
+        var cardsToDraw = choices.Count();
+        _currentPlayer.Draw(cardsToDraw);
+        _parent.AddToCompletedActionsList(new CompletedAction(_currentPlayer.ID, CompletedActionType.DRAW, choice.Context!.CardSource!, cardsToDraw));
+        return new Success();
+    }
+    private void handleSaintAlessiaTriggers(List<UniqueCard> knockoutedCards)
+    {
+        void HandleForPlayer(IPlayer player)
+        {
+            var morihausAgents = player.AgentCards
+                .Where(c => c.CommonId == CardId.MORIHAUS_SACRED_BULL || c.CommonId == CardId.MORIHAUS_THE_ARCHER)
+                .ToList();
+
+            foreach (var triggerCard in morihausAgents)
+            {
+                if (knockoutedCards.Any(c => c.UniqueId == triggerCard.UniqueId))
+                    continue;
+
+                player.CoinsAmount++;
+                _parent.AddToCompletedActionsList(new CompletedAction(player.ID, CompletedActionType.GAIN_COIN, triggerCard, 1));
+            }
+        }
+
+        HandleForPlayer(_currentPlayer);
+        HandleForPlayer(_enemyPlayer);
     }
 }

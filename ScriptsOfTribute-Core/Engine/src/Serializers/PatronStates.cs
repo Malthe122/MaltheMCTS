@@ -4,6 +4,7 @@ namespace ScriptsOfTribute.Serializers;
 
 public class PatronStates
 {
+    // TODO: Make this Immutable/ReadOnly
     public readonly Dictionary<PatronId, PlayerEnum> All = new();
 
     public PatronStates(List<Patron> patrons)

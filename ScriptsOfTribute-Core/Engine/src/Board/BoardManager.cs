@@ -21,8 +21,9 @@ namespace ScriptsOfTribute
         public BoardManager(PatronId[] patrons, ulong seed)
         {
             _rng = new SeededRandom(seed);
-            this.Patrons = GetPatrons(patrons);
-            Tavern = new Tavern(GlobalCardDatabase.Instance.GetCardsByPatron(patrons), _rng);
+            Patrons = GetPatrons(patrons);
+            var patronStarterCardsIds = Patrons.SelectMany(patron => patron.GetStarterCards()).ToArray();
+            Tavern = new Tavern(GlobalCardDatabase.Instance.GetCardsByPatron(patrons, patronStarterCardsIds, CardId.WRIT_OF_COIN), _rng);
             _playerContext = new PlayerContext(new Player(PlayerEnum.PLAYER1, _rng), new Player(PlayerEnum.PLAYER2, _rng));
             CardActionManager = new CardActionManager(_playerContext, Tavern);
         }
@@ -46,8 +47,8 @@ namespace ScriptsOfTribute
 
         public void PlayCard(UniqueCard card)
         {
-            CardActionManager.AddToCompletedActionsList(new CompletedAction(CurrentPlayer.ID, CompletedActionType.PLAY_CARD, card));
             CurrentPlayer.PlayCard(card);
+            CardActionManager.AddToCompletedActionsList(new CompletedAction(CurrentPlayer.ID, CompletedActionType.PLAY_CARD, card));
             CardActionManager.PlayCard(card);
         }
 
@@ -113,17 +114,22 @@ namespace ScriptsOfTribute
             EnemyPlayer.CoinsAmount = 1; // Second player starts with one gold
             Tavern.SetUp(_rng);
 
-            List<UniqueCard> starterDecks = new List<UniqueCard>();
+            List<UniqueCard> starterDecksPlayer1 = new List<UniqueCard>();
+            List<UniqueCard> starterDecksPlayer2 = new List<UniqueCard>();
 
-            foreach (var patron in this.Patrons)
+            foreach (var patron in Patrons)
             {
-                starterDecks.AddRange(
-                    patron.GetStarterCards().Select(cardId => GlobalCardDatabase.Instance.GetCard(cardId)).ToList()
+                var starterIds = patron.GetStarterCards();
+                starterDecksPlayer1.AddRange(
+                    starterIds.Select(cardId => GlobalCardDatabase.Instance.GetCard(cardId))
+                );
+                starterDecksPlayer2.AddRange(
+                    starterIds.Select(cardId => GlobalCardDatabase.Instance.GetCard(cardId))
                 );
             }
 
-            CurrentPlayer.InitDrawPile(starterDecks);
-            EnemyPlayer.InitDrawPile(starterDecks);
+            CurrentPlayer.InitDrawPile(starterDecksPlayer1);
+            EnemyPlayer.InitDrawPile(starterDecksPlayer2);
 
             CurrentPlayer.Draw(5);
             EnemyPlayer.Draw(5);
@@ -150,7 +156,7 @@ namespace ScriptsOfTribute
             return this.Tavern.GetAffordableCards(coinAmount);
         }
 
-        public EndGameState? CheckAndGetWinner(int turnsTaken)
+        public EndGameState? CheckAndGetWinner()
         {
             /*
              * ALWAYS USE THIS AFTER EndTurn()
@@ -161,7 +167,7 @@ namespace ScriptsOfTribute
              */
             if (EnemyPlayer.PrestigeAmount >= 80) 
             {
-                return new EndGameState(EnemyPlayer.ID, GameEndReason.PRESTIGE_OVER_80, turnsTaken);
+                return new EndGameState(EnemyPlayer.ID, GameEndReason.PRESTIGE_OVER_80);
             }
 
             var favorWin = Patrons.Where(patron => patron.PatronID != PatronId.TREASURY)
@@ -169,7 +175,7 @@ namespace ScriptsOfTribute
 
             if (favorWin)
             {
-                return new EndGameState(EnemyPlayer.ID, GameEndReason.PATRON_FAVOR, turnsTaken);
+                return new EndGameState(EnemyPlayer.ID, GameEndReason.PATRON_FAVOR);
             }
 
             // If CurrentPlayer is over prestige threshold, that means EnemyPlayer (the one that played last round)
@@ -179,7 +185,7 @@ namespace ScriptsOfTribute
                 // That means EnemyPlayer didn't match the threshold, so CurrentPlayer wins.
                 if (EnemyPlayer.PrestigeAmount < CurrentPlayer.PrestigeAmount)
                 {
-                    return new EndGameState(CurrentPlayer.ID, GameEndReason.PRESTIGE_OVER_40_NOT_MATCHED, turnsTaken);
+                    return new EndGameState(CurrentPlayer.ID, GameEndReason.PRESTIGE_OVER_40_NOT_MATCHED);
                 }
             }
 

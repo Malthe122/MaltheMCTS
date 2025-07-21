@@ -58,12 +58,13 @@ public class ScriptsOfTribute
             return (null, task.Result);
         }
 
-        return (new EndGameState(playerToWin, GameEndReason.PATRON_SELECTION_TIMEOUT, _game._api.TurnCount), null);
+        return (new EndGameState(playerToWin, GameEndReason.PATRON_SELECTION_TIMEOUT), null);
     }
 
     private (EndGameState? ,PatronId[]?) PatronSelection()
     {
         List<PatronId> patrons = Enum.GetValues(typeof(PatronId)).Cast<PatronId>()
+            // TODO: Hardcoded banned patrons, improve this.
             .Where(patronId => patronId != PatronId.TREASURY && patronId != PatronId.PSIJIC).ToList();
 
         List<PatronId> patronsSelected = new List<PatronId>();
@@ -108,7 +109,7 @@ public class ScriptsOfTribute
     {
         if (!patrons.Contains(patron) || !Enum.IsDefined(typeof(PatronId), patron))
         {
-            return new EndGameState(playerToWin, GameEndReason.PATRON_SELECTION_FAILURE, _game._api.TurnCount);
+            return new EndGameState(playerToWin, GameEndReason.PATRON_SELECTION_FAILURE);
         }
 
         return null;
@@ -164,7 +165,7 @@ public class ScriptsOfTribute
 
         if (!task.Wait(TimeSpan.FromSeconds(timeout)))
         {
-            return new EndGameState(PlayerEnum.PLAYER2, GameEndReason.PREPARE_TIME_EXCEEDED, _game._api.TurnCount);
+            return new EndGameState(PlayerEnum.PLAYER2, GameEndReason.PREPARE_TIME_EXCEEDED);
         }
 
         task = Task.Run(() =>
@@ -174,7 +175,7 @@ public class ScriptsOfTribute
 
         if (!task.Wait(TimeSpan.FromSeconds(timeout)))
         {
-            return new EndGameState(PlayerEnum.PLAYER1, GameEndReason.PREPARE_TIME_EXCEEDED, _game._api.TurnCount);
+            return new EndGameState(PlayerEnum.PLAYER1, GameEndReason.PREPARE_TIME_EXCEEDED);
         }
 
         return null;
