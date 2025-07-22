@@ -24,7 +24,7 @@ public static class Utility
     public static readonly List<CardId> INSTANT_EFFECT_PLAY_CARDS = new List<CardId>();
     public static List<CardId> PRIMITIVE_CARD_RANKING = new List<CardId>();
 
-    internal static void CategorizeCards()
+    public static void CategorizeCards()
     {
         foreach (var card in GlobalCardDatabase.Instance.AllCards)
         {
@@ -152,7 +152,7 @@ public static class Utility
     /// we might have a specific card on hand with ID 1 in our gamestate, while the official gamestate has an identical card in our hand but with a different id.
     /// Becuase of this, we need to find the offical move that is logically identcal to our move
     /// </summary>
-    internal static Move FindOfficialMove(Move move, List<Move> possibleMoves)
+    public static Move FindOfficialMove(Move move, List<Move> possibleMoves)
     {
         return possibleMoves.First(m => m.IsIdentical(move));
     }

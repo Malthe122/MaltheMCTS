@@ -41,12 +41,6 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
 
             var featureSet = FeatureSetUtility.BuildFeatureSet(gameState);
 
-            if (featureSetModelType == RegressionTrainer.LbfgsPoissonRegression || featureSetModelType == RegressionTrainer.StochasticDualCoordinateAscent)
-            {
-                return linearModelEvaluation(featureSet, featureSetModelType.Value);
-            }
-
-
             return ModelEvaluation(featureSet, featureSetModelType);
         }
 

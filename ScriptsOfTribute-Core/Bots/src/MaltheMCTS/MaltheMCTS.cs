@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using BestMCTS3;
 using ScriptsOfTribute;
 using ScriptsOfTribute.AI;
 using ScriptsOfTribute.Board;
@@ -11,11 +12,7 @@ public class MaltheMCTS : AI
     public Dictionary<int, List<Node>> NodeGameStateHashMap = new Dictionary<int, List<Node>>();
     public Settings Settings { get; set; }
 
-
     public string InstanceName;
-
-    // FOR COMPUTATION BENCHMARK
-    private int computationsCompleted = 0;
 
     public MaltheMCTS(string? instanceName = null, Settings? settings = null) : base()
     {
@@ -35,8 +32,6 @@ public class MaltheMCTS : AI
 
     public override void PregamePrepare()
     {
-        computationsCompleted = 0;
-
         Utility.CategorizeCards();
         NodeGameStateHashMap = new Dictionary<int, List<Node>>();
     }
@@ -77,7 +72,6 @@ public class MaltheMCTS : AI
                 // iterationTimer.Start();
                 // iterationCounter++;
                 rootNode.Visit(out double score, new HashSet<Node>());
-                computationsCompleted++;
                 // iterationTimer.Stop();
                 // Console.WriteLine("Iteration took: " + iterationTimer.ElapsedMilliseconds + " milliseconds");
             }
@@ -242,6 +236,6 @@ public class MaltheMCTS : AI
     }
     public override PatronId SelectPatron(List<PatronId> availablePatrons, int round)
     {
-        return availablePatrons[0];
+        return availablePatrons.PickRandom(new SeededRandom());
     }
 }

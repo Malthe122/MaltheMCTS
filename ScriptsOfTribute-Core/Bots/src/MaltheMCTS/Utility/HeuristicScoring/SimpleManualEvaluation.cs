@@ -49,7 +49,7 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
                 GoldStrength = featureSet.CurrentPlayerAgent_GoldStrength,
                 MiscellaneousStrength = featureSet.CurrentPlayerAgent_MiscStrength,
                 PowerStrength = featureSet.CurrentPlayerAgent_PowerStrength,
-                PrestigeStrength = 0
+                PrestigeStrength = featureSet.CurrentPlayerAgent_PrestigeStrength
             };
 
             var opponentPlayerAgentStrength = new CardStrengths
@@ -57,7 +57,7 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
                 GoldStrength = featureSet.OpponentAgent_GoldStrength,
                 MiscellaneousStrength = featureSet.OpponentAgent_MiscStrength,
                 PowerStrength = featureSet.OpponentAgent_PowerStrength,
-                PrestigeStrength = 0
+                PrestigeStrength = featureSet.OpponentAgent_PrestigeStrength,
             };
 
             double currentPlayerAgentValue = GetAgentValue(currentPlayerAgentStrength, lateGameMultiplier, earlyGameMultiplier);

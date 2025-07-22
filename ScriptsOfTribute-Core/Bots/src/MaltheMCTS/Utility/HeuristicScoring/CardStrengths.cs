@@ -6,9 +6,6 @@ using System.Threading.Tasks;
 
 namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
 {
-    // give agents in deck more strength as well than other cards in deck
-    // give some strength for taunt too
-    // This has been done, TODO update paper
     public struct CardStrengths
     {
         public double PrestigeStrength = 0;
