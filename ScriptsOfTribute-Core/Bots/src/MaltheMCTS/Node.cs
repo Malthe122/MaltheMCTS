@@ -542,10 +542,6 @@ public class Node
             }
         }
         PossibleMoves = Utility.RemoveDuplicateMoves(PossibleMoves);
-
-        if(PossibleMoves.Count == 0) {
-            Console.WriteLine("Hello");
-        }
     }
 
     private void SetBewildermentGoldChoiceMoves(IEnumerable<UniqueCard> cardPool)

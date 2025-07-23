@@ -44,28 +44,6 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
             return ModelEvaluation(featureSet, featureSetModelType);
         }
 
-        private static double linearModelEvaluation(GameStateFeatureSet featureSet, RegressionTrainer featureSetModelType)
-        {
-            GameStage stage = GameStage.Early;
-
-            var maxPrestige = Math.Max(featureSet.CurrentPlayerPrestige, featureSet.OpponentPrestige);
-
-            if (maxPrestige > 39)
-            {
-                stage = GameStage.End;
-            } else if (maxPrestige > 30)
-            {
-                stage = GameStage.Late;
-            } else if (maxPrestige > 15)
-            {
-                stage = GameStage.Mid;
-            }
-
-            var csvFeatureSet = featureSet.ToLinearCsvRow();
-
-            return EnsembledTreeModelEvaluation.GetWinProbability(csvFeatureSet, featureSetModelType, stage);
-        }
-
         private static PlayerEnum CheckWinner(SeededGameState gameState, bool endOfTurnExclusiveEvaluation)
         {
             int currentPlayerPrestige = gameState.CurrentPlayer.Prestige;

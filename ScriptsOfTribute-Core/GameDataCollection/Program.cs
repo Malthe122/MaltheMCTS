@@ -86,7 +86,7 @@ namespace GameDataCollection
         {
             Directory.CreateDirectory(datasetName);
 
-            var maltheMCTSSettings = maltheMCTSSettingsFile != null ? DataCollectors_MaltheMCTS.Settings.LoadFromFile(maltheMCTSSettingsFile) : new DataCollectors_MaltheMCTS.Settings();
+            var maltheMCTSSettings = maltheMCTSSettingsFile != null ? MaltheMCTS.Settings.LoadFromFile(maltheMCTSSettingsFile) : new MaltheMCTS.Settings();
 
             Console.WriteLine("Starting playing matches...");
             PlayMatches(botString, numberOfMatchups, timeout, maltheMCTSSettings);
@@ -257,7 +257,7 @@ namespace GameDataCollection
               $"{winProbability}");
         }
 
-        private static void PlayMatches(string botString, int numberOfMatchups, int timeout, DataCollectors_MaltheMCTS.Settings? maltheMCTSSettings = null)
+        private static void PlayMatches(string botString, int numberOfMatchups, int timeout, MaltheMCTS.Settings? maltheMCTSSettings = null)
         {
             for (int i = 0; i < numberOfMatchups; i++)
             {
@@ -270,7 +270,7 @@ namespace GameDataCollection
             }
         }
 
-        public static AI CreateBot(string botName, int timeout, DataCollectors_MaltheMCTS.Settings? maltheMCTSSettings = null)
+        public static AI CreateBot(string botName, int timeout, MaltheMCTS.Settings? maltheMCTSSettings = null)
         {
             switch (botName)
             {
@@ -287,7 +287,7 @@ namespace GameDataCollection
                 //case "MCTSBot":
                 //    return new MCTSBot();
                 case "MaltheMCTS":
-                    return new DataCollectors_MaltheMCTS.MaltheMCTS(instanceName: Guid.NewGuid().ToString(), settings: maltheMCTSSettings);
+                    return new DataCollectors_MaltheMCTS.MaltheMCTS_(instanceName: Guid.NewGuid().ToString(), settings: maltheMCTSSettings);
                 //case "PatronFavorsBot":
                 //    return new PatronFavorsBot();
                 //case "PatronSelectionTimeoutBot":

@@ -12,9 +12,6 @@ namespace DataCollectors_MaltheMCTS;
 
 public class MaltheMCTS_ : MaltheMCTS.MaltheMCTS
 {
-    public Dictionary<int, List<Node>> NodeGameStateHashMap = new Dictionary<int, List<Node>>();
-    public Settings Settings { get; set; }
-
     public string InstanceName;
 
     public List<GameStateFeatureSet> GameStateFeatureSetsFromMatch;
