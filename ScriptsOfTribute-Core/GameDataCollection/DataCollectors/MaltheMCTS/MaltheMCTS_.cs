@@ -7,11 +7,14 @@ using ScriptsOfTribute.AI;
 using ScriptsOfTribute.Board;
 using ScriptsOfTribute.Serializers;
 using SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring;
+using SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring.ModelEvaluation;
 
 namespace DataCollectors_MaltheMCTS;
 
 public class MaltheMCTS_ : MaltheMCTS.MaltheMCTS
 {
+    private const double RANDOM_EXPLORATION_PROBABILITY = 0.1;
+
     public string InstanceName;
 
     public List<GameStateFeatureSet> GameStateFeatureSetsFromMatch;
@@ -36,6 +39,7 @@ public class MaltheMCTS_ : MaltheMCTS.MaltheMCTS
     {
         MaltheMCTS.Utility.CategorizeCards();
         NodeGameStateHashMap = new Dictionary<int, List<Node>>();
+        EnsembledTreeModelEvaluation.LoadModel(Settings.FEATURE_SET_MODEL_TYPE);
 
         GameStateFeatureSetsFromMatch = new List<GameStateFeatureSet>();
     }
@@ -81,6 +85,12 @@ public class MaltheMCTS_ : MaltheMCTS.MaltheMCTS
                     AddFeatureSet(gameState);
                 }
                 return instantPlay;
+            }
+
+            // Exlusive for data collector to explore new strategies
+            if (MaltheMCTS.Utility.Rng.NextDouble() < RANDOM_EXPLORATION_PROBABILITY)
+            {
+                return possibleMoves.PickRandom(new SeededRandom());
             }
 
             if (possibleMoves.Count == 1)
