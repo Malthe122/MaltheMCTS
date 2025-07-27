@@ -4,6 +4,7 @@ using ScriptsOfTribute;
 using ScriptsOfTribute.AI;
 using ScriptsOfTribute.Board;
 using ScriptsOfTribute.Serializers;
+using SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring.ModelEvaluation;
 
 namespace MaltheMCTS;
 
@@ -34,6 +35,7 @@ public class MaltheMCTS : AI
     {
         Utility.CategorizeCards();
         NodeGameStateHashMap = new Dictionary<int, List<Node>>();
+        EnsembledTreeModelEvaluation.LoadModel(Settings.FEATURE_SET_MODEL_TYPE);
     }
 
     public override void GameEnd(EndGameState state, FullGameState? finalBoardState)
