@@ -8,10 +8,12 @@ using ScriptsOfTribute.AI;
 using HQL_BOT;
 using System.Globalization;
 using System.Threading;
+using DataCollectors_MaltheMCTS;
+using Google.Protobuf;
 
 namespace GameDataCollection
 {
-    internal class Program
+    public class Program
     {
         public class ResultRates
         {
@@ -82,7 +84,7 @@ namespace GameDataCollection
             await rootCommand.InvokeAsync(args);
         }
 
-        private static void CollectData(string botString, int numberOfMatchups, int timeout, string datasetName, string? maltheMCTSSettingsFile)
+        public static void CollectData(string botString, int numberOfMatchups, int timeout, string datasetName, string? maltheMCTSSettingsFile)
         {
             Directory.CreateDirectory(datasetName);
 
@@ -110,6 +112,36 @@ namespace GameDataCollection
             File.WriteAllText(datasetName + "/" + "details.txt", sb.ToString());
 
             Console.WriteLine("Dataset complete. Stored in folder: " + datasetName);
+        }
+
+        public static void CollectMaltheMCTSData(int numberOfMatchups, int timeout, string datasetName, Settings settings)
+        {
+            Directory.CreateDirectory(datasetName);
+
+            Console.WriteLine("Starting playing matches...");
+            PlayMatches("MaltheMCTS", numberOfMatchups, timeout, settings);
+            Console.WriteLine("Finished matches");
+
+            Console.WriteLine("Saving dataset...");
+            ExportDatasetToCSV(datasetName);
+            Console.WriteLine("Saving datasets into structure for linear models...");
+            ExportDatasetToLinearModelCSVs(datasetName);
+
+            var sb = new StringBuilder();
+            sb.AppendLine($"DatasetName Name: {datasetName}");
+            sb.AppendLine($"Bot: {"MaltheMCTS"}");
+            sb.AppendLine($"Number of Matchups: {numberOfMatchups}");
+            sb.AppendLine($"Timeout: {timeout}");
+
+            //sb.AppendLine();
+            //sb.AppendLine("MaltheMCTS Settings:");
+            //sb.AppendLine(maltheMCTSSettings.ToString());
+
+            File.WriteAllText(datasetName + "/" + "details.txt", sb.ToString());
+
+            Console.WriteLine("Dataset complete. Stored in folder: " + datasetName);
+
+
         }
 
         private static void ExportDatasetToCSV(string datasetName)

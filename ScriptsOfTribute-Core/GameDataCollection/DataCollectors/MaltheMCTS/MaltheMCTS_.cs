@@ -13,7 +13,7 @@ namespace DataCollectors_MaltheMCTS;
 
 public class MaltheMCTS_ : MaltheMCTS.MaltheMCTS
 {
-    private const double RANDOM_EXPLORATION_PROBABILITY = 0.1;
+    public static double RANDOM_EXPLORATION_PROBABILITY = 0.1;
 
     public string InstanceName;
 

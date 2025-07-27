@@ -12,10 +12,14 @@ namespace EnsembleTreeModelBuilder
     /// </summary>
     public class GameStateFeatureSetCsvRow
     {
-        [LoadColumn(0)] public float Patron_1 { get; set; }
-        [LoadColumn(1)] public float Patron_2 { get; set; }
-        [LoadColumn(2)] public float Patron_3 { get; set; }
-        [LoadColumn(3)] public float Patron_4 { get; set; }
+        /// <summary>
+        /// Patron ids are no longer part of the feature set used by the models, but still want to record it for the option to create different
+        /// models for different patron combinations
+        /// </summary>
+        /*[LoadColumn(0)]*/ public float Patron_1 { get; set; }
+        /*[LoadColumn(1)]*/ public float Patron_2 { get; set; }
+        /*[LoadColumn(2)]*/ public float Patron_3 { get; set; }
+        /*[LoadColumn(3)]*/ public float Patron_4 { get; set; }
         [LoadColumn(4)] public float CurrentPlayerPrestige { get; set; }
         [LoadColumn(5)] public float CurrentPlayerDeck_PrestigeStrength { get; set; }
         [LoadColumn(6)] public float CurrentPlayerDeck_PowerStrength { get; set; }

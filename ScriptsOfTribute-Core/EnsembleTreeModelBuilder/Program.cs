@@ -10,7 +10,7 @@ using Tensorflow.Keras.Engine;
 
 namespace EnsembleTreeModelBuilder
 {
-    internal class Program
+    public class Program
     {
         public const string MODELS_FOLDER = "GeneratedModels";
 
@@ -51,81 +51,102 @@ namespace EnsembleTreeModelBuilder
             var arguments = rootCommand.Parse(args);
 
             rootCommand.SetHandler(
-                TrainModel,
+                (string trainingDataPath, string experimentFolder, uint experimentTime, bool individualExperimentsPerModel) =>
+                    TrainModel(trainingDataPath, experimentFolder, experimentTime, individualExperimentsPerModel),
                 TrainingDataFileOption, ModelNameOption, ExperiementTimeOption, fullIndividualBenchmarksOption
             );
+
 
             await rootCommand.InvokeAsync(args);
         }
 
-        private static void TrainModel(string trainingDataPath, string experiementFolder, uint experiementTime, bool individualExperiementsPerModel)
+        /// <returns>R^2 score of trained model</returns>
+        /// <exception cref="ArgumentException"></exception>
+        public static double TrainModel(string trainingDataPath, string experiementFolder, uint experiementTime, bool individualExperiementsPerModel, RegressionTrainer? modelType = null)
         {
+            var rSquaredScore = double.MinValue;
 
             Console.WriteLine("Running training on " + trainingDataPath + "...");
 
             Directory.CreateDirectory(MODELS_FOLDER + "/" + experiementFolder);
-            Directory.CreateDirectory(MODELS_FOLDER + "/" + experiementFolder + "/early");
-            Directory.CreateDirectory(MODELS_FOLDER + "/" + experiementFolder + "/mid");
-            Directory.CreateDirectory(MODELS_FOLDER + "/" + experiementFolder + "/late");
-            Directory.CreateDirectory(MODELS_FOLDER + "/" + experiementFolder + "/end");
 
             var mlContext = new MLContext();
 
-            var etmTrainingDataPath = trainingDataPath + "/for_etm.csv";
-            var columnInference = mlContext.Auto().InferColumns(etmTrainingDataPath, labelColumnName: "WinProbability", groupColumns: false);
-            IDataView fullData = mlContext.Data.LoadFromTextFile<GameStateFeatureSetCsvRow>(etmTrainingDataPath, columnInference.TextLoaderOptions);
+            var columnInference = mlContext.Auto().InferColumns(trainingDataPath, labelColumnName: "WinProbability", groupColumns: false);
+            IDataView fullData = mlContext.Data.LoadFromTextFile<GameStateFeatureSetCsvRow>(trainingDataPath, columnInference.TextLoaderOptions);
             var trainTestSplit = mlContext.Data.TrainTestSplit(fullData, testFraction: 0.2);
             IDataView trainData = trainTestSplit.TrainSet;
             IDataView testData = trainTestSplit.TestSet;
 
             dataViewSchema = trainData.Schema;
-            columnInferenceResults = columnInference;            
+            columnInferenceResults = columnInference;
 
-            string labelName = columnInference.ColumnInformation.LabelColumnName;
             if (individualExperiementsPerModel)
             {
-                RunIndividualExperiementsPerETMModel(experiementFolder, experiementTime, mlContext, fullData, trainData, testData);
-
-                IDataView fullEarlyData = mlContext.Data.LoadFromTextFile<GameStateLinearFeatureSetCsvRow>(trainingDataPath + "/for_linear/" + "/earlyGame.csv", columnInference.TextLoaderOptions);
-                var earlyTrainTestSplit = mlContext.Data.TrainTestSplit(fullEarlyData, testFraction: 0.2);
-                IDataView fullMidData = mlContext.Data.LoadFromTextFile<GameStateLinearFeatureSetCsvRow>(trainingDataPath + "/for_linear/" + "/midGame.csv", columnInference.TextLoaderOptions);
-                var midTrainTestSplit = mlContext.Data.TrainTestSplit(fullMidData, testFraction: 0.2);
-                IDataView fullLateData = mlContext.Data.LoadFromTextFile<GameStateLinearFeatureSetCsvRow>(trainingDataPath + "/for_linear/" + "/lateGame.csv", columnInference.TextLoaderOptions);
-                var lateTrainTestSplit = mlContext.Data.TrainTestSplit(fullLateData, testFraction: 0.2);
-                IDataView fullEndData = mlContext.Data.LoadFromTextFile<GameStateLinearFeatureSetCsvRow>(trainingDataPath + "/for_linear/" + "/endGame.csv", columnInference.TextLoaderOptions);
-                var endTrainTestSplit = mlContext.Data.TrainTestSplit(fullEndData, testFraction: 0.2);
-                RunIndividualExperiementPerLinearModel(experiementFolder, experiementTime, mlContext, fullEarlyData, earlyTrainTestSplit, "early");
-                RunIndividualExperiementPerLinearModel(experiementFolder, experiementTime, mlContext, fullMidData, midTrainTestSplit, "mid");
-                RunIndividualExperiementPerLinearModel(experiementFolder, experiementTime, mlContext, fullLateData, lateTrainTestSplit, "late");
-                RunIndividualExperiementPerLinearModel(experiementFolder, experiementTime, mlContext, fullEndData, endTrainTestSplit, "end");
-
+                if (modelType == null)
+                {
+                    rSquaredScore = RunIndividualExperiementsPerETMModel(experiementFolder, experiementTime, mlContext, fullData, trainData, testData);
+                }
+                else
+                {
+                    switch (modelType)
+                    {
+                        case RegressionTrainer.FastForest:
+                            rSquaredScore = RunIndividualExperiement(experiementFolder, experiementTime, mlContext, fullData, trainData, testData, RegressionTrainer.FastForest);
+                            break;
+                        case RegressionTrainer.FastTree:
+                            rSquaredScore = RunIndividualExperiement(experiementFolder, experiementTime, mlContext, fullData, trainData, testData, RegressionTrainer.FastTree);
+                            break;
+                        case RegressionTrainer.FastTreeTweedie:
+                            rSquaredScore = RunIndividualExperiement(experiementFolder, experiementTime, mlContext, fullData, trainData, testData, RegressionTrainer.FastTreeTweedie);
+                            break;
+                        case RegressionTrainer.LightGbm:
+                            rSquaredScore = RunIndividualExperiement(experiementFolder, experiementTime, mlContext, fullData, trainData, testData, RegressionTrainer.LightGbm);
+                            break;
+                        default:
+                            throw new ArgumentException("Unexpected modeltype: " + modelType);
+                    }
+                }
             }
             else
             {
                 RunMostPreciseModelExperiement(experiementFolder, experiementTime, mlContext, fullData, trainData, testData);
             }
+
+            return rSquaredScore;
         }
 
-        private static void RunIndividualExperiementsPerETMModel(string modelName, uint experiementTime, MLContext mlContext, IDataView fullData, IDataView trainData, IDataView testData)
+        private static double RunIndividualExperiementsPerETMModel(string modelName, uint experiementTime, MLContext mlContext, IDataView fullData, IDataView trainData, IDataView testData)
         {
-            RunIndividualExperiement(modelName, experiementTime, mlContext, fullData, trainData, testData, RegressionTrainer.FastForest);
-            RunIndividualExperiement(modelName, experiementTime, mlContext, fullData, trainData, testData, RegressionTrainer.FastTree);
-            RunIndividualExperiement(modelName, experiementTime, mlContext, fullData, trainData, testData, RegressionTrainer.FastTreeTweedie);
-            RunIndividualExperiement(modelName, experiementTime, mlContext, fullData, trainData, testData, RegressionTrainer.LightGbm);
-            //RunIndividualExperiement(experiementFolderName, experiementTime, mlContext, fullData, trainData, testData, RegressionTrainer.LbfgsPoissonRegression);
-            //RunIndividualExperiement(experiementFolderName, experiementTime, mlContext, fullData, trainData, testData, RegressionTrainer.StochasticDualCoordinateAscent);
+            double bestRSquaredScore = double.MinValue;
+
+            var ffScore = RunIndividualExperiement(modelName, experiementTime, mlContext, fullData, trainData, testData, RegressionTrainer.FastForest);
+            if (ffScore > bestRSquaredScore)
+            {
+                bestRSquaredScore = ffScore;
+            }
+            var ftScore = RunIndividualExperiement(modelName, experiementTime, mlContext, fullData, trainData, testData, RegressionTrainer.FastTree);
+            if (ftScore > bestRSquaredScore)
+            {
+                bestRSquaredScore = ftScore;
+            }
+            var fttScore = RunIndividualExperiement(modelName, experiementTime, mlContext, fullData, trainData, testData, RegressionTrainer.FastTreeTweedie);
+            if (fttScore < bestRSquaredScore)
+            {
+                bestRSquaredScore = fttScore;
+            }
+            var lgbmScore = RunIndividualExperiement(modelName, experiementTime, mlContext, fullData, trainData, testData, RegressionTrainer.LightGbm);
+            if (lgbmScore > bestRSquaredScore)
+            {
+                bestRSquaredScore = lgbmScore;
+            }
+
+            return bestRSquaredScore;
         }
 
-        private static void RunIndividualExperiementPerLinearModel(string experiementFolder, uint experiementTime, MLContext mlContext, IDataView fullData, DataOperationsCatalog.TrainTestData trainTestSplit, string stage)
-        {
-            IDataView trainData = trainTestSplit.TrainSet;
-            IDataView testData = trainTestSplit.TestSet;
-
-            RunIndividualExperiement(experiementFolder + "/" + stage, experiementTime, mlContext, fullData, trainData, testData, RegressionTrainer.LbfgsPoissonRegression);
-            RunIndividualExperiement(experiementFolder + "/" + stage, experiementTime, mlContext, fullData, trainData, testData, RegressionTrainer.StochasticDualCoordinateAscent);
-        }
-
-        private static void RunIndividualExperiement(string experiementFolderName, uint experiementTime, MLContext mlContext, IDataView fullData, IDataView trainData, IDataView testData, RegressionTrainer modelType)
+        /// <returns>R^2 score of model</returns>
+        /// <exception cref="NotSupportedException"></exception>
+        private static double RunIndividualExperiement(string experiementFolderName, uint experiementTime, MLContext mlContext, IDataView fullData, IDataView trainData, IDataView testData, RegressionTrainer modelType)
         {
             var treesPerModel = 100;
             var depthPerTree = 6;
@@ -150,7 +171,7 @@ namespace EnsembleTreeModelBuilder
                         FeatureColumnName = "Features",
                         NumberOfTrees = treesPerModel,
                         NumberOfLeaves = (int)Math.Pow(2, depthPerTree)
-                    });;
+                    }); ;
                     break;
                 case RegressionTrainer.FastTree:
                     trainer = mlContext.Regression.Trainers.FastTree(new FastTreeRegressionTrainer.Options
@@ -179,117 +200,66 @@ namespace EnsembleTreeModelBuilder
                         NumberOfLeaves = (int)Math.Pow(2, depthPerTree)
                     });
                     break;
-                case RegressionTrainer.LbfgsPoissonRegression:
-                    trainer = mlContext.Regression.Trainers.LbfgsPoissonRegression(labelColumnName: labelColumnName, featureColumnName: "Features");
-                    break;
-                case RegressionTrainer.StochasticDualCoordinateAscent:
-                    trainer = mlContext.Regression.Trainers.Sdca(labelColumnName: labelColumnName, featureColumnName: "Features");
-                    break;
                 default:
                     throw new NotSupportedException($"Trainer {modelType} not supported in manual mode.");
             }
 
-            if (modelType != RegressionTrainer.LbfgsPoissonRegression && modelType != RegressionTrainer.StochasticDualCoordinateAscent)
+
+            var fullPipeline = pipeline.Append(trainer);
+
+            Console.WriteLine("Training model manually...");
+            var model = fullPipeline.Fit(trainData);
+
+            var predictions = model.Transform(testData);
+
+            var metrics = mlContext.Regression.Evaluate(predictions, labelColumnName: labelColumnName);
+
+            var bestRSquared = metrics.RSquared;
+
+            mlContext.Model.Save(model, fullData.Schema, MODELS_FOLDER + "/" + experiementFolderName + "/" + modelType + "_model");
+
+            StringBuilder info = new StringBuilder();
+            info.AppendLine("R²:" + bestRSquared);
+            info.AppendLine();
+            info.AppendLine("Training time: manual (not tracked)");
+            info.AppendLine("RSquared: " + bestRSquared);
+            info.AppendLine("Model type: " + modelType);
+
+            switch (modelType)
             {
-                var fullPipeline = pipeline.Append(trainer);
-
-                Console.WriteLine("Training model manually...");
-                var model = fullPipeline.Fit(trainData);
-
-                var predictions = model.Transform(testData);
-
-                var metrics = mlContext.Regression.Evaluate(predictions, labelColumnName: labelColumnName);
-
-                var bestRSquared = metrics.RSquared;
-
-                mlContext.Model.Save(model, fullData.Schema, MODELS_FOLDER + "/" + experiementFolderName + "/" + modelType + "_model");
-
-                StringBuilder info = new StringBuilder();
-                info.AppendLine("R²:" + bestRSquared);
-                info.AppendLine();
-                info.AppendLine("Training time: manual (not tracked)");
-                info.AppendLine("RSquared: " + bestRSquared);
-                info.AppendLine("Model type: " + modelType);
-
-                switch (modelType)
-                {
-                    case RegressionTrainer.FastForest:
-                        var fastForest = model
-                            .OfType<RegressionPredictionTransformer<FastForestRegressionModelParameters>>()
-                            .First().Model;
-                        AddEnsembleTreeModelInfo(info, fastForest.TrainedTreeEnsemble);
-                        break;
-                    case RegressionTrainer.FastTree:
-                        var fastTree = model
-                            .OfType<RegressionPredictionTransformer<FastTreeRegressionModelParameters>>()
-                            .First().Model;
-                        var all = model
-                            .OfType<RegressionPredictionTransformer<FastTreeRegressionModelParameters>>().ToList();
-                        AddEnsembleTreeModelInfo(info, fastTree.TrainedTreeEnsemble);
-                        break;
-                    case RegressionTrainer.FastTreeTweedie:
-                        var fastTreeTweedie = model
-                            .OfType<RegressionPredictionTransformer<FastTreeTweedieModelParameters>>()
-                            .First().Model;
-                        AddEnsembleTreeModelInfo(info, fastTreeTweedie.TrainedTreeEnsemble);
-                        break;
-                    case RegressionTrainer.LightGbm:
-                        var lightGbm = model
-                            .OfType<RegressionPredictionTransformer<LightGbmRegressionModelParameters>>()
-                            .First().Model;
-                        AddEnsembleTreeModelInfo(info, lightGbm.TrainedTreeEnsemble);
-                        break;
-                }
-
-                File.WriteAllText(MODELS_FOLDER + "/" + experiementFolderName + "/" + modelType + "_Details.txt", info.ToString());
-                Console.WriteLine("Best model saved in " + MODELS_FOLDER + "/" + experiementFolderName + "/" + modelType);
-            } else
-            {
-                var experimentSettings = new RegressionExperimentSettings
-                {
-                    MaxExperimentTimeInSeconds = experiementTime,
-                    OptimizingMetric = RegressionMetric.RSquared
-                };
-                experimentSettings.Trainers.Clear();
-                experimentSettings.Trainers.Add(modelType);
-
-                var experiment = mlContext.Auto().CreateRegressionExperiment(experimentSettings);
-                Console.WriteLine("Running AutoML experiment...");
-                var experimentResult = experiment.Execute(trainData, testData, "WinProbability");
-
-                var bestRun = experimentResult.BestRun;
-                var bestModel = bestRun.Model;
-                var bestRSquared = bestRun.ValidationMetrics.RSquared;
-
-                // Save the model to a .zip file for later use
-                mlContext.Model.Save(bestModel, fullData.Schema, MODELS_FOLDER + "/" + experiementFolderName + "/" + modelType + "_model");
-
-                StringBuilder info = new StringBuilder();
-                info.AppendLine("R²:" + bestRSquared);
-                info.AppendLine();
-                info.AppendLine("Training time: manual (not tracked)");
-                info.AppendLine("RSquared: " + bestRSquared);
-                info.AppendLine("Model type: " + modelType);
-
-                switch (modelType)
-                {
-                    case RegressionTrainer.LbfgsPoissonRegression:
-                        var lbfgs = ((TransformerChain<ITransformer>)bestRun.Model)
-                                .OfType<RegressionPredictionTransformer<PoissonRegressionModelParameters>>()
-                                .First().Model;
-                        AddPoissonRegressionInfo(info, lbfgs);
-                        break;
-                    case RegressionTrainer.StochasticDualCoordinateAscent:
-                        var sdca = ((TransformerChain<ITransformer>)bestRun.Model)
-                            .OfType<RegressionPredictionTransformer<LinearRegressionModelParameters>>()
-                            .First().Model;
-                        AddSdcaModelInfo(info, sdca);
-                        break;
-                }
-
-                File.WriteAllText(MODELS_FOLDER + "/" + experiementFolderName + "/" + modelType + "_Details.txt", info.ToString());
-                Console.WriteLine("Best model saved in " + MODELS_FOLDER + "/" + experiementFolderName + "/" + modelType);
+                case RegressionTrainer.FastForest:
+                    var fastForest = model
+                        .OfType<RegressionPredictionTransformer<FastForestRegressionModelParameters>>()
+                        .First().Model;
+                    AddEnsembleTreeModelInfo(info, fastForest.TrainedTreeEnsemble);
+                    break;
+                case RegressionTrainer.FastTree:
+                    var fastTree = model
+                        .OfType<RegressionPredictionTransformer<FastTreeRegressionModelParameters>>()
+                        .First().Model;
+                    var all = model
+                        .OfType<RegressionPredictionTransformer<FastTreeRegressionModelParameters>>().ToList();
+                    AddEnsembleTreeModelInfo(info, fastTree.TrainedTreeEnsemble);
+                    break;
+                case RegressionTrainer.FastTreeTweedie:
+                    var fastTreeTweedie = model
+                        .OfType<RegressionPredictionTransformer<FastTreeTweedieModelParameters>>()
+                        .First().Model;
+                    AddEnsembleTreeModelInfo(info, fastTreeTweedie.TrainedTreeEnsemble);
+                    break;
+                case RegressionTrainer.LightGbm:
+                    var lightGbm = model
+                        .OfType<RegressionPredictionTransformer<LightGbmRegressionModelParameters>>()
+                        .First().Model;
+                    AddEnsembleTreeModelInfo(info, lightGbm.TrainedTreeEnsemble);
+                    break;
             }
+
+            File.WriteAllText(MODELS_FOLDER + "/" + experiementFolderName + "/" + modelType + "_Details.txt", info.ToString());
+            Console.WriteLine("Best model saved in " + MODELS_FOLDER + "/" + experiementFolderName + "/" + modelType);
+
+            return bestRSquared;
+
         }
 
 

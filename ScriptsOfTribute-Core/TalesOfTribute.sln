@@ -33,6 +33,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EnsembleTreeModelBuilder", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GameDataCollection", "GameDataCollection\GameDataCollection.csproj", "{83234756-F6AC-4E05-B1FE-9447FE914E60}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IterativeSelfPlayTrainer", "IterativeSelfPlayTrainer\IterativeSelfPlayTrainer.csproj", "{DF2C96BF-01CC-4CD8-9FAC-6F745DA74CDF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -95,6 +97,10 @@ Global
 		{83234756-F6AC-4E05-B1FE-9447FE914E60}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{83234756-F6AC-4E05-B1FE-9447FE914E60}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{83234756-F6AC-4E05-B1FE-9447FE914E60}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DF2C96BF-01CC-4CD8-9FAC-6F745DA74CDF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DF2C96BF-01CC-4CD8-9FAC-6F745DA74CDF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DF2C96BF-01CC-4CD8-9FAC-6F745DA74CDF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DF2C96BF-01CC-4CD8-9FAC-6F745DA74CDF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
