@@ -13,7 +13,7 @@ using System.IO;
 
 namespace MaltheMCTSSettingsBenchmarking
 {
-    internal class Program
+    public class Program
     {
         static async Task Main(string[] args)
         {
@@ -137,7 +137,7 @@ namespace MaltheMCTSSettingsBenchmarking
             Console.WriteLine("Benchmark complete. Results logged in folder: " + benchmarkName);
         }
 
-        private static Dictionary<MaltheMCTS.MaltheMCTS, Dictionary<MaltheMCTS.MaltheMCTS, int>> PlayMatches(List<MaltheMCTS.MaltheMCTS> bots, int numberOfMatchups, int timeout)
+        public static Dictionary<MaltheMCTS.MaltheMCTS, Dictionary<MaltheMCTS.MaltheMCTS, int>> PlayMatches(List<MaltheMCTS.MaltheMCTS> bots, int numberOfMatchups, int timeout)
         {
             Dictionary<AI, Dictionary<AI, int>> botToWins = new();
 

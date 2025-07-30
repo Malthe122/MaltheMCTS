@@ -10,6 +10,7 @@ using System.Globalization;
 using System.Threading;
 using DataCollectors_MaltheMCTS;
 using Google.Protobuf;
+using static TorchSharp.torch.nn;
 
 namespace GameDataCollection
 {
@@ -84,9 +85,16 @@ namespace GameDataCollection
             await rootCommand.InvokeAsync(args);
         }
 
-        public static void CollectData(string botString, int numberOfMatchups, int timeout, string datasetName, string? maltheMCTSSettingsFile)
+        public static void CollectData(string botString, int numberOfMatchups, int timeout, string destination, string? maltheMCTSSettingsFile)
         {
-            Directory.CreateDirectory(datasetName);
+            string location = destination;
+            if (destination.Contains(".csv"))
+            {
+                // Just removing file name from the location
+                location = destination[..destination.LastIndexOf('/')];
+            }
+
+            Directory.CreateDirectory(location);
 
             var maltheMCTSSettings = maltheMCTSSettingsFile != null ? MaltheMCTS.Settings.LoadFromFile(maltheMCTSSettingsFile) : new MaltheMCTS.Settings();
 
@@ -95,12 +103,10 @@ namespace GameDataCollection
             Console.WriteLine("Finished matches");
 
             Console.WriteLine("Saving dataset...");
-            ExportDatasetToCSV(datasetName);
-            Console.WriteLine("Saving datasets into structure for linear models...");
-            ExportDatasetToLinearModelCSVs(datasetName);
+            ExportDatasetToCSV(destination);
 
             var sb = new StringBuilder();
-            sb.AppendLine($"DatasetName Name: {datasetName}");
+            sb.AppendLine($"DatasetName Name: {destination}");
             sb.AppendLine($"Bot: {botString}");
             sb.AppendLine($"Number of Matchups: {numberOfMatchups}");
             sb.AppendLine($"Timeout: {timeout}");
@@ -109,26 +115,31 @@ namespace GameDataCollection
             //sb.AppendLine("MaltheMCTS Settings:");
             //sb.AppendLine(maltheMCTSSettings.ToString());
 
-            File.WriteAllText(datasetName + "/" + "details.txt", sb.ToString());
+            File.WriteAllText(location + "/" + "details.txt", sb.ToString());
 
-            Console.WriteLine("Dataset complete. Stored in folder: " + datasetName);
+            Console.WriteLine("Dataset complete. Stored in folder: " + destination);
         }
 
-        public static void CollectMaltheMCTSData(int numberOfMatchups, int timeout, string datasetName, Settings settings)
+        public static void CollectMaltheMCTSData(int numberOfMatchups, int timeout, string destinationPath, Settings settings)
         {
-            Directory.CreateDirectory(datasetName);
+            string location = destinationPath;
+            if (destinationPath.Contains(".csv"))
+            {
+                // Just removing file name from the location
+                location = destinationPath[..destinationPath.LastIndexOf('/')]; 
+            }
+
+            Directory.CreateDirectory(location);
 
             Console.WriteLine("Starting playing matches...");
             PlayMatches("MaltheMCTS", numberOfMatchups, timeout, settings);
             Console.WriteLine("Finished matches");
 
             Console.WriteLine("Saving dataset...");
-            ExportDatasetToCSV(datasetName);
-            Console.WriteLine("Saving datasets into structure for linear models...");
-            ExportDatasetToLinearModelCSVs(datasetName);
+            ExportDatasetToCSV(destinationPath);
 
             var sb = new StringBuilder();
-            sb.AppendLine($"DatasetName Name: {datasetName}");
+            sb.AppendLine($"DatasetName Name: {destinationPath}");
             sb.AppendLine($"Bot: {"MaltheMCTS"}");
             sb.AppendLine($"Number of Matchups: {numberOfMatchups}");
             sb.AppendLine($"Timeout: {timeout}");
@@ -137,14 +148,12 @@ namespace GameDataCollection
             //sb.AppendLine("MaltheMCTS Settings:");
             //sb.AppendLine(maltheMCTSSettings.ToString());
 
-            File.WriteAllText(datasetName + "/" + "details.txt", sb.ToString());
+            File.WriteAllText(location + "/" + "details.txt", sb.ToString());
 
-            Console.WriteLine("Dataset complete. Stored in folder: " + datasetName);
-
-
+            Console.WriteLine("Dataset complete. Stored in folder: " + destinationPath);
         }
 
-        private static void ExportDatasetToCSV(string datasetName)
+        private static void ExportDatasetToCSV(string destinationPath)
         {
             var sb = new StringBuilder();
 
@@ -194,31 +203,14 @@ namespace GameDataCollection
             }
 
             // Write to file
-            File.WriteAllText(datasetName + "/" + datasetName + ".csv", sb.ToString());
-        }
-
-        private static void ExportDatasetToLinearModelCSVs(string datasetName)
-        {
-            var earlyGame = FeatureSetToResultRates.Where(p => Math.Max(p.Key.CurrentPlayerPrestige, p.Key.OpponentPrestige) < 16).ToDictionary();
-            var midGame = FeatureSetToResultRates.Where(p => Math.Max(p.Key.CurrentPlayerPrestige, p.Key.OpponentPrestige) < 30 &&
-                                                                Math.Max(p.Key.CurrentPlayerPrestige, p.Key.OpponentPrestige) > 15
-                                                                ).ToDictionary();
-            var lateGame = FeatureSetToResultRates.Where(p => Math.Max(p.Key.CurrentPlayerPrestige, p.Key.OpponentPrestige) < 40 &&
-                                                                Math.Max(p.Key.CurrentPlayerPrestige, p.Key.OpponentPrestige) > 29
-                                                                ).ToDictionary();
-            var endGame = FeatureSetToResultRates.Where(p => Math.Max(p.Key.CurrentPlayerPrestige, p.Key.OpponentPrestige) > 39).ToDictionary();
-
-
-            var earlyCSVString = DatasetToLinearModelCSVString(earlyGame);
-            var midCSVString = DatasetToLinearModelCSVString(midGame);
-            var lateCSVString = DatasetToLinearModelCSVString(lateGame);
-            var endCSVString = DatasetToLinearModelCSVString(endGame);
-
-            Directory.CreateDirectory(datasetName + "/" + "for_linear");
-            File.WriteAllText(datasetName + "/" + "for_linear/" + "earlyGame.csv", earlyCSVString);
-            File.WriteAllText(datasetName + "/" + "for_linear/" + "midGame.csv", midCSVString);
-            File.WriteAllText(datasetName + "/" + "for_linear/" + "lateGame.csv", lateCSVString);
-            File.WriteAllText(datasetName + "/" + "for_linear/" + "endGame.csv", endCSVString);
+            if (!destinationPath.Contains(".csv"))
+            {
+                File.WriteAllText(destinationPath + "/" + destinationPath + ".csv", sb.ToString());
+            }
+            else
+            {
+                File.WriteAllText(destinationPath, sb.ToString());
+            }
         }
 
         private static string DatasetToLinearModelCSVString(Dictionary<GameStateFeatureSet, ResultRates> featureSetToResultRates)

@@ -1,10 +1,13 @@
 using System.Diagnostics;
 using BestMCTS3;
+using Microsoft.ML;
 using ScriptsOfTribute;
 using ScriptsOfTribute.AI;
 using ScriptsOfTribute.Board;
 using ScriptsOfTribute.Serializers;
+using SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring;
 using SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring.ModelEvaluation;
+using static SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring.ModelEvaluation.EnsembledTreeModelEvaluation;
 
 namespace MaltheMCTS;
 
@@ -12,6 +15,9 @@ public class MaltheMCTS : AI
 {
     public Dictionary<int, List<Node>> NodeGameStateHashMap = new Dictionary<int, List<Node>>();
     public Settings Settings { get; set; }
+    // Having this here only makes sense when competing MaltheMCTS aganist each other with different prediction Engines
+    // Consider refactoring it back to Utility when submitting agent
+    public PredictionEngine<GameStateFeatureSetCsvRow, ModelOutput> PredictionEngine;
 
     public string InstanceName;
 
@@ -19,6 +25,7 @@ public class MaltheMCTS : AI
     {
         this.InstanceName = instanceName ?? "MaltheMCTS_" + Guid.NewGuid();
         Settings = settings ?? new Settings(); // Hardcoded
+        PredictionEngine = EnsembledTreeModelEvaluation.GetPredictionEngine(Settings.FEATURE_SET_MODEL_TYPE);
     }
 
     // TODO initiate the static model class, so its not using time on the first turn
@@ -29,13 +36,13 @@ public class MaltheMCTS : AI
     {
         InstanceName = "MaltheMCTS_" + Guid.NewGuid();
         Settings = new Settings(); // Hardcoded
+        PredictionEngine = EnsembledTreeModelEvaluation.GetPredictionEngine(Settings.FEATURE_SET_MODEL_TYPE);
     }
 
     public override void PregamePrepare()
     {
         Utility.CategorizeCards();
         NodeGameStateHashMap = new Dictionary<int, List<Node>>();
-        EnsembledTreeModelEvaluation.LoadModel(Settings.FEATURE_SET_MODEL_TYPE);
     }
 
     public override void GameEnd(EndGameState state, FullGameState? finalBoardState)

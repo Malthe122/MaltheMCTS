@@ -25,14 +25,11 @@ public class MaltheMCTS_ : MaltheMCTS.MaltheMCTS
         Settings = settings ?? new Settings(); // Hardcoded
     }
 
-    // TODO initiate the static model class, so its not using time on the first turn
     /// <summary>
     /// Explicitly parameterless constructor is needed for SoT framework
     /// </summary>
     public MaltheMCTS_() : base()
     {
-        InstanceName = "MaltheMCTS_" + Guid.NewGuid();
-        Settings = new Settings(); // Hardcoded
     }
 
     public override void PregamePrepare()
