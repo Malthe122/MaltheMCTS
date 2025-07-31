@@ -80,6 +80,8 @@ namespace IterativeSelfPlayTrainer
 
         private static void IterativelyBuildModel(int matchupsPerIteration, int numberOfBenchmarkMatchupsOption, int iterationCount, int timeout, string resultModelName, string? MaltheMCTSSettingsFile)
         {
+            Directory.CreateDirectory(resultModelName);
+
             string basePath = resultModelName;
 
             Settings settings;
@@ -96,7 +98,7 @@ namespace IterativeSelfPlayTrainer
 
             Console.WriteLine("Starting iteration 0...");
             // For iteration 0 where we have no gamedata to train an initial model from
-            settings.CHOSEN_SCORING_METHOD = ScoringMethod.BestMCTS3Heuristic;
+            settings.CHOSEN_SCORING_METHOD = ScoringMethod.Rollout;
             string iteration0DataPath = basePath + "/0" + "/data.csv";
             string iteration0ModelPath = basePath + "/0" + "/model";
             HideLogsFromConsole(0, resultModelName);
@@ -154,7 +156,7 @@ namespace IterativeSelfPlayTrainer
 
         private static void HideLogsFromConsole(int iteration, string modelPath)
         {
-            var writer = new StreamWriter(modelPath + "Game_Logs.txt", append: true) { AutoFlush = true };
+            var writer = new StreamWriter(modelPath + "/Library_Logs.txt", append: true) { AutoFlush = true };
             Console.SetOut(writer);
             Console.WriteLine("----------Game logs for iteration " + iteration + "----------");
             AppDomain.CurrentDomain.ProcessExit += (_, __) => writer.Dispose();

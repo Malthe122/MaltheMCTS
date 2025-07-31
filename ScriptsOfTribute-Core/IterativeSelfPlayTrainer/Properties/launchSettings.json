@@ -2,7 +2,7 @@
   "profiles": {
     "IterativeSelfPlayTrainer": {
       "commandName": "Project",
-      "commandLineArgs": "-n 1 -nb 1 -i 20 -to 1 -mn quickFirstTest_0"
+      "commandLineArgs": "-n 1 -nb 1 -i 20 -to 1 -mn quickFirstTest_10\r\n"
     }
   }
 }

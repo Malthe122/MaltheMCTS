@@ -17,10 +17,6 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
     /// </summary>
     public struct GameStateFeatureSet
     {
-        public int Patron_1 { get; set; }
-        public int Patron_2 { get; set; }
-        public int Patron_3 { get; set; }
-        public int Patron_4 { get; set; }
         public int CurrentPlayerPrestige { get; set; }
         public double CurrentPlayerDeck_PrestigeStrength { get; set; }
         public double CurrentPlayerDeck_PowerStrength { get; set; }
@@ -48,10 +44,6 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
         {
             return new GameStateFeatureSetCsvRow
             {
-                Patron_1 = (float)Patron_1,
-                Patron_2 = (float)Patron_2,
-                Patron_3 = (float)Patron_3,
-                Patron_4 = (float)Patron_4,
                 CurrentPlayerPrestige = (float)CurrentPlayerPrestige,
                 CurrentPlayerDeck_PrestigeStrength = (float)CurrentPlayerDeck_PrestigeStrength,
                 CurrentPlayerDeck_PowerStrength = (float)CurrentPlayerDeck_PowerStrength,
@@ -139,10 +131,6 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
 
             var featureSet = new GameStateFeatureSet()
             {
-                Patron_1 = (int)patrons[0],
-                Patron_2 = (int)patrons[1],
-                Patron_3 = (int)patrons[2],
-                Patron_4 = (int)patrons[3],
                 CurrentPlayerPrestige = currentPlayerPrestige,
                 CurrentPlayerDeck_PrestigeStrength = currentPlayerDeckStrengths.PrestigeStrength,
                 CurrentPlayerDeck_PowerStrength = currentPlayerDeckStrengths.PowerStrength,

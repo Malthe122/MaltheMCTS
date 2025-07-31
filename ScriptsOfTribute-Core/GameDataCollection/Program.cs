@@ -157,12 +157,11 @@ namespace GameDataCollection
         {
             var sb = new StringBuilder();
 
-            // Headers (Excluding agent prestige strength from both players in the data, as no agent is the current decks has that effect)
-            sb.AppendLine("Patron_1;Patron_2;Patron_3;Patron_4;" +
+            sb.AppendLine(
                           "CurrentPlayerPrestige;CurrentPlayerDeck_PrestigeStrength;CurrentPlayerDeck_PowerStrength;CurrentPlayerDeck_GoldStrength;CurrentPlayerDeck_MiscStrength;" +
-                          "CurrentPlayerDeckComboProportion;CurrentPlayerAgent_PowerStrength;CurrentPlayerAgent_GoldStrength;CurrentPlayerAgent_MiscStrength;" +
+                          "CurrentPlayerDeckComboProportion;CurrentPlayerAgent_PrestigeStrength;CurrentPlayerAgent_PowerStrength;CurrentPlayerAgent_GoldStrength;CurrentPlayerAgent_MiscStrength;" +
                           "CurrentPlayerPatronFavour;OpponentPrestige;OpponentDeck_PrestigeStrength;OpponentDeck_PowerStrength;OpponentDeck_GoldStrength;OpponentDeck_MiscStrength;" +
-                          "OpponentAgent_PowerStrength;OpponentAgent_GoldStrength;OpponentAgent_MiscStrength;OpponentPatronFavour;WinProbability");
+                          "OpponentAgent_PrestigeStrength;OpponentAgent_PowerStrength;OpponentAgent_GoldStrength;OpponentAgent_MiscStrength;OpponentPatronFavour;WinProbability");
 
             foreach (var entry in FeatureSetToResultRates)
             {
@@ -212,72 +211,18 @@ namespace GameDataCollection
                 File.WriteAllText(destinationPath, sb.ToString());
             }
         }
-
-        private static string DatasetToLinearModelCSVString(Dictionary<GameStateFeatureSet, ResultRates> featureSetToResultRates)
-        {
-            var sb = new StringBuilder();
-
-            // Headers (Excluding agent prestige strength from both players in the data, as no agent is the current decks has that effect)
-            sb.AppendLine(
-                          "CurrentPlayerPrestige;CurrentPlayerDeck_PrestigeStrength;CurrentPlayerDeck_PowerStrength;CurrentPlayerDeck_GoldStrength;CurrentPlayerDeck_MiscStrength;" +
-                          "CurrentPlayerDeckComboProportion;CurrentPlayerAgent_PowerStrength;CurrentPlayerAgent_GoldStrength;CurrentPlayerAgent_MiscStrength;" +
-                          "CurrentPlayerPatronFavour_0;CurrentPlayerPatronFavour_1;CurrentPlayerPatronFavour_2;CurrentPlayerPatronFavour_3;" +
-                          "OpponentPrestige;OpponentDeck_PrestigeStrength;OpponentDeck_PowerStrength;OpponentDeck_GoldStrength;OpponentDeck_MiscStrength;" +
-                          "OpponentAgent_PowerStrength;OpponentAgent_GoldStrength;OpponentAgent_MiscStrength;" +
-                          "OpponentPatronFavour_0;OpponentPatronFavour_1;OpponentPatronFavour_2;OpponentPatronFavour_3;" +
-                          "WinProbability");
-
-            foreach (var entry in featureSetToResultRates)
-            {
-                var featureSet = entry.Key;
-                var results = entry.Value;
-
-                for (int i = 0; i < results.Looses; i++)
-                {
-                    AddLinearModelDataRow(sb, featureSet, 0);
-                }
-
-                for (int i = 0; i < results.Draws; i++)
-                {
-                    AddLinearModelDataRow(sb, featureSet, 0.5);
-                }
-
-                for (int i = 0; i < results.Wins; i++)
-                {
-                    AddLinearModelDataRow(sb, featureSet, 1);
-                }
-            }
-
-            return sb.ToString();
-        }
-
         private static void AddDataRow(StringBuilder sb, GameStateFeatureSet featureSet, double winProbability)
         {
-            sb.AppendLine($"{featureSet.Patron_1};{featureSet.Patron_2};{featureSet.Patron_3};{featureSet.Patron_4};" +
+            sb.AppendLine(
               $"{featureSet.CurrentPlayerPrestige};" +
               $"{featureSet.CurrentPlayerDeck_PrestigeStrength};{featureSet.CurrentPlayerDeck_PowerStrength};{featureSet.CurrentPlayerDeck_GoldStrength};{featureSet.CurrentPlayerDeck_MiscStrength};" +
               $"{featureSet.CurrentPlayerDeckComboProportion};" +
-              $"{featureSet.CurrentPlayerAgent_PowerStrength};{featureSet.CurrentPlayerAgent_GoldStrength};{featureSet.CurrentPlayerAgent_MiscStrength};" +
+              $"{featureSet.CurrentPlayerAgent_PrestigeStrength};{featureSet.CurrentPlayerAgent_PowerStrength};{featureSet.CurrentPlayerAgent_GoldStrength};{featureSet.CurrentPlayerAgent_MiscStrength};" +
               $"{featureSet.CurrentPlayerPatronFavour};" +
               $"{featureSet.OpponentPrestige};" +
               $"{featureSet.OpponentDeck_PrestigeStrength};{featureSet.OpponentDeck_PowerStrength};{featureSet.OpponentDeck_GoldStrength};{featureSet.OpponentDeck_MiscStrength};" +
-              $"{featureSet.OpponentAgent_PowerStrength};{featureSet.OpponentAgent_GoldStrength};{featureSet.OpponentAgent_MiscStrength};" +
+              $"{featureSet.OpponentAgent_PrestigeStrength};{featureSet.OpponentAgent_PowerStrength};{featureSet.OpponentAgent_GoldStrength};{featureSet.OpponentAgent_MiscStrength};" +
               $"{featureSet.OpponentPatronFavour};" +
-              $"{winProbability}");
-        }
-
-        private static void AddLinearModelDataRow(StringBuilder sb, GameStateFeatureSet featureSet, double winProbability)
-        {
-            sb.AppendLine(
-              $"{featureSet.CurrentPlayerPrestige};" +
-              $"{featureSet.CurrentPlayerDeck_PrestigeStrength};{featureSet.CurrentPlayerDeck_PowerStrength};{featureSet.CurrentPlayerDeck_GoldStrength};{featureSet.CurrentPlayerDeck_MiscStrength};" +
-              $"{featureSet.CurrentPlayerDeckComboProportion};" +
-              $"{featureSet.CurrentPlayerAgent_PowerStrength};{featureSet.CurrentPlayerAgent_GoldStrength};{featureSet.CurrentPlayerAgent_MiscStrength};" +
-              $"{(featureSet.CurrentPlayerPatronFavour == 0 ? 1 : 0)};{(featureSet.CurrentPlayerPatronFavour == 1 ? 1 : 0)};{(featureSet.CurrentPlayerPatronFavour == 2 ? 1 : 0)};{(featureSet.CurrentPlayerPatronFavour == 3 ? 1 : 0)};" +
-              $"{featureSet.OpponentPrestige};" +
-              $"{featureSet.OpponentDeck_PrestigeStrength};{featureSet.OpponentDeck_PowerStrength};{featureSet.OpponentDeck_GoldStrength};{featureSet.OpponentDeck_MiscStrength};" +
-              $"{featureSet.OpponentAgent_PowerStrength};{featureSet.OpponentAgent_GoldStrength};{featureSet.OpponentAgent_MiscStrength};" +
-              $"{(featureSet.OpponentPatronFavour == 0 ? 1 : 0)};{(featureSet.OpponentPatronFavour == 1 ? 1 : 0)};{(featureSet.OpponentPatronFavour == 2 ? 1 : 0)};{(featureSet.OpponentPatronFavour == 3 ? 1 : 0)};" +
               $"{winProbability}");
         }
 

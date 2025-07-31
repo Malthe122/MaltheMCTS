@@ -85,23 +85,23 @@ namespace EnsembleTreeModelBuilder
             {
                 if (modelType == null)
                 {
-                    rSquaredScore = RunIndividualExperiementsPerETMModel(experiementFolder, experiementTime, mlContext, fullData, trainData, testData);
+                    rSquaredScore = RunIndividualExperiementsPerETMModel(experiementFolder, mlContext, fullData, trainData, testData);
                 }
                 else
                 {
                     switch (modelType)
                     {
                         case RegressionTrainer.FastForest:
-                            rSquaredScore = RunIndividualExperiement(experiementFolder, experiementTime, mlContext, fullData, trainData, testData, RegressionTrainer.FastForest);
+                            rSquaredScore = RunIndividualExperiement(experiementFolder, mlContext, fullData, trainData, testData, RegressionTrainer.FastForest);
                             break;
                         case RegressionTrainer.FastTree:
-                            rSquaredScore = RunIndividualExperiement(experiementFolder, experiementTime, mlContext, fullData, trainData, testData, RegressionTrainer.FastTree);
+                            rSquaredScore = RunIndividualExperiement(experiementFolder, mlContext, fullData, trainData, testData, RegressionTrainer.FastTree);
                             break;
                         case RegressionTrainer.FastTreeTweedie:
-                            rSquaredScore = RunIndividualExperiement(experiementFolder, experiementTime, mlContext, fullData, trainData, testData, RegressionTrainer.FastTreeTweedie);
+                            rSquaredScore = RunIndividualExperiement(experiementFolder, mlContext, fullData, trainData, testData, RegressionTrainer.FastTreeTweedie);
                             break;
                         case RegressionTrainer.LightGbm:
-                            rSquaredScore = RunIndividualExperiement(experiementFolder, experiementTime, mlContext, fullData, trainData, testData, RegressionTrainer.LightGbm);
+                            rSquaredScore = RunIndividualExperiement(experiementFolder, mlContext, fullData, trainData, testData, RegressionTrainer.LightGbm);
                             break;
                         default:
                             throw new ArgumentException("Unexpected modeltype: " + modelType);
@@ -116,26 +116,26 @@ namespace EnsembleTreeModelBuilder
             return rSquaredScore;
         }
 
-        private static double RunIndividualExperiementsPerETMModel(string modelName, uint experiementTime, MLContext mlContext, IDataView fullData, IDataView trainData, IDataView testData)
+        private static double RunIndividualExperiementsPerETMModel(string modelName, MLContext mlContext, IDataView fullData, IDataView trainData, IDataView testData)
         {
             double bestRSquaredScore = double.MinValue;
 
-            var ffScore = RunIndividualExperiement(modelName, experiementTime, mlContext, fullData, trainData, testData, RegressionTrainer.FastForest);
+            var ffScore = RunIndividualExperiement(modelName, mlContext, fullData, trainData, testData, RegressionTrainer.FastForest);
             if (ffScore > bestRSquaredScore)
             {
                 bestRSquaredScore = ffScore;
             }
-            var ftScore = RunIndividualExperiement(modelName, experiementTime, mlContext, fullData, trainData, testData, RegressionTrainer.FastTree);
+            var ftScore = RunIndividualExperiement(modelName, mlContext, fullData, trainData, testData, RegressionTrainer.FastTree);
             if (ftScore > bestRSquaredScore)
             {
                 bestRSquaredScore = ftScore;
             }
-            var fttScore = RunIndividualExperiement(modelName, experiementTime, mlContext, fullData, trainData, testData, RegressionTrainer.FastTreeTweedie);
+            var fttScore = RunIndividualExperiement(modelName, mlContext, fullData, trainData, testData, RegressionTrainer.FastTreeTweedie);
             if (fttScore < bestRSquaredScore)
             {
                 bestRSquaredScore = fttScore;
             }
-            var lgbmScore = RunIndividualExperiement(modelName, experiementTime, mlContext, fullData, trainData, testData, RegressionTrainer.LightGbm);
+            var lgbmScore = RunIndividualExperiement(modelName, mlContext, fullData, trainData, testData, RegressionTrainer.LightGbm);
             if (lgbmScore > bestRSquaredScore)
             {
                 bestRSquaredScore = lgbmScore;
@@ -146,7 +146,7 @@ namespace EnsembleTreeModelBuilder
 
         /// <returns>R^2 score of model</returns>
         /// <exception cref="NotSupportedException"></exception>
-        private static double RunIndividualExperiement(string experiementFolderName, uint experiementTime, MLContext mlContext, IDataView fullData, IDataView trainData, IDataView testData, RegressionTrainer modelType)
+        private static double RunIndividualExperiement(string experiementFolderName, MLContext mlContext, IDataView fullData, IDataView trainData, IDataView testData, RegressionTrainer modelType)
         {
             var treesPerModel = 100;
             var depthPerTree = 6;
