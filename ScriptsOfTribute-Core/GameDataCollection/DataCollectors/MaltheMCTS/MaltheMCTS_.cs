@@ -36,8 +36,6 @@ public class MaltheMCTS_ : MaltheMCTS.MaltheMCTS
     {
         MaltheMCTS.Utility.CategorizeCards();
         NodeGameStateHashMap = new Dictionary<int, List<Node>>();
-        EnsembledTreeModelEvaluation.LoadModel(Settings.FEATURE_SET_MODEL_TYPE);
-
         GameStateFeatureSetsFromMatch = new List<GameStateFeatureSet>();
     }
 

@@ -6,6 +6,7 @@ using SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring;
 using SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring.ModelEvaluation;
 using System;
 using System.CommandLine;
+using System.Globalization;
 using static SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring.ModelEvaluation.EnsembledTreeModelEvaluation;
 
 namespace IterativeSelfPlayTrainer
@@ -15,6 +16,16 @@ namespace IterativeSelfPlayTrainer
         private static TextWriter LOG_OUTPUT = Console.Out;
         static async Task Main(string[] args)
         {
+            // ML.Net had problems readings csv on system with danish culture, no matter whether they were formatted as danish or english
+            // so before starting this, i change the culture to english
+            var culture = CultureInfo.CreateSpecificCulture("en-US");
+            culture.NumberFormat.NumberDecimalSeparator = ".";
+
+            CultureInfo.DefaultThreadCurrentCulture = culture;
+            CultureInfo.DefaultThreadCurrentUICulture = culture;
+            Thread.CurrentThread.CurrentCulture = culture;
+            Thread.CurrentThread.CurrentUICulture = culture;
+
             var numberOfMatchupsOption = new Option<int>(
                 aliases: new[] { "--number-of-matches", "-n" },
                 description: "Number of matches per iteration"
@@ -95,10 +106,12 @@ namespace IterativeSelfPlayTrainer
                 settings = new Settings();
                 Console.WriteLine("Using default settings");
             }
+            var originalBotBuffer = settings.ITERATION_COMPLETION_MILLISECONDS_BUFFER;
 
             Console.WriteLine("Starting iteration 0...");
             // For iteration 0 where we have no gamedata to train an initial model from
             settings.CHOSEN_SCORING_METHOD = ScoringMethod.Rollout;
+            settings.ITERATION_COMPLETION_MILLISECONDS_BUFFER = 500;
             string iteration0DataPath = basePath + "/0" + "/data.csv";
             string iteration0ModelPath = basePath + "/0" + "/model";
             HideLogsFromConsole(0, resultModelName);
@@ -108,23 +121,23 @@ namespace IterativeSelfPlayTrainer
             ApplyModel(iteration0ModelPath, settings.FEATURE_SET_MODEL_TYPE!.Value, iteration0RsquareScore);
             Console.WriteLine("Iteration 0 completed");
 
-            // Resets to the correct scoring method for the remaining iterations
+            // Resets settings to original after having created some initial data
             settings.CHOSEN_SCORING_METHOD = ScoringMethod.ModelScoring;
+            settings.ITERATION_COMPLETION_MILLISECONDS_BUFFER = originalBotBuffer;
 
             var bestBot = new MaltheMCTS.MaltheMCTS("iteration-0-MaltheMCTS", settings);
-            bestBot.PredictionEngine = GetModel(0, iteration0ModelPath);
-            var newBot = new MaltheMCTS.MaltheMCTS("placeholder", settings);
+            bestBot.PredictionEngine = GetModel(iteration0ModelPath, settings.FEATURE_SET_MODEL_TYPE!.Value);
 
             for (int i = 1; i < iterationCount; i++)
             {
                 Console.WriteLine("Starting iteration " + i + "...");
                 HideLogsFromConsole(i, resultModelName);
-                string dataPath = basePath + "/" + i + "/data";
+                string dataPath = basePath + "/" + i + "/data.csv";
                 string modelPath = basePath + "/" + i + "/model";
                 GameDataCollection.Program.CollectMaltheMCTSData(matchupsPerIteration, timeout, dataPath, settings);
                 var iterationRsquareScore = EnsembleTreeModelBuilder.Program.TrainModel(dataPath, modelPath, Int32.MaxValue, true, settings.FEATURE_SET_MODEL_TYPE);
-                var iterationModel = GetModel(i, modelPath);
-                newBot.InstanceName = "iteration-" + i + "-bot";
+                var iterationModel = GetModel(modelPath, settings.FEATURE_SET_MODEL_TYPE!.Value);
+                var newBot = new MaltheMCTS.MaltheMCTS(instanceName: "iteration-" + i + "-bot", settings);
                 newBot.PredictionEngine = iterationModel;
                 var benchmarkResult = MaltheMCTSSettingsBenchmarking.Program.PlayMatches(new List<MaltheMCTS.MaltheMCTS>() { bestBot, newBot }, numberOfBenchmarkMatchupsOption, timeout);
                 EnableConsoleLog();
@@ -134,6 +147,9 @@ namespace IterativeSelfPlayTrainer
                     ApplyModel(modelPath, settings.FEATURE_SET_MODEL_TYPE!.Value, iterationRsquareScore);
                 }
                 Console.WriteLine("Iteration " + i + " completed");
+
+                //Hardcoded quickfix, should be added as argument. I want more games through later generations
+                matchupsPerIteration += 5;
             }
 
             return;
@@ -147,10 +163,13 @@ namespace IterativeSelfPlayTrainer
             var defendingBotResult = benchmarkResult[defendingBot];
             var newBotResult = benchmarkResult[newBot];
 
-            Console.WriteLine(defendingBot.InstanceName + ": " + defendingBotResult[newBot] + " wins");
-            Console.WriteLine(newBot.InstanceName + ": " + newBotResult[defendingBot] + " wins");
+            var defendingWins = (defendingBotResult.ContainsKey(newBot) ? defendingBotResult[newBot] : 0);
+            var newWins = (newBotResult.ContainsKey(defendingBot) ? newBotResult[defendingBot] : 0);
 
-            return newBotResult[defendingBot] >= defendingBotResult[newBot];
+            Console.WriteLine(defendingBot.InstanceName + ": " + defendingWins + " wins");
+            Console.WriteLine(newBot.InstanceName + ": " + newWins + " wins");
+
+            return newWins >= defendingWins;
         }
 
 
@@ -170,13 +189,13 @@ namespace IterativeSelfPlayTrainer
         private static void ApplyModel(string folderPath, RegressionTrainer modelType, double rSquaredScore)
         {
             Console.WriteLine("Applied new model from " + folderPath + " with R^2 score: " + rSquaredScore);
-            string sourceFile = Directory.GetFiles(folderPath).First();
+            string sourceFile = folderPath + "/" + modelType + "_model";
             File.Copy(sourceFile, "MaltheMCTS/Ensemble_Tree_Models/" + modelType, overwrite: true);
         }
 
-        private static PredictionEngine<GameStateFeatureSetCsvRow, ModelOutput> GetModel(int iteration, string basePath)
+        private static PredictionEngine<GameStateFeatureSetCsvRow, ModelOutput> GetModel(string path, RegressionTrainer modelType)
         {
-            return EnsembledTreeModelEvaluation.GetPredictionEngine(basePath + "/" + iteration + "/model");
+            return EnsembledTreeModelEvaluation.GetPredictionEngine(path, modelType);
         }
     }
 }

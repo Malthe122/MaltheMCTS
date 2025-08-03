@@ -204,7 +204,7 @@ namespace GameDataCollection
             // Write to file
             if (!destinationPath.Contains(".csv"))
             {
-                File.WriteAllText(destinationPath + "/" + destinationPath + ".csv", sb.ToString());
+                File.WriteAllText(destinationPath + ".csv", sb.ToString());
             }
             else
             {

@@ -146,7 +146,7 @@ public class Node
                 return RolloutTillTurnsEndThenHeuristic(Bot.Settings.ROLLOUT_TURNS_BEFORE_HEURISTIC);
             case ScoringMethod.ModelScoring:
                 var gameState = RollOutTillEndOfTurn();
-                return HeuristicScoring.Score(gameState, Bot.Settings.FEATURE_SET_MODEL_TYPE);
+                return HeuristicScoring.Score(gameState, Bot.PredictionEngine);
             default:
                 throw new NotImplementedException("Tried to applied non-implemented scoring method: " + Bot.Settings.CHOSEN_SCORING_METHOD);
         }
@@ -157,7 +157,7 @@ public class Node
         var rolloutPossibleMoves = PossibleMoves.ToList();
         var gameState = GameState;
 
-        while(gameState.GameEndState != null && (rolloutPossibleMoves.Count > 1 || rolloutPossibleMoves[0].Command != CommandEnum.END_TURN))
+        while (gameState.GameEndState != null && (rolloutPossibleMoves.Count > 1 || rolloutPossibleMoves[0].Command != CommandEnum.END_TURN))
         {
             if (Bot.Settings.FORCE_DELAY_TURN_END_IN_ROLLOUT)
             {
@@ -167,7 +167,7 @@ public class Node
             var chosenIndex = Utility.Rng.Next(rolloutPossibleMoves.Count);
             var randomMove = rolloutPossibleMoves[chosenIndex];
 
-            if(randomMove.Command == CommandEnum.END_TURN)
+            if (randomMove.Command == CommandEnum.END_TURN)
             {
                 return gameState;
             }
@@ -240,6 +240,10 @@ public class Node
                 }
             }
             var chosenIndex = Utility.Rng.Next(rolloutPossibleMoves.Count);
+            if (rolloutPossibleMoves.Count == 0)
+            {
+                Console.WriteLine("wait a minute");
+            }
             var moveToMake = rolloutPossibleMoves[chosenIndex];
 
             var (newGameState, newPossibleMoves) = rolloutGameState.ApplyMove(moveToMake);
@@ -331,7 +335,17 @@ public class Node
     {
         var sourceCard = GameState.CompletedActions?.Last().SourceCard?.CommonId;
 
+        if (PossibleMoves.Count == 0)
+        {
+            Console.WriteLine("wait a minute1");
+        }
+
         PossibleMoves = Utility.RemoveDuplicateMoves(PossibleMoves);
+
+        if (PossibleMoves.Count == 0)
+        {
+            Console.WriteLine("wait a minute2");
+        }
 
         #region additionalFiltering
         if (Bot.Settings.ADDITIONAL_MOVE_FILTERING)
@@ -396,9 +410,14 @@ public class Node
         }
         #endregion
 
+        if (PossibleMoves.Count == 0)
+        {
+            Console.WriteLine("wait a minute3");
+        }
+
         if (Bot.Settings.CHOICE_BRANCH_LIMIT != null && PossibleMoves.Count > Bot.Settings.CHOICE_BRANCH_LIMIT)
         {
-            
+
             switch (GameState.BoardState)
             {
                 case ScriptsOfTribute.Board.CardAction.BoardState.CHOICE_PENDING:
@@ -413,7 +432,8 @@ public class Node
                                 CardsInTavernRanked = Utility.RankCardsInGameState(GameState, GameState.TavernAvailableCards);
                             }
                             // Aquire in this patch, always is a maximum of 1 card
-                            var maxPrice = PossibleMoves.Max(m => {
+                            var maxPrice = PossibleMoves.Max(m =>
+                            {
                                 var move = (MakeChoiceMoveUniqueCard)m;
                                 return move.Choices.Count > 0 ? move.Choices[0].Cost : 0;
                             });
@@ -450,7 +470,7 @@ public class Node
                                 CardsInHandRanked = Utility.RankCardsInGameState(GameState, GameState.CurrentPlayer.Hand.ToList());
                             }
                             var bottumHandCards = CardsInHandRanked.TakeLast(Bot.Settings.CHOICE_BRANCH_LIMIT!.Value).ToList();
-                            PossibleMoves = PossibleMoves.Where(m => 
+                            PossibleMoves = PossibleMoves.Where(m =>
                                     bottumHandCards.Any(c => (m as MakeChoiceMoveUniqueCard).Choices[0].CommonId == c.CommonId))
                                 .ToList();
                             break;
@@ -517,7 +537,7 @@ public class Node
                                 CardsInHandRanked = Utility.RankCardsInGameState(GameState, GameState.CurrentPlayer.Hand);
                             }
                             var worstCards = CardsInHandRanked.TakeLast(Bot.Settings.CHOICE_BRANCH_LIMIT!.Value);
-                            PossibleMoves = PossibleMoves.Where(m => 
+                            PossibleMoves = PossibleMoves.Where(m =>
                                     worstCards.Any(c => (m as MakeChoiceMoveUniqueCard).Choices[0].CommonId == c.CommonId))
                                 .ToList();
                             break;
@@ -526,61 +546,87 @@ public class Node
                             break;
                     }
                     break;
-                // Complete treasury seems to be a patron choice, so not sure that the complete treasury enum value is for
                 case ScriptsOfTribute.Board.CardAction.BoardState.PATRON_CHOICE_PENDING:
-                    if (CardsPlayedRanked == null) // In SoT, the destroy also allows to destroy from hand, but to assist bot, i exclude this, cause its almost best to play the card first
+                    var listAtThisPoint = PossibleMoves.ToList();
+                    if (CardsPlayedRanked == null)
                     {
                         CardsPlayedRanked = Utility.RankCardsInGameState(GameState, GameState.CurrentPlayer.Played);
                     }
-                    // Treasury is just a single destroy
-                    var bottumPlayedCards = CardsPlayedRanked.TakeLast(Bot.Settings.CHOICE_BRANCH_LIMIT!.Value - 1);
-                    PossibleMoves = PossibleMoves.Where(m =>
-                    bottumPlayedCards.Any(c => (m as MakeChoiceMoveUniqueCard).Choices[0].CommonId == c.CommonId)
-                    || (m as MakeChoiceMoveUniqueCard).Choices.Count == 0)
-                    .ToList();
+                    // In SoT, the destroy also allows to destroy from hand, but to assist bot, i exclude this, cause its almost always best to play the card first
+                    // Atm Patron choice is only a single selection, so thats why i just use index [0] on choices
+                    var destroyableCards = PossibleMoves.Where(m => GameState.CurrentPlayer.Played.Any(c => c.CommonId == (m as MakeChoiceMoveUniqueCard).Choices[0].CommonId))
+                            .Select(m => (m as MakeChoiceMoveUniqueCard).Choices[0].CommonId).ToList();
+
+                    var bottumDestroyAble = CardsPlayedRanked.Where(c => destroyableCards.Contains(c.CommonId)).Select(c => c.CommonId).ToList();
+                    PossibleMoves = PossibleMoves.Where(
+                        m =>
+                        {
+                            return
+                            bottumDestroyAble.Contains((m as MakeChoiceMoveUniqueCard).Choices[0].CommonId)
+                            ||
+                            (m as MakeChoiceMoveUniqueCard).Choices.Count == 0;
+                        }
+                    ).ToList();
+                    if (PossibleMoves.Count == 0)
+                    {
+                        // This is because for in SoT (unlike ToT) you can use the Hlaalu effect even with no eligible cards in play, but only in hand
+                        // And since i only look at played cards, it might be that none of them are eligible. In this edge case, i just do no filtering
+                        PossibleMoves = listAtThisPoint; 
+                    }
                     break;
-            }
         }
-        PossibleMoves = Utility.RemoveDuplicateMoves(PossibleMoves);
+    }
+
+        if (PossibleMoves.Count == 0)
+        {
+            Console.WriteLine("wait a minute4");
+        }
+
+PossibleMoves = Utility.RemoveDuplicateMoves(PossibleMoves);
+
+        if (PossibleMoves.Count == 0)
+        {
+            Console.WriteLine("wait a minute5");
+        }
     }
 
     private void SetBewildermentGoldChoiceMoves(IEnumerable<UniqueCard> cardPool)
+{
+    int maxAmount = PossibleMoves.Max(m => (m as MakeChoiceMoveUniqueCard).Choices.Count);
+    var bewilderments = cardPool.Count(c => c.CommonId == CardId.BEWILDERMENT);
+    if (bewilderments > 0)
     {
-        int maxAmount = PossibleMoves.Max(m => (m as MakeChoiceMoveUniqueCard).Choices.Count);
-        var bewilderments = cardPool.Count(c => c.CommonId == CardId.BEWILDERMENT);
-        if (bewilderments > 0)
+        if (bewilderments >= maxAmount)
         {
-            if (bewilderments >= maxAmount)
-            {
-                PossibleMoves.RemoveAll(m => !(m as MakeChoiceMoveUniqueCard).Choices.All(m => m.CommonId == CardId.BEWILDERMENT));
-            }
-            else
-            {
-                PossibleMoves.RemoveAll(m => !(m as MakeChoiceMoveUniqueCard).Choices.Any(m => m.CommonId == CardId.BEWILDERMENT));
-            }
+            PossibleMoves.RemoveAll(m => !(m as MakeChoiceMoveUniqueCard).Choices.All(m => m.CommonId == CardId.BEWILDERMENT));
         }
-
-        int remainingAmount = maxAmount - bewilderments;
-
-        if (remainingAmount > 0)
+        else
         {
-            var gold = cardPool.Count(c => c.CommonId == CardId.GOLD);
-            if (gold > 0)
-            {
-                PossibleMoves.RemoveAll(m => !(m as MakeChoiceMoveUniqueCard).Choices.Any(c => c.CommonId == CardId.GOLD));
-            }
+            PossibleMoves.RemoveAll(m => !(m as MakeChoiceMoveUniqueCard).Choices.Any(m => m.CommonId == CardId.BEWILDERMENT));
         }
     }
 
-    public class Edge
-    {
-        public Node Child;
-        public int VisitCount;
+    int remainingAmount = maxAmount - bewilderments;
 
-        public Edge(Node child, int visitCount)
+    if (remainingAmount > 0)
+    {
+        var gold = cardPool.Count(c => c.CommonId == CardId.GOLD);
+        if (gold > 0)
         {
-            Child = child;
-            VisitCount = visitCount;
+            PossibleMoves.RemoveAll(m => !(m as MakeChoiceMoveUniqueCard).Choices.Any(c => c.CommonId == CardId.GOLD));
         }
     }
+}
+
+public class Edge
+{
+    public Node Child;
+    public int VisitCount;
+
+    public Edge(Node child, int visitCount)
+    {
+        Child = child;
+        VisitCount = visitCount;
+    }
+}
 }

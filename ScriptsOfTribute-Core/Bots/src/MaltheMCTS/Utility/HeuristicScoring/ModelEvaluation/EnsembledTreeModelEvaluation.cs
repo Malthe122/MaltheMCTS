@@ -30,17 +30,6 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring.ModelEvaluation
         //    };
         //}
 
-        public static void LoadModel(RegressionTrainer? modelType)
-        {
-
-
-        }
-        public static float GetWinProbability(GameStateFeatureSetCsvRow row, RegressionTrainer modelType)
-        {
-            var predictionEngine = predictionEngines[modelType];
-            return predictionEngine.Predict(row).WinProbability;
-        }
-
         public static PredictionEngine<GameStateFeatureSetCsvRow, ModelOutput>? GetPredictionEngine(RegressionTrainer? modelType)
         {
             if (modelType == null)
@@ -61,14 +50,17 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring.ModelEvaluation
                 case RegressionTrainer.FastTreeTweedie:
                     var fastTreeTweedieModel = mlContext.Model.Load(basePath + "FastTreeTweedie", out var _);
                     return mlContext.Model.CreatePredictionEngine<GameStateFeatureSetCsvRow, ModelOutput>(fastTreeTweedieModel);
+                case RegressionTrainer.LightGbm:
+                    var lightGbmModel = mlContext.Model.Load(basePath + "LightGbm", out var _);
+                    return mlContext.Model.CreatePredictionEngine<GameStateFeatureSetCsvRow, ModelOutput>(lightGbmModel);
                 default:
                     throw new ArgumentException("Unexpected model type: " + modelType);
             }
         }
 
-        public static PredictionEngine<GameStateFeatureSetCsvRow, ModelOutput>? GetPredictionEngine(string modelPath)
+        public static PredictionEngine<GameStateFeatureSetCsvRow, ModelOutput>? GetPredictionEngine(string modelPath, RegressionTrainer modeltype)
         {
-            var model = mlContext.Model.Load(modelPath, out var _);
+            var model = mlContext.Model.Load(modelPath + "/" + modeltype + "_model", out var _);
             return mlContext.Model.CreatePredictionEngine<GameStateFeatureSetCsvRow, ModelOutput>(model);
         }
 

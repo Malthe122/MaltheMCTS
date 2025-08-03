@@ -1,4 +1,5 @@
 ﻿using EnsembleTreeModelBuilder;
+using Microsoft.ML;
 using Microsoft.ML.AutoML;
 using ScriptsOfTribute;
 using ScriptsOfTribute.Board.Cards;
@@ -9,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring.ModelEvaluation.EnsembledTreeModelEvaluation;
 
 namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
 {
@@ -22,10 +24,10 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
         /// To lower the amount of variables (hand strengths, patron moves available, coins, power, whether agents have been activated) the model needs to process,
         /// this model scores states just before ending turn
         /// </summary>
-        public static double Score(SeededGameState gameState, RegressionTrainer? featureSetModelType, bool endOfTurnExclusive = true)
+        public static double Score(SeededGameState gameState, PredictionEngine<GameStateFeatureSetCsvRow, ModelOutput> predictionEngine, bool endOfTurnExclusive = true)
         {
             // The manual model (null) does not return either 0 and 1 or -1 and 1, so this logic does not apply for it
-            if (featureSetModelType != null)
+            if (predictionEngine != null)
             {
                 var winner = CheckWinner(gameState, endOfTurnExclusive);
 
@@ -41,7 +43,7 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
 
             var featureSet = FeatureSetUtility.BuildFeatureSet(gameState);
 
-            return ModelEvaluation(featureSet, featureSetModelType);
+            return ModelEvaluation(featureSet, predictionEngine);
         }
 
         private static PlayerEnum CheckWinner(SeededGameState gameState, bool endOfTurnExclusiveEvaluation)
@@ -86,16 +88,16 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
             return PlayerEnum.NO_PLAYER_SELECTED;
         }
 
-        private static double ModelEvaluation(GameStateFeatureSet featureSet, RegressionTrainer? featureSetModelType)
+        private static double ModelEvaluation(GameStateFeatureSet featureSet, PredictionEngine<GameStateFeatureSetCsvRow, ModelOutput> predictionEngine)
         {
-            if (featureSetModelType == null)
+            if (predictionEngine == null)
             {
                 return SimpleManualEvaluation.Evaluate(featureSet);
             }
             else
             {
                 var csvFeatureSet = featureSet.ToCsvRow();
-                return EnsembledTreeModelEvaluation.GetWinProbability(csvFeatureSet, featureSetModelType!.Value);
+                return predictionEngine.Predict(csvFeatureSet).WinProbability;
             }
         }
 

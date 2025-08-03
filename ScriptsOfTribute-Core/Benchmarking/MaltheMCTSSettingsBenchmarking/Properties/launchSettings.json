@@ -2,7 +2,7 @@
   "profiles": {
     "MaltheMCTSSettingsBenchmarking": {
       "commandName": "Project",
-      "commandLineArgs": "-sf MaltheMCTS/Settings7_FastForest_MultipleTurns -n 10 -to 10 -bm TreeReuseCheck"
+      "commandLineArgs": "-sf MaltheMCTS/Settings -n 100 -to 10 -bm debugging"
     }
   }
 }

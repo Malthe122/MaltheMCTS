@@ -12,8 +12,6 @@ namespace EnsembleTreeModelBuilder
 {
     public class Program
     {
-        public const string MODELS_FOLDER = "GeneratedModels";
-
         private static DataViewSchema dataViewSchema;
         private static ColumnInferenceResults columnInferenceResults;
 
@@ -68,11 +66,11 @@ namespace EnsembleTreeModelBuilder
 
             Console.WriteLine("Running training on " + trainingDataPath + "...");
 
-            Directory.CreateDirectory(MODELS_FOLDER + "/" + experiementFolder);
+            Directory.CreateDirectory(experiementFolder);
 
             var mlContext = new MLContext();
 
-            var columnInference = mlContext.Auto().InferColumns(trainingDataPath, labelColumnName: "WinProbability", groupColumns: false);
+            var columnInference = mlContext.Auto().InferColumns(trainingDataPath, labelColumnName: "WinProbability", groupColumns: false, separatorChar: ';');
             IDataView fullData = mlContext.Data.LoadFromTextFile<GameStateFeatureSetCsvRow>(trainingDataPath, columnInference.TextLoaderOptions);
             var trainTestSplit = mlContext.Data.TrainTestSplit(fullData, testFraction: 0.2);
             IDataView trainData = trainTestSplit.TrainSet;
@@ -216,7 +214,7 @@ namespace EnsembleTreeModelBuilder
 
             var bestRSquared = metrics.RSquared;
 
-            mlContext.Model.Save(model, fullData.Schema, MODELS_FOLDER + "/" + experiementFolderName + "/" + modelType + "_model");
+            mlContext.Model.Save(model, trainData.Schema, experiementFolderName + "/" + modelType + "_model");
 
             StringBuilder info = new StringBuilder();
             info.AppendLine("R²:" + bestRSquared);
@@ -255,8 +253,8 @@ namespace EnsembleTreeModelBuilder
                     break;
             }
 
-            File.WriteAllText(MODELS_FOLDER + "/" + experiementFolderName + "/" + modelType + "_Details.txt", info.ToString());
-            Console.WriteLine("Best model saved in " + MODELS_FOLDER + "/" + experiementFolderName + "/" + modelType);
+            File.WriteAllText(experiementFolderName + "/" + modelType + "_Details.txt", info.ToString());
+            Console.WriteLine("Best model saved in " + experiementFolderName + "/" + modelType);
 
             return bestRSquared;
 
@@ -281,7 +279,7 @@ namespace EnsembleTreeModelBuilder
             double bestRSquared = bestRun.ValidationMetrics.RSquared;
 
             // Save the model to a .zip file for later use
-            mlContext.Model.Save(bestModel, fullData.Schema, MODELS_FOLDER + "/" + modelName + "/" + "Model_" + modelName);
+            mlContext.Model.Save(bestModel, fullData.Schema, modelName + "/" + "Model_" + modelName);
 
             StringBuilder info = new StringBuilder();
             info.AppendLine("R²:" + bestRSquared);
@@ -292,9 +290,9 @@ namespace EnsembleTreeModelBuilder
             info.AppendLine("Training time: " + bestRun.RuntimeInSeconds);
             info.AppendLine("RSquared: " + bestRun.ValidationMetrics.RSquared);
             info.AppendLine("Model to string: " + bestRun.Model.ToString());
-            File.WriteAllText(MODELS_FOLDER + "/" + modelName + "/" + "Details.txt", info.ToString());
+            File.WriteAllText(modelName + "/" + "Details.txt", info.ToString());
 
-            Console.WriteLine("Best model saved in " + MODELS_FOLDER + "/" + modelName);
+            Console.WriteLine("Best model saved in " + modelName);
         }
 
         private static void AddEnsembleTreeModelInfo(StringBuilder info, QuantileRegressionTreeEnsemble ensemble)
@@ -321,42 +319,6 @@ namespace EnsembleTreeModelBuilder
             info.AppendLine($"Nodes per Tree - Min: {nodes.Min()}, Max: {nodes.Max()}, Avg: {nodes.Average():0.00}");
             info.AppendLine("Tree Weights (first 5): " + string.Join(", ", ensemble.TreeWeights.Take(5)) + (ensemble.TreeWeights.Count > 5 ? ", ..." : ""));
             info.AppendLine("Bias: " + ensemble.Bias);
-        }
-
-        private static void AddSdcaModelInfo(StringBuilder info, LinearRegressionModelParameters model)
-        {
-            info.AppendLine($"Bias: {model.Bias}");
-            info.AppendLine($"Weight Count: {model.Weights.Count}");
-
-            var numericColumnNames = columnInferenceResults.TextLoaderOptions.Columns
-                .Where(c => c.DataKind == DataKind.Single || c.DataKind == DataKind.Double)
-                .Select(c => c.Name)
-                .ToList();
-
-            for (int i = 0; i < model.Weights.Count; i++)
-            {
-                var name = i < numericColumnNames.Count ? numericColumnNames[i] : $"Feature_{i}";
-                var weight = model.Weights[i];
-                info.AppendLine($"{name}: {weight:0.000}");
-            }
-        }
-
-        private static void AddPoissonRegressionInfo(StringBuilder info, PoissonRegressionModelParameters model)
-        {
-            info.AppendLine($"Bias: {model.Bias}");
-            info.AppendLine($"Weight Count: {model.Weights.Count}");
-
-            var numericColumnNames = columnInferenceResults.TextLoaderOptions.Columns
-                .Where(c => c.DataKind == DataKind.Single || c.DataKind == DataKind.Double)
-                .Select(c => c.Name)
-                .ToList();
-
-            for (int i = 0; i < model.Weights.Count; i++)
-            {
-                var name = i < numericColumnNames.Count ? numericColumnNames[i] : $"Feature_{i}";
-                var weight = model.Weights[i];
-                info.AppendLine($"{name}: {weight:0.000}");
-            }
         }
     }
 }
