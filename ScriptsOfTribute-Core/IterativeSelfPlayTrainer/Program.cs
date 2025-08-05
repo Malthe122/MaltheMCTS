@@ -69,6 +69,12 @@ namespace IterativeSelfPlayTrainer
                description: "Optional settings file for MaltheMCTS bot. If not supplied, default values are used"
             );
 
+            var startFromRolloutOption = new Option<bool>(
+                aliases: new[] { "--rollout-start", "-rs" },
+                description: "Whether first iteration should be done using rollout. Use if no model is available",
+                getDefaultValue: () => false
+            );
+
             var rootCommand = new RootCommand
             {
                 numberOfMatchupsOption,
@@ -77,19 +83,20 @@ namespace IterativeSelfPlayTrainer
                 timeoutOption,
                 nameOption,
                 maltheMCTSSettingFileOption,
+                startFromRolloutOption
             };
 
             var arguments = rootCommand.Parse(args);
 
             rootCommand.SetHandler(
                 IterativelyBuildModel,
-                numberOfMatchupsOption, numberOfBenchmarkMatchupsOption, numberOfIterations, timeoutOption, nameOption, maltheMCTSSettingFileOption
+                numberOfMatchupsOption, numberOfBenchmarkMatchupsOption, numberOfIterations, timeoutOption, nameOption, maltheMCTSSettingFileOption, startFromRolloutOption
             );
 
             await rootCommand.InvokeAsync(args);
         }
 
-        private static void IterativelyBuildModel(int matchupsPerIteration, int numberOfBenchmarkMatchupsOption, int iterationCount, int timeout, string resultModelName, string? MaltheMCTSSettingsFile)
+        private static void IterativelyBuildModel(int matchupsPerIteration, int numberOfBenchmarkMatchupsOption, int iterationCount, int timeout, string resultModelName, string? MaltheMCTSSettingsFile, bool startFromRollout)
         {
             Directory.CreateDirectory(resultModelName);
 
@@ -109,9 +116,12 @@ namespace IterativeSelfPlayTrainer
             var originalBotBuffer = settings.ITERATION_COMPLETION_MILLISECONDS_BUFFER;
 
             Console.WriteLine("Starting iteration 0...");
-            // For iteration 0 where we have no gamedata to train an initial model from
-            settings.CHOSEN_SCORING_METHOD = ScoringMethod.Rollout;
-            settings.ITERATION_COMPLETION_MILLISECONDS_BUFFER = 500;
+
+            if(startFromRollout)
+            {
+                settings.CHOSEN_SCORING_METHOD = ScoringMethod.Rollout;
+                settings.ITERATION_COMPLETION_MILLISECONDS_BUFFER = 500;
+            }
             string iteration0DataPath = basePath + "/0" + "/data.csv";
             string iteration0ModelPath = basePath + "/0" + "/model";
             HideLogsFromConsole(0, resultModelName);
@@ -121,7 +131,7 @@ namespace IterativeSelfPlayTrainer
             ApplyModel(iteration0ModelPath, settings.FEATURE_SET_MODEL_TYPE!.Value, iteration0RsquareScore);
             Console.WriteLine("Iteration 0 completed");
 
-            // Resets settings to original after having created some initial data
+            // Resets settings to original if it was changed to use rollout for 0th iteration
             settings.CHOSEN_SCORING_METHOD = ScoringMethod.ModelScoring;
             settings.ITERATION_COMPLETION_MILLISECONDS_BUFFER = originalBotBuffer;
 
@@ -130,7 +140,7 @@ namespace IterativeSelfPlayTrainer
 
             for (int i = 1; i < iterationCount; i++)
             {
-                Console.WriteLine("Starting iteration " + i + "...");
+                Console.WriteLine("Starting iteration " + i + " (with " + matchupsPerIteration + " games)...");
                 HideLogsFromConsole(i, resultModelName);
                 string dataPath = basePath + "/" + i + "/data.csv";
                 string modelPath = basePath + "/" + i + "/model";
