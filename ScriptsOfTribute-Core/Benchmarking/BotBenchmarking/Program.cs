@@ -111,7 +111,7 @@ namespace BotBenchmarking
             await File.WriteAllTextAsync(Path.Combine(benchmarkName, "overall_winrates.txt"), overallWinrates);
 
             var botPatronWinRatesText = Utility.GetBotPatronWinRatesText(results, numberOfMatchups * (bots.Count - 1));
-            await File.WriteAllLinesAsync(benchmarkName, "bot_patron_winrates.txt", botPatronWinRatesText);
+            await File.WriteAllTextAsync(Path.Combine(benchmarkName, "bot_patron_winrates.txt"), botPatronWinRatesText);
 
             var sb = new StringBuilder();
             sb.AppendLine("Benchmark Details Log:");

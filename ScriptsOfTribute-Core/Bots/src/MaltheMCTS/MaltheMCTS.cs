@@ -247,9 +247,6 @@ public class MaltheMCTS : AI
     }
     public override PatronId SelectPatron(List<PatronId> availablePatrons, int round)
     {
-        if (availablePatrons.Contains(PatronId.HLAALU)) {
-            return PatronId.HLAALU;
-        }
         return availablePatrons.PickRandom(new SeededRandom());
     }
 }

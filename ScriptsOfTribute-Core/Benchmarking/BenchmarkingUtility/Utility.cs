@@ -152,8 +152,14 @@ public static class Utility
             {
                 bots.Add(r.Competitors.Item2);
             }
-            AddWinToResultContainer(r.Winner, r.Looser, botToBotWinrates);
         });
+
+        foreach (var bot in bots)
+        {
+            botToBotWinrates.Add(bot, new Dictionary<AI, int>());
+        }
+
+        results.ForEach(r => AddWinToResultContainer(r.Winner, r.Looser, botToBotWinrates));
 
         sb.Append("vs");
         foreach (var bot in bots)
