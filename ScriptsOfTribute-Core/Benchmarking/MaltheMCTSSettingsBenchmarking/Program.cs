@@ -146,7 +146,7 @@ namespace MaltheMCTSSettingsBenchmarking
                 botToWins.Add(bot, new Dictionary<AI, int>());
             }
 
-            var matchups = Utility.BuildMatchups2(bots.Cast<AI>().ToList(), numberOfMatchups, false);
+            var matchups = Utility.BuildMatchups(bots.Cast<AI>().ToList(), numberOfMatchups, false);
             
             foreach (var matchup in matchups)
             {

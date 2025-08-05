@@ -49,6 +49,8 @@ public class MaltheMCTS : AI
     {
         Console.WriteLine("@@@ Game ended because of " + state.Reason + " @@@");
         Console.WriteLine("@@@ Winner was " + state.Winner + " @@@");
+        Console.WriteLine("Patrons were:");
+        finalBoardState?.Patrons.ForEach(p => Console.WriteLine(p));
     }
 
     public override Move Play(GameState gameState, List<Move> possibleMoves, TimeSpan remainingTime)

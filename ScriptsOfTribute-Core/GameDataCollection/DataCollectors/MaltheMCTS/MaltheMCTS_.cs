@@ -47,8 +47,7 @@ public class MaltheMCTS_ : MaltheMCTS.MaltheMCTS
 
     public override void GameEnd(EndGameState state, FullGameState? finalBoardState)
     {
-        Console.WriteLine("@@@ Game ended because of " + state.Reason + " @@@");
-        Console.WriteLine("@@@ Winner was " + state.Winner + " @@@");
+        base.GameEnd(state, finalBoardState);
 
         foreach (var featureSet in GameStateFeatureSetsFromMatch)
         {
