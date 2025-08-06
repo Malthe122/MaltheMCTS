@@ -335,6 +335,7 @@ public static class Utility
                 decimal winrate = patronCombinationWins[combination] / patronCombinationTotal[combination] * 100;
                 sb.AppendLine($"{combination}: {winrate:F0} %");
             }
+            sb.AppendLine();
         }
 
         return sb.ToString();

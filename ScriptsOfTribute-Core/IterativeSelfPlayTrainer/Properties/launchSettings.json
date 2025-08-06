@@ -2,7 +2,7 @@
   "profiles": {
     "IterativeSelfPlayTrainer": {
       "commandName": "Project",
-      "commandLineArgs": "-n 1 -nb 1 -i 20 -to 5 -mn quickFirstTest_42 -s MaltheMCTS/Settings/settings1"
+      "commandLineArgs": "-n 1 -nb 1 -i 10 -to 5 -mn test_if_model_applies3 -s MaltheMCTS/Settings/settings1 -rs true"
     }
   }
 }

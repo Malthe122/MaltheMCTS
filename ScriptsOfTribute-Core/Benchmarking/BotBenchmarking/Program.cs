@@ -13,6 +13,7 @@ using System.Text;
 using MaltheMCTS;
 using ScriptsOfTribute;
 using ScriptsOfTribute.Board;
+using SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring.ModelEvaluation;
 
 namespace BotBenchmarking
 {
@@ -162,11 +163,19 @@ namespace BotBenchmarking
                 if (bot1 is MaltheMCTS.MaltheMCTS && maltheMCTSSettings != null)
                 {
                     (bot1 as MaltheMCTS.MaltheMCTS).Settings = maltheMCTSSettings;
+                    if (maltheMCTSSettings.CHOSEN_SCORING_METHOD == ScoringMethod.ModelScoring)
+                    {
+                        (bot1 as MaltheMCTS.MaltheMCTS).PredictionEngine = EnsembledTreeModelEvaluation.GetPredictionEngine(maltheMCTSSettings.FEATURE_SET_MODEL_TYPE);
+                    }
                 }
 
                 if (bot2 is MaltheMCTS.MaltheMCTS && maltheMCTSSettings != null)
                 {
                     (bot2 as MaltheMCTS.MaltheMCTS).Settings = maltheMCTSSettings;
+                    if (maltheMCTSSettings.CHOSEN_SCORING_METHOD == ScoringMethod.ModelScoring)
+                    {
+                        (bot2 as MaltheMCTS.MaltheMCTS).PredictionEngine = EnsembledTreeModelEvaluation.GetPredictionEngine(maltheMCTSSettings.FEATURE_SET_MODEL_TYPE);
+                    }
                 }
 
                 var match = new ScriptsOfTribute.AI.ScriptsOfTribute(bot1, bot2, TimeSpan.FromSeconds(timeout));
@@ -189,10 +198,13 @@ namespace BotBenchmarking
                         break;
                 }
 
+                
+
                 Result result = new Result
                 {
                     Competitors = (matchup.Item1, matchup.Item2),
-                    Patrons = fullstate.Patrons.Order().ToList(),
+                    // Treasury is in every game, so no reason to add info about it
+                    Patrons = fullstate.Patrons.Where(p => p != PatronId.TREASURY).Order().ToList(), 
                     Looser = looser,
                     Winner = winner,
                     GameEndReason = endGameState.Reason

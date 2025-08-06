@@ -154,11 +154,12 @@ namespace IterativeSelfPlayTrainer
                 if (CheckImprovement(benchmarkResult, bestBot, newBot))
                 {
                     bestBot = newBot;
+                    // For data collection
                     ApplyModel(modelPath, settings.FEATURE_SET_MODEL_TYPE!.Value, iterationRsquareScore);
                 }
                 Console.WriteLine("Iteration " + i + " completed");
 
-                //Hardcoded quickfix, should be added as argument. I want more games through later generations
+                //Hardcoded quickfix, TODO should be added as argument. I want more games through later generations
                 matchupsPerIteration += 5;
             }
 
@@ -185,10 +186,10 @@ namespace IterativeSelfPlayTrainer
 
         private static void HideLogsFromConsole(int iteration, string modelPath)
         {
-            var writer = new StreamWriter(modelPath + "/Library_Logs.txt", append: true) { AutoFlush = true };
-            Console.SetOut(writer);
-            Console.WriteLine("----------Game logs for iteration " + iteration + "----------");
-            AppDomain.CurrentDomain.ProcessExit += (_, __) => writer.Dispose();
+            //var writer = new StreamWriter(modelPath + "/Library_Logs.txt", append: true) { AutoFlush = true };
+            //Console.SetOut(writer);
+            //Console.WriteLine("----------Game logs for iteration " + iteration + "----------");
+            //AppDomain.CurrentDomain.ProcessExit += (_, __) => writer.Dispose();
         }
 
         private static void EnableConsoleLog()

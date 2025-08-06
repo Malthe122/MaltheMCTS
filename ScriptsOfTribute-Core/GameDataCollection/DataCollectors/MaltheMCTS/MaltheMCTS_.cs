@@ -19,7 +19,7 @@ public class MaltheMCTS_ : MaltheMCTS.MaltheMCTS
 
     public List<GameStateFeatureSet> GameStateFeatureSetsFromMatch;
 
-    public MaltheMCTS_(string? instanceName = null, Settings? settings = null) : base()
+    public MaltheMCTS_(string? instanceName = null, Settings? settings = null) : base(instanceName, settings)
     {
         this.InstanceName = instanceName ?? "MaltheMCTS_" + Guid.NewGuid();
         Settings = settings ?? new Settings(); // Hardcoded
