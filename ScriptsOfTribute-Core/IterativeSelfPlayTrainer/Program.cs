@@ -186,10 +186,10 @@ namespace IterativeSelfPlayTrainer
 
         private static void HideLogsFromConsole(int iteration, string modelPath)
         {
-            //var writer = new StreamWriter(modelPath + "/Library_Logs.txt", append: true) { AutoFlush = true };
-            //Console.SetOut(writer);
-            //Console.WriteLine("----------Game logs for iteration " + iteration + "----------");
-            //AppDomain.CurrentDomain.ProcessExit += (_, __) => writer.Dispose();
+            var writer = new StreamWriter(modelPath + "/Library_Logs.txt", append: true) { AutoFlush = true };
+            Console.SetOut(writer);
+            Console.WriteLine("----------Game logs for iteration " + iteration + "----------");
+            AppDomain.CurrentDomain.ProcessExit += (_, __) => writer.Dispose();
         }
 
         private static void EnableConsoleLog()
