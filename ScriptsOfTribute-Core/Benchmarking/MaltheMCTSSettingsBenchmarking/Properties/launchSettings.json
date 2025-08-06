@@ -2,7 +2,7 @@
   "profiles": {
     "MaltheMCTSSettingsBenchmarking": {
       "commandName": "Project",
-      "commandLineArgs": "-sf MaltheMCTS/Settings_manual_vs_rollout -n 20 -to 10 -bm manual_vs_rollout"
+      "commandLineArgs": "-sf MaltheMCTS/Settings_Debug -n 2000 -to 15 -bm debug"
     }
   }
 }

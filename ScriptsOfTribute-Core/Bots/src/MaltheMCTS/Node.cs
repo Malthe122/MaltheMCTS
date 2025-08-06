@@ -240,10 +240,6 @@ public class Node
                 }
             }
             var chosenIndex = Utility.Rng.Next(rolloutPossibleMoves.Count);
-            if (rolloutPossibleMoves.Count == 0)
-            {
-                Console.WriteLine("wait a minute");
-            }
             var moveToMake = rolloutPossibleMoves[chosenIndex];
 
             var (newGameState, newPossibleMoves) = rolloutGameState.ApplyMove(moveToMake);
@@ -333,19 +329,7 @@ public class Node
 
     private void FilterMoves()
     {
-        var sourceCard = GameState.CompletedActions?.Last().SourceCard?.CommonId;
-
-        if (PossibleMoves.Count == 0)
-        {
-            Console.WriteLine("wait a minute1");
-        }
-
         PossibleMoves = Utility.RemoveDuplicateMoves(PossibleMoves);
-
-        if (PossibleMoves.Count == 0)
-        {
-            Console.WriteLine("wait a minute2");
-        }
 
         #region additionalFiltering
         if (Bot.Settings.ADDITIONAL_MOVE_FILTERING)
@@ -410,11 +394,6 @@ public class Node
         }
         #endregion
 
-        if (PossibleMoves.Count == 0)
-        {
-            Console.WriteLine("wait a minute3");
-        }
-
         if (Bot.Settings.CHOICE_BRANCH_LIMIT != null && PossibleMoves.Count > Bot.Settings.CHOICE_BRANCH_LIMIT)
         {
 
@@ -445,23 +424,23 @@ public class Node
                                 ).ToList();
                             break;
                         case ChoiceFollowUp.DESTROY_CARDS:
-                            if (CardsPlayedRanked == null) // In SoT, the destroy also allows to destroy from hand, but to assist bot, i exclude this, cause its almost always best to play the card first
-                            {
-                                CardsPlayedRanked = Utility.RankCardsInGameState(GameState, GameState.CurrentPlayer.Played);
-                            }
-                            int maxAmount = PossibleMoves.Max(m => (m as MakeChoiceMoveUniqueCard).Choices.Count);
-                            if (maxAmount == 1)
-                            {
-                                var worstPlayedPileCards = CardsPlayedRanked.TakeLast(Bot.Settings.CHOICE_BRANCH_LIMIT!.Value - 1);
-                                PossibleMoves = PossibleMoves.Where(m =>
-                                (m as MakeChoiceMoveUniqueCard).Choices.Count == 0
-                                || worstPlayedPileCards.Any(c => (m as MakeChoiceMoveUniqueCard).Choices[0].CommonId == c.CommonId))
-                                .ToList();
-                            }
-                            else // Here the possible destroy amount is 2, since thats the max in the patch
-                            {
-                                PossibleMoves = Utility.GetRankedCardCombinationMoves(PossibleMoves, CardsPlayedRanked.AsEnumerable().Reverse().ToList(), Bot.Settings.CHOICE_BRANCH_LIMIT!.Value, true);
-                            }
+                                if (CardsPlayedRanked == null) // In SoT, the destroy also allows to destroy from hand, but to assist bot, i exclude this, cause its almost always best to play the card first
+                                {
+                                    CardsPlayedRanked = Utility.RankCardsInGameState(GameState, GameState.CurrentPlayer.Played);
+                                }
+                                int maxAmount = PossibleMoves.Max(m => (m as MakeChoiceMoveUniqueCard).Choices.Count);
+                                if (maxAmount == 1)
+                                {
+                                    var worstPlayedPileCards = CardsPlayedRanked.TakeLast(Bot.Settings.CHOICE_BRANCH_LIMIT!.Value - 1);
+                                    PossibleMoves = PossibleMoves.Where(m =>
+                                    (m as MakeChoiceMoveUniqueCard).Choices.Count == 0
+                                    || worstPlayedPileCards.Any(c => (m as MakeChoiceMoveUniqueCard).Choices[0].CommonId == c.CommonId))
+                                    .ToList();
+                                }
+                                else // Here the possible destroy amount is 2, since thats the max in the patch
+                                {
+                                    PossibleMoves = Utility.GetRankedCardCombinationMoves(PossibleMoves, CardsPlayedRanked.AsEnumerable().Reverse().ToList(), Bot.Settings.CHOICE_BRANCH_LIMIT!.Value, true);
+                                }
                             break;
                         case ChoiceFollowUp.DISCARD_CARDS:
                             // Discard in this patch is always 1 card
@@ -577,17 +556,8 @@ public class Node
         }
     }
 
-        if (PossibleMoves.Count == 0)
-        {
-            Console.WriteLine("wait a minute4");
-        }
 
-PossibleMoves = Utility.RemoveDuplicateMoves(PossibleMoves);
-
-        if (PossibleMoves.Count == 0)
-        {
-            Console.WriteLine("wait a minute5");
-        }
+        PossibleMoves = Utility.RemoveDuplicateMoves(PossibleMoves);
     }
 
     private void SetBewildermentGoldChoiceMoves(IEnumerable<UniqueCard> cardPool)

@@ -273,17 +273,24 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
                 case EffectType.ACQUIRE_TAVERN:
                 case EffectType.CREATE_SUMMERSET_SACKING:
                 case EffectType.DESTROY_CARD:
-                case EffectType.DRAW:
                 // FUTURE use overall strengths of deck if possible
+                case EffectType.DRAW:
                 case EffectType.HEAL:
-                case EffectType.KNOCKOUT:
                 case EffectType.OPP_DISCARD:
                 case EffectType.PATRON_CALL:
                 case EffectType.REPLACE_TAVERN:
                 case EffectType.RETURN_TOP:
                 case EffectType.TOSS:
+                case EffectType.KNOCKOUT_ALL:
+                case EffectType.RETURN_AGENT_TOP:
                     // FUTURE Do something more sophisticated with these
                     result.MiscellaneousStrength += 1;
+                    break;
+                case EffectType.KNOCKOUT:
+                case EffectType.DONATE:
+                    // TODO fix hardcoded value.
+                    // weight because its not as good as a draw since you have to discard as well
+                    result.MiscellaneousStrength += (effect.Amount * 0.75);
                     break;
                 case EffectType.GAIN_COIN:
                     result.GoldStrength += effect.Amount;

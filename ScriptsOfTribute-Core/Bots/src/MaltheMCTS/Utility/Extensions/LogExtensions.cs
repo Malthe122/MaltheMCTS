@@ -1,11 +1,31 @@
 using ScriptsOfTribute;
+using ScriptsOfTribute.Board;
 using ScriptsOfTribute.Board.Cards;
 using ScriptsOfTribute.Serializers;
+using System.Text;
 
 namespace MaltheMCTS;
 
 public static class LogExtensions{
 
+    public static string GetLog(this SeededGameState gameState)
+    {
+        var sb = new StringBuilder();
+        using var writer = new StringWriter(sb);
+        var originalOut = Console.Out;
+
+        try
+        {
+            Console.SetOut(writer);
+            gameState.Log();
+        }
+        finally
+        {
+            Console.SetOut(originalOut); // always resets out to be the console
+        }
+
+        return sb.ToString();
+    }
     public static void Log(this SeededGameState gameState)
     {
         Console.WriteLine("GameState " + "(" + gameState.GenerateHash() + "):-----------------------------");
@@ -28,7 +48,21 @@ public static class LogExtensions{
         Console.WriteLine("Tavern cards size: " + gameState.TavernCards.Count);
         Console.WriteLine("Upcoming effects:");
         gameState.UpcomingEffects.Log();
+        Console.WriteLine("Last completed action:");
+        gameState.CompletedActions.Last().Log();
         Console.WriteLine("-----------------------------------------------------");
+    }
+
+    public static void Log(this CompletedAction completedAction)
+    {
+        Console.WriteLine("Type: " + completedAction.Type);
+        Console.WriteLine("Player: " + completedAction.Player);
+        Console.WriteLine("Type: " + completedAction.Type);
+        Console.WriteLine("Source Card: " + (completedAction.SourceCard?.CommonId.ToString() ?? "null"));
+        Console.WriteLine("Target Card: " + (completedAction.TargetCard?.CommonId.ToString() ?? "null"));
+        Console.WriteLine("Source Patron: " + (completedAction.SourcePatron?.ToString() ?? "null"));
+        Console.WriteLine("Combo: " + completedAction.Combo);
+        Console.WriteLine("Amount: " + completedAction.Amount);
     }
 
     public static void Log(this List<UniqueBaseEffect> list){

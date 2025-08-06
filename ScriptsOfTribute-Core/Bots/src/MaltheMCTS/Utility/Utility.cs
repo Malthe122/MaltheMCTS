@@ -201,7 +201,7 @@ public static class Utility
             else
             {
                 var score = CardStrengthsToScore(FeatureSetUtility.ScoreStrengthsInDeck(c, patronRatios[c.Deck], completeDeck.Count));
-                if(c.Deck != PatronId.TREASURY)
+                if (c.Deck != PatronId.TREASURY)
                 {
                     score += 0.1 * patronRatios[c.Deck]; // To favor cards that fit into the deck, if their effects are equal
                 }
@@ -326,7 +326,7 @@ public static class Utility
                     {
                         result.Add(noChoiceMove);
                     }
-                    
+
                     break;
             }
 
