@@ -251,13 +251,13 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
                     return ScoreEffectStrengthsInDeck((effect as UniqueEffect)!, patronToDeckRatio, deckSize);
                 case UniqueEffectComposite:
                     var effectComposite = (effect as UniqueEffectComposite)!;
-                    var effect1Strengths = ScoreEffectStrengthsInDeck(effectComposite.GetRight(), patronToDeckRatio, deckSize); //TODO remove null
-                    var effect2Strengths = ScoreEffectStrengthsInDeck(effectComposite.GetLeft(), patronToDeckRatio, deckSize); //TODO remove null
+                    var effect1Strengths = ScoreEffectStrengthsInDeck(effectComposite.GetRight(), patronToDeckRatio, deckSize);
+                    var effect2Strengths = ScoreEffectStrengthsInDeck(effectComposite.GetLeft(), patronToDeckRatio, deckSize);
                     return effect1Strengths + effect2Strengths;
                 case UniqueEffectOr:
                     var effectOr = (effect as UniqueEffectOr)!;
-                    var effectaStrengths = ScoreEffectStrengthsInDeck(effectOr.GetRight(), patronToDeckRatio, deckSize); //TODO remove null
-                    var effectbStrengths = ScoreEffectStrengthsInDeck(effectOr.GetLeft(), patronToDeckRatio, deckSize); ; //TODO remove null
+                    var effectaStrengths = ScoreEffectStrengthsInDeck(effectOr.GetRight(), patronToDeckRatio, deckSize);
+                    var effectbStrengths = ScoreEffectStrengthsInDeck(effectOr.GetLeft(), patronToDeckRatio, deckSize);
                     // A way to give reward for both choices, but give a penalty for not being able to apply both
                     return effectaStrengths * CHOICE_WEIGHT + effectbStrengths * CHOICE_WEIGHT;
                 default:
