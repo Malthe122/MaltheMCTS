@@ -1,8 +1,13 @@
 using System.Diagnostics;
+using BestMCTS3;
+using Microsoft.ML;
 using ScriptsOfTribute;
 using ScriptsOfTribute.AI;
 using ScriptsOfTribute.Board;
 using ScriptsOfTribute.Serializers;
+using SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring;
+using SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring.ModelEvaluation;
+using static SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring.ModelEvaluation.EnsembledTreeModelEvaluation;
 
 namespace MaltheMCTS;
 
@@ -10,17 +15,17 @@ public class MaltheMCTS : AI
 {
     public Dictionary<int, List<Node>> NodeGameStateHashMap = new Dictionary<int, List<Node>>();
     public Settings Settings { get; set; }
-
+    // Having this here only makes sense when competing MaltheMCTS aganist each other with different prediction Engines
+    // Consider refactoring it back to Utility when submitting agent
+    public PredictionEngine<GameStateFeatureSetCsvRow, ModelOutput> PredictionEngine;
 
     public string InstanceName;
-
-    // FOR COMPUTATION BENCHMARK
-    private int computationsCompleted = 0;
 
     public MaltheMCTS(string? instanceName = null, Settings? settings = null) : base()
     {
         this.InstanceName = instanceName ?? "MaltheMCTS_" + Guid.NewGuid();
         Settings = settings ?? new Settings(); // Hardcoded
+        PredictionEngine = EnsembledTreeModelEvaluation.GetPredictionEngine(Settings.FEATURE_SET_MODEL_TYPE);
     }
 
     // TODO initiate the static model class, so its not using time on the first turn
@@ -31,12 +36,11 @@ public class MaltheMCTS : AI
     {
         InstanceName = "MaltheMCTS_" + Guid.NewGuid();
         Settings = new Settings(); // Hardcoded
+        PredictionEngine = EnsembledTreeModelEvaluation.GetPredictionEngine(Settings.FEATURE_SET_MODEL_TYPE);
     }
 
     public override void PregamePrepare()
     {
-        computationsCompleted = 0;
-
         Utility.CategorizeCards();
         NodeGameStateHashMap = new Dictionary<int, List<Node>>();
     }
@@ -45,6 +49,8 @@ public class MaltheMCTS : AI
     {
         Console.WriteLine("@@@ Game ended because of " + state.Reason + " @@@");
         Console.WriteLine("@@@ Winner was " + state.Winner + " @@@");
+        Console.WriteLine("Patrons were:");
+        finalBoardState?.Patrons.ForEach(p => Console.WriteLine(p));
     }
 
     public override Move Play(GameState gameState, List<Move> possibleMoves, TimeSpan remainingTime)
@@ -77,7 +83,6 @@ public class MaltheMCTS : AI
                 // iterationTimer.Start();
                 // iterationCounter++;
                 rootNode.Visit(out double score, new HashSet<Node>());
-                computationsCompleted++;
                 // iterationTimer.Stop();
                 // Console.WriteLine("Iteration took: " + iterationTimer.ElapsedMilliseconds + " milliseconds");
             }
@@ -242,6 +247,6 @@ public class MaltheMCTS : AI
     }
     public override PatronId SelectPatron(List<PatronId> availablePatrons, int round)
     {
-        return availablePatrons[0];
+        return availablePatrons.PickRandom(new SeededRandom());
     }
 }

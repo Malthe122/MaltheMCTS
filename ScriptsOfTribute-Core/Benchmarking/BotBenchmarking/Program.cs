@@ -11,6 +11,9 @@ using BenchmarkingUtility;
 using System.Collections.Concurrent;
 using System.Text;
 using MaltheMCTS;
+using ScriptsOfTribute;
+using ScriptsOfTribute.Board;
+using SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring.ModelEvaluation;
 
 namespace BotBenchmarking
 {
@@ -108,6 +111,9 @@ namespace BotBenchmarking
             var overallWinrates = Utility.GetOverallWinRatesText(results, numberOfMatchups * (bots.Count - 1));
             await File.WriteAllTextAsync(Path.Combine(benchmarkName, "overall_winrates.txt"), overallWinrates);
 
+            var botPatronWinRatesText = Utility.GetBotPatronWinRatesText(results, numberOfMatchups * (bots.Count - 1));
+            await File.WriteAllTextAsync(Path.Combine(benchmarkName, "bot_patron_winrates.txt"), botPatronWinRatesText);
+
             var sb = new StringBuilder();
             sb.AppendLine("Benchmark Details Log:");
             sb.AppendLine($"Benchmark Name: {benchmarkName}");
@@ -127,13 +133,15 @@ namespace BotBenchmarking
             Console.WriteLine("Benchmark complete. Results logged in folder: " + benchmarkName);
         }
 
-        private static Dictionary<string, Dictionary<string, int>> PlayMatches(List<string> bots, int numberOfMatchups, int timeout, int threads, bool skipExternalMatches, ConcurrencyType concurrencyType, Settings? maltheMCTSSettings = null)
+        private static List<Result> PlayMatches(List<string> botStrings, int numberOfMatchups, int timeout, int threads, bool skipExternalMatches, ConcurrencyType concurrencyType, Settings? maltheMCTSSettings = null)
         {
             Dictionary<string, Dictionary<string, int>> botToWins = new();
+            var bots = new List<AI>();
 
-            foreach(var bot in bots)
+            foreach(var botString in botStrings)
             {
-                botToWins.Add(bot, new Dictionary<string, int>());
+                botToWins.Add(botString, new Dictionary<string, int>());
+                bots.Add(Utility.CreateBot(botString));
             }
 
             var matchups = Utility.BuildMatchups(bots, numberOfMatchups, skipExternalMatches);
@@ -145,39 +153,67 @@ namespace BotBenchmarking
                 throw new NotImplementedException("Chosen concurrency type has not been implemented yet: " + concurrencyType.ToString());
             }
 
+            var results = new List<Result>();
+
             Parallel.ForEach(matchups, options, matchup =>
             {
-                var bot1 = Utility.CreateBot(matchup.Item1);
-                var bot2 = Utility.CreateBot(matchup.Item2);
+                var bot1 = matchup.Item1;
+                var bot2 = matchup.Item2;
 
                 if (bot1 is MaltheMCTS.MaltheMCTS && maltheMCTSSettings != null)
                 {
                     (bot1 as MaltheMCTS.MaltheMCTS).Settings = maltheMCTSSettings;
+                    if (maltheMCTSSettings.CHOSEN_SCORING_METHOD == ScoringMethod.ModelScoring)
+                    {
+                        (bot1 as MaltheMCTS.MaltheMCTS).PredictionEngine = EnsembledTreeModelEvaluation.GetPredictionEngine(maltheMCTSSettings.FEATURE_SET_MODEL_TYPE);
+                    }
                 }
 
                 if (bot2 is MaltheMCTS.MaltheMCTS && maltheMCTSSettings != null)
                 {
                     (bot2 as MaltheMCTS.MaltheMCTS).Settings = maltheMCTSSettings;
+                    if (maltheMCTSSettings.CHOSEN_SCORING_METHOD == ScoringMethod.ModelScoring)
+                    {
+                        (bot2 as MaltheMCTS.MaltheMCTS).PredictionEngine = EnsembledTreeModelEvaluation.GetPredictionEngine(maltheMCTSSettings.FEATURE_SET_MODEL_TYPE);
+                    }
                 }
 
                 var match = new ScriptsOfTribute.AI.ScriptsOfTribute(bot1, bot2, TimeSpan.FromSeconds(timeout));
-                Console.WriteLine("Playing match between " + matchup.Item1 + " and " + matchup.Item2 + "...");
-                var result = match.Play().Item1;
-                switch (result.Winner)
+                Console.WriteLine("Playing match between " + matchup.Item1.GetType().Name + " and " + matchup.Item2.GetType().Name + "...");;
+                var (endGameState, fullstate) = match.Play();
+                AI winner = null;
+                AI looser = null;
+                switch (endGameState.Winner)
                 {
                     case ScriptsOfTribute.PlayerEnum.PLAYER1:
-                        Utility.AddWinToResultContainer(matchup.Item1, matchup.Item2, botToWins);
+                        winner = matchup.Item1;
+                        looser = matchup.Item2;
                         break;
                     case ScriptsOfTribute.PlayerEnum.PLAYER2:
-                        Utility.AddWinToResultContainer(matchup.Item2, matchup.Item1, botToWins);
+                        winner = matchup.Item2;
+                        looser = matchup.Item1;
                         break;
                     case ScriptsOfTribute.PlayerEnum.NO_PLAYER_SELECTED:
                         // Draw
                         break;
                 }
+
+                
+
+                Result result = new Result
+                {
+                    Competitors = (matchup.Item1, matchup.Item2),
+                    // Treasury is in every game, so no reason to add info about it
+                    Patrons = fullstate.Patrons.Where(p => p != PatronId.TREASURY).Order().ToList(), 
+                    Looser = looser,
+                    Winner = winner,
+                    GameEndReason = endGameState.Reason
+                };
+
+                results.Add(result);
             });
 
-            return botToWins;
+            return results;
         }
     }
 }

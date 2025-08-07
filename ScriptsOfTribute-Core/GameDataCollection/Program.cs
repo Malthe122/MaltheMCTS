@@ -8,10 +8,13 @@ using ScriptsOfTribute.AI;
 using HQL_BOT;
 using System.Globalization;
 using System.Threading;
+using DataCollectors_MaltheMCTS;
+using Google.Protobuf;
+using static TorchSharp.torch.nn;
 
 namespace GameDataCollection
 {
-    internal class Program
+    public class Program
     {
         public class ResultRates
         {
@@ -82,23 +85,28 @@ namespace GameDataCollection
             await rootCommand.InvokeAsync(args);
         }
 
-        private static void CollectData(string botString, int numberOfMatchups, int timeout, string datasetName, string? maltheMCTSSettingsFile)
+        public static void CollectData(string botString, int numberOfMatchups, int timeout, string destination, string? maltheMCTSSettingsFile)
         {
-            Directory.CreateDirectory(datasetName);
+            string location = destination;
+            if (destination.Contains(".csv"))
+            {
+                // Just removing file name from the location
+                location = destination[..destination.LastIndexOf('/')];
+            }
 
-            var maltheMCTSSettings = maltheMCTSSettingsFile != null ? DataCollectors_MaltheMCTS.Settings.LoadFromFile(maltheMCTSSettingsFile) : new DataCollectors_MaltheMCTS.Settings();
+            Directory.CreateDirectory(location);
+
+            var maltheMCTSSettings = maltheMCTSSettingsFile != null ? MaltheMCTS.Settings.LoadFromFile(maltheMCTSSettingsFile) : new MaltheMCTS.Settings();
 
             Console.WriteLine("Starting playing matches...");
             PlayMatches(botString, numberOfMatchups, timeout, maltheMCTSSettings);
             Console.WriteLine("Finished matches");
 
             Console.WriteLine("Saving dataset...");
-            ExportDatasetToCSV(datasetName);
-            Console.WriteLine("Saving datasets into structure for linear models...");
-            ExportDatasetToLinearModelCSVs(datasetName);
+            ExportDatasetToCSV(destination);
 
             var sb = new StringBuilder();
-            sb.AppendLine($"DatasetName Name: {datasetName}");
+            sb.AppendLine($"DatasetName Name: {destination}");
             sb.AppendLine($"Bot: {botString}");
             sb.AppendLine($"Number of Matchups: {numberOfMatchups}");
             sb.AppendLine($"Timeout: {timeout}");
@@ -107,21 +115,53 @@ namespace GameDataCollection
             //sb.AppendLine("MaltheMCTS Settings:");
             //sb.AppendLine(maltheMCTSSettings.ToString());
 
-            File.WriteAllText(datasetName + "/" + "details.txt", sb.ToString());
+            File.WriteAllText(location + "/" + "details.txt", sb.ToString());
 
-            Console.WriteLine("Dataset complete. Stored in folder: " + datasetName);
+            Console.WriteLine("Dataset complete. Stored in folder: " + destination);
         }
 
-        private static void ExportDatasetToCSV(string datasetName)
+        public static void CollectMaltheMCTSData(int numberOfMatchups, int timeout, string destinationPath, Settings settings)
+        {
+            string location = destinationPath;
+            if (destinationPath.Contains(".csv"))
+            {
+                // Just removing file name from the location
+                location = destinationPath[..destinationPath.LastIndexOf('/')]; 
+            }
+
+            Directory.CreateDirectory(location);
+
+            Console.WriteLine("Starting playing matches...");
+            PlayMatches("MaltheMCTS", numberOfMatchups, timeout, settings);
+            Console.WriteLine("Finished matches");
+
+            Console.WriteLine("Saving dataset...");
+            ExportDatasetToCSV(destinationPath);
+
+            var sb = new StringBuilder();
+            sb.AppendLine($"DatasetName Name: {destinationPath}");
+            sb.AppendLine($"Bot: {"MaltheMCTS"}");
+            sb.AppendLine($"Number of Matchups: {numberOfMatchups}");
+            sb.AppendLine($"Timeout: {timeout}");
+
+            //sb.AppendLine();
+            //sb.AppendLine("MaltheMCTS Settings:");
+            //sb.AppendLine(maltheMCTSSettings.ToString());
+
+            File.WriteAllText(location + "/" + "details.txt", sb.ToString());
+
+            Console.WriteLine("Dataset complete. Stored in folder: " + destinationPath);
+        }
+
+        private static void ExportDatasetToCSV(string destinationPath)
         {
             var sb = new StringBuilder();
 
-            // Headers (Excluding agent prestige strength from both players in the data, as no agent is the current decks has that effect)
-            sb.AppendLine("Patron_1;Patron_2;Patron_3;Patron_4;" +
+            sb.AppendLine(
                           "CurrentPlayerPrestige;CurrentPlayerDeck_PrestigeStrength;CurrentPlayerDeck_PowerStrength;CurrentPlayerDeck_GoldStrength;CurrentPlayerDeck_MiscStrength;" +
-                          "CurrentPlayerDeckComboProportion;CurrentPlayerAgent_PowerStrength;CurrentPlayerAgent_GoldStrength;CurrentPlayerAgent_MiscStrength;" +
+                          "CurrentPlayerDeckComboProportion;CurrentPlayerAgent_PrestigeStrength;CurrentPlayerAgent_PowerStrength;CurrentPlayerAgent_GoldStrength;CurrentPlayerAgent_MiscStrength;" +
                           "CurrentPlayerPatronFavour;OpponentPrestige;OpponentDeck_PrestigeStrength;OpponentDeck_PowerStrength;OpponentDeck_GoldStrength;OpponentDeck_MiscStrength;" +
-                          "OpponentAgent_PowerStrength;OpponentAgent_GoldStrength;OpponentAgent_MiscStrength;OpponentPatronFavour;WinProbability");
+                          "OpponentAgent_PrestigeStrength;OpponentAgent_PowerStrength;OpponentAgent_GoldStrength;OpponentAgent_MiscStrength;OpponentPatronFavour;WinProbability");
 
             foreach (var entry in FeatureSetToResultRates)
             {
@@ -162,102 +202,31 @@ namespace GameDataCollection
             }
 
             // Write to file
-            File.WriteAllText(datasetName + "/" + datasetName + ".csv", sb.ToString());
-        }
-
-        private static void ExportDatasetToLinearModelCSVs(string datasetName)
-        {
-            var earlyGame = FeatureSetToResultRates.Where(p => Math.Max(p.Key.CurrentPlayerPrestige, p.Key.OpponentPrestige) < 16).ToDictionary();
-            var midGame = FeatureSetToResultRates.Where(p => Math.Max(p.Key.CurrentPlayerPrestige, p.Key.OpponentPrestige) < 30 &&
-                                                                Math.Max(p.Key.CurrentPlayerPrestige, p.Key.OpponentPrestige) > 15
-                                                                ).ToDictionary();
-            var lateGame = FeatureSetToResultRates.Where(p => Math.Max(p.Key.CurrentPlayerPrestige, p.Key.OpponentPrestige) < 40 &&
-                                                                Math.Max(p.Key.CurrentPlayerPrestige, p.Key.OpponentPrestige) > 29
-                                                                ).ToDictionary();
-            var endGame = FeatureSetToResultRates.Where(p => Math.Max(p.Key.CurrentPlayerPrestige, p.Key.OpponentPrestige) > 39).ToDictionary();
-
-
-            var earlyCSVString = DatasetToLinearModelCSVString(earlyGame);
-            var midCSVString = DatasetToLinearModelCSVString(midGame);
-            var lateCSVString = DatasetToLinearModelCSVString(lateGame);
-            var endCSVString = DatasetToLinearModelCSVString(endGame);
-
-            Directory.CreateDirectory(datasetName + "/" + "for_linear");
-            File.WriteAllText(datasetName + "/" + "for_linear/" + "earlyGame.csv", earlyCSVString);
-            File.WriteAllText(datasetName + "/" + "for_linear/" + "midGame.csv", midCSVString);
-            File.WriteAllText(datasetName + "/" + "for_linear/" + "lateGame.csv", lateCSVString);
-            File.WriteAllText(datasetName + "/" + "for_linear/" + "endGame.csv", endCSVString);
-        }
-
-        private static string DatasetToLinearModelCSVString(Dictionary<GameStateFeatureSet, ResultRates> featureSetToResultRates)
-        {
-            var sb = new StringBuilder();
-
-            // Headers (Excluding agent prestige strength from both players in the data, as no agent is the current decks has that effect)
-            sb.AppendLine(
-                          "CurrentPlayerPrestige;CurrentPlayerDeck_PrestigeStrength;CurrentPlayerDeck_PowerStrength;CurrentPlayerDeck_GoldStrength;CurrentPlayerDeck_MiscStrength;" +
-                          "CurrentPlayerDeckComboProportion;CurrentPlayerAgent_PowerStrength;CurrentPlayerAgent_GoldStrength;CurrentPlayerAgent_MiscStrength;" +
-                          "CurrentPlayerPatronFavour_0;CurrentPlayerPatronFavour_1;CurrentPlayerPatronFavour_2;CurrentPlayerPatronFavour_3;" +
-                          "OpponentPrestige;OpponentDeck_PrestigeStrength;OpponentDeck_PowerStrength;OpponentDeck_GoldStrength;OpponentDeck_MiscStrength;" +
-                          "OpponentAgent_PowerStrength;OpponentAgent_GoldStrength;OpponentAgent_MiscStrength;" +
-                          "OpponentPatronFavour_0;OpponentPatronFavour_1;OpponentPatronFavour_2;OpponentPatronFavour_3;" +
-                          "WinProbability");
-
-            foreach (var entry in featureSetToResultRates)
+            if (!destinationPath.Contains(".csv"))
             {
-                var featureSet = entry.Key;
-                var results = entry.Value;
-
-                for (int i = 0; i < results.Looses; i++)
-                {
-                    AddLinearModelDataRow(sb, featureSet, 0);
-                }
-
-                for (int i = 0; i < results.Draws; i++)
-                {
-                    AddLinearModelDataRow(sb, featureSet, 0.5);
-                }
-
-                for (int i = 0; i < results.Wins; i++)
-                {
-                    AddLinearModelDataRow(sb, featureSet, 1);
-                }
+                File.WriteAllText(destinationPath + ".csv", sb.ToString());
             }
-
-            return sb.ToString();
+            else
+            {
+                File.WriteAllText(destinationPath, sb.ToString());
+            }
         }
-
         private static void AddDataRow(StringBuilder sb, GameStateFeatureSet featureSet, double winProbability)
         {
-            sb.AppendLine($"{featureSet.Patron_1};{featureSet.Patron_2};{featureSet.Patron_3};{featureSet.Patron_4};" +
+            sb.AppendLine(
               $"{featureSet.CurrentPlayerPrestige};" +
               $"{featureSet.CurrentPlayerDeck_PrestigeStrength};{featureSet.CurrentPlayerDeck_PowerStrength};{featureSet.CurrentPlayerDeck_GoldStrength};{featureSet.CurrentPlayerDeck_MiscStrength};" +
               $"{featureSet.CurrentPlayerDeckComboProportion};" +
-              $"{featureSet.CurrentPlayerAgent_PowerStrength};{featureSet.CurrentPlayerAgent_GoldStrength};{featureSet.CurrentPlayerAgent_MiscStrength};" +
+              $"{featureSet.CurrentPlayerAgent_PrestigeStrength};{featureSet.CurrentPlayerAgent_PowerStrength};{featureSet.CurrentPlayerAgent_GoldStrength};{featureSet.CurrentPlayerAgent_MiscStrength};" +
               $"{featureSet.CurrentPlayerPatronFavour};" +
               $"{featureSet.OpponentPrestige};" +
               $"{featureSet.OpponentDeck_PrestigeStrength};{featureSet.OpponentDeck_PowerStrength};{featureSet.OpponentDeck_GoldStrength};{featureSet.OpponentDeck_MiscStrength};" +
-              $"{featureSet.OpponentAgent_PowerStrength};{featureSet.OpponentAgent_GoldStrength};{featureSet.OpponentAgent_MiscStrength};" +
+              $"{featureSet.OpponentAgent_PrestigeStrength};{featureSet.OpponentAgent_PowerStrength};{featureSet.OpponentAgent_GoldStrength};{featureSet.OpponentAgent_MiscStrength};" +
               $"{featureSet.OpponentPatronFavour};" +
               $"{winProbability}");
         }
 
-        private static void AddLinearModelDataRow(StringBuilder sb, GameStateFeatureSet featureSet, double winProbability)
-        {
-            sb.AppendLine(
-              $"{featureSet.CurrentPlayerPrestige};" +
-              $"{featureSet.CurrentPlayerDeck_PrestigeStrength};{featureSet.CurrentPlayerDeck_PowerStrength};{featureSet.CurrentPlayerDeck_GoldStrength};{featureSet.CurrentPlayerDeck_MiscStrength};" +
-              $"{featureSet.CurrentPlayerDeckComboProportion};" +
-              $"{featureSet.CurrentPlayerAgent_PowerStrength};{featureSet.CurrentPlayerAgent_GoldStrength};{featureSet.CurrentPlayerAgent_MiscStrength};" +
-              $"{(featureSet.CurrentPlayerPatronFavour == 0 ? 1 : 0)};{(featureSet.CurrentPlayerPatronFavour == 1 ? 1 : 0)};{(featureSet.CurrentPlayerPatronFavour == 2 ? 1 : 0)};{(featureSet.CurrentPlayerPatronFavour == 3 ? 1 : 0)};" +
-              $"{featureSet.OpponentPrestige};" +
-              $"{featureSet.OpponentDeck_PrestigeStrength};{featureSet.OpponentDeck_PowerStrength};{featureSet.OpponentDeck_GoldStrength};{featureSet.OpponentDeck_MiscStrength};" +
-              $"{featureSet.OpponentAgent_PowerStrength};{featureSet.OpponentAgent_GoldStrength};{featureSet.OpponentAgent_MiscStrength};" +
-              $"{(featureSet.OpponentPatronFavour == 0 ? 1 : 0)};{(featureSet.OpponentPatronFavour == 1 ? 1 : 0)};{(featureSet.OpponentPatronFavour == 2 ? 1 : 0)};{(featureSet.OpponentPatronFavour == 3 ? 1 : 0)};" +
-              $"{winProbability}");
-        }
-
-        private static void PlayMatches(string botString, int numberOfMatchups, int timeout, DataCollectors_MaltheMCTS.Settings? maltheMCTSSettings = null)
+        private static void PlayMatches(string botString, int numberOfMatchups, int timeout, MaltheMCTS.Settings? maltheMCTSSettings = null)
         {
             for (int i = 0; i < numberOfMatchups; i++)
             {
@@ -270,7 +239,7 @@ namespace GameDataCollection
             }
         }
 
-        public static AI CreateBot(string botName, int timeout, DataCollectors_MaltheMCTS.Settings? maltheMCTSSettings = null)
+        public static AI CreateBot(string botName, int timeout, MaltheMCTS.Settings? maltheMCTSSettings = null)
         {
             switch (botName)
             {
@@ -287,7 +256,7 @@ namespace GameDataCollection
                 //case "MCTSBot":
                 //    return new MCTSBot();
                 case "MaltheMCTS":
-                    return new DataCollectors_MaltheMCTS.MaltheMCTS(instanceName: Guid.NewGuid().ToString(), settings: maltheMCTSSettings);
+                    return new DataCollectors_MaltheMCTS.MaltheMCTS_(instanceName: Guid.NewGuid().ToString(), settings: maltheMCTSSettings);
                 //case "PatronFavorsBot":
                 //    return new PatronFavorsBot();
                 //case "PatronSelectionTimeoutBot":

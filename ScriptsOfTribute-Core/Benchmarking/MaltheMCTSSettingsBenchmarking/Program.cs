@@ -13,7 +13,7 @@ using System.IO;
 
 namespace MaltheMCTSSettingsBenchmarking
 {
-    internal class Program
+    public class Program
     {
         static async Task Main(string[] args)
         {
@@ -137,7 +137,7 @@ namespace MaltheMCTSSettingsBenchmarking
             Console.WriteLine("Benchmark complete. Results logged in folder: " + benchmarkName);
         }
 
-        private static Dictionary<MaltheMCTS.MaltheMCTS, Dictionary<MaltheMCTS.MaltheMCTS, int>> PlayMatches(List<MaltheMCTS.MaltheMCTS> bots, int numberOfMatchups, int timeout)
+        public static Dictionary<MaltheMCTS.MaltheMCTS, Dictionary<MaltheMCTS.MaltheMCTS, int>> PlayMatches(List<MaltheMCTS.MaltheMCTS> bots, int numberOfMatchups, int timeout)
         {
             Dictionary<AI, Dictionary<AI, int>> botToWins = new();
 
@@ -146,10 +146,11 @@ namespace MaltheMCTSSettingsBenchmarking
                 botToWins.Add(bot, new Dictionary<AI, int>());
             }
 
-            var matchups = Utility.BuildMatchups2(bots.Cast<AI>().ToList(), numberOfMatchups, false);
+            var matchups = Utility.BuildMatchups(bots.Cast<AI>().ToList(), numberOfMatchups, false);
             
             foreach (var matchup in matchups)
             {
+                Console.WriteLine("Playing match - " + (matchup.Item1 as MaltheMCTS.MaltheMCTS).InstanceName + " VS " + (matchup.Item2 as MaltheMCTS.MaltheMCTS).InstanceName + "...");
                 var match = new ScriptsOfTribute.AI.ScriptsOfTribute(matchup.Item1, matchup.Item2, TimeSpan.FromSeconds(timeout));
                 var result = match.Play().Item1;
                 switch (result.Winner)

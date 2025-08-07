@@ -1,49 +1,41 @@
 using System.Diagnostics;
+using BestMCTS3;
 using GameDataCollection;
+using MaltheMCTS;
 using ScriptsOfTribute;
 using ScriptsOfTribute.AI;
 using ScriptsOfTribute.Board;
 using ScriptsOfTribute.Serializers;
 using SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring;
+using SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring.ModelEvaluation;
 
 namespace DataCollectors_MaltheMCTS;
 
-public class MaltheMCTS : AI
+public class MaltheMCTS_ : MaltheMCTS.MaltheMCTS
 {
-    public Dictionary<int, List<Node>> NodeGameStateHashMap = new Dictionary<int, List<Node>>();
-    public Settings Settings { get; set; }
-
+    public static double RANDOM_EXPLORATION_PROBABILITY = 0.1;
 
     public string InstanceName;
 
     public List<GameStateFeatureSet> GameStateFeatureSetsFromMatch;
 
-    // FOR COMPUTATION BENCHMARK
-    private int computationsCompleted = 0;
-
-    public MaltheMCTS(string? instanceName = null, Settings? settings = null) : base()
+    public MaltheMCTS_(string? instanceName = null, Settings? settings = null) : base(instanceName, settings)
     {
         this.InstanceName = instanceName ?? "MaltheMCTS_" + Guid.NewGuid();
         Settings = settings ?? new Settings(); // Hardcoded
     }
 
-    // TODO initiate the static model class, so its not using time on the first turn
     /// <summary>
     /// Explicitly parameterless constructor is needed for SoT framework
     /// </summary>
-    public MaltheMCTS() : base()
+    public MaltheMCTS_() : base()
     {
-        InstanceName = "MaltheMCTS_" + Guid.NewGuid();
-        Settings = new Settings(); // Hardcoded
     }
 
     public override void PregamePrepare()
     {
-        computationsCompleted = 0;
-
-        Utility.CategorizeCards();
+        MaltheMCTS.Utility.CategorizeCards();
         NodeGameStateHashMap = new Dictionary<int, List<Node>>();
-
         GameStateFeatureSetsFromMatch = new List<GameStateFeatureSet>();
     }
 
@@ -55,9 +47,7 @@ public class MaltheMCTS : AI
 
     public override void GameEnd(EndGameState state, FullGameState? finalBoardState)
     {
-        state.AverageComputationsPerTurn = Utility.SaveDivision(computationsCompleted, state.TurnsTaken / 2);
-        Console.WriteLine("@@@ Game ended because of " + state.Reason + " @@@");
-        Console.WriteLine("@@@ Winner was " + state.Winner + " @@@");
+        base.GameEnd(state, finalBoardState);
 
         foreach (var featureSet in GameStateFeatureSetsFromMatch)
         {
@@ -84,11 +74,17 @@ public class MaltheMCTS : AI
             var instantPlay = FindInstantPlayMove(possibleMoves);
             if (instantPlay != null)
             {
-                if(instantPlay.Command == CommandEnum.END_TURN)
+                if (instantPlay.Command == CommandEnum.END_TURN)
                 {
                     AddFeatureSet(gameState);
                 }
                 return instantPlay;
+            }
+
+            // Exlusive for data collector to explore new strategies
+            if (MaltheMCTS.Utility.Rng.NextDouble() < RANDOM_EXPLORATION_PROBABILITY)
+            {
+                return possibleMoves.PickRandom(new SeededRandom());
             }
 
             if (possibleMoves.Count == 1)
@@ -100,10 +96,10 @@ public class MaltheMCTS : AI
                 return possibleMoves[0];
             }
 
-            ulong randomSeed = (ulong)Utility.Rng.Next();
+            ulong randomSeed = (ulong)MaltheMCTS.Utility.Rng.Next();
             var seededGameState = gameState.ToSeededGameState(randomSeed);
 
-            var rootNode = Utility.FindOrBuildNode(seededGameState, null, possibleMoves, this);
+            var rootNode = MaltheMCTS.Utility.FindOrBuildNode(seededGameState, null, possibleMoves, this);
 
             var moveTimer = new Stopwatch();
             moveTimer.Start();
@@ -115,7 +111,6 @@ public class MaltheMCTS : AI
                 // iterationTimer.Start();
                 // iterationCounter++;
                 rootNode.Visit(out double score, new HashSet<Node>());
-                computationsCompleted++;
                 // iterationTimer.Stop();
                 // Console.WriteLine("Iteration took: " + iterationTimer.ElapsedMilliseconds + " milliseconds");
             }
@@ -136,9 +131,10 @@ public class MaltheMCTS : AI
                 errorMessage += "Settings:\n" + Settings.ToString();
                 SaveErrorLog(errorMessage);
             }
-            var officialMove = Utility.FindOfficialMove(bestMove, possibleMoves); ;
-            
-            if(officialMove.Command == CommandEnum.END_TURN)
+
+            var officialMove = MaltheMCTS.Utility.FindOfficialMove(bestMove, possibleMoves); ;
+
+            if (officialMove.Command == CommandEnum.END_TURN)
             {
                 AddFeatureSet(gameState);
             }
@@ -199,7 +195,7 @@ public class MaltheMCTS : AI
             Console.WriteLine("Our state:");
             rootNode?.GameState.Log();
             Console.WriteLine("Actual state:");
-            officialGameState.ToSeededGameState((ulong)Utility.Rng.Next()).Log();
+            officialGameState.ToSeededGameState((ulong)MaltheMCTS.Utility.Rng.Next()).Log();
             Console.WriteLine("@@@@ Trying to play move:");
             moveToCheck.Log();
             Console.WriteLine("@@@@@@@ But available moves were:");
@@ -215,7 +211,7 @@ public class MaltheMCTS : AI
 
     private int EstimateRemainingMovesInTurn(GameState inputState, List<Move> inputPossibleMoves)
     {
-        return EstimateRemainingMovesInTurn(inputState.ToSeededGameState((ulong)Utility.Rng.Next()), inputPossibleMoves);
+        return EstimateRemainingMovesInTurn(inputState.ToSeededGameState((ulong)MaltheMCTS.Utility.Rng.Next()), inputPossibleMoves);
     }
 
     private int EstimateRemainingMovesInTurn(SeededGameState inputState, List<Move> inputPossibleMoves)
@@ -286,6 +282,6 @@ public class MaltheMCTS : AI
     }
     public override PatronId SelectPatron(List<PatronId> availablePatrons, int round)
     {
-        return availablePatrons[0];
+        return availablePatrons.PickRandom(new SeededRandom());
     }
 }

@@ -2,7 +2,7 @@
   "profiles": {
     "BotBenchmarking": {
       "commandName": "Project",
-      "commandLineArgs": "-b MaltheMCTS Aau903Bot: BestMCTS3 Sakkiring SOISMCTS -n 20 -to 10 -t 1 -s MaltheMCTS/Settings/MaltheMCTS_New_FF -bm final1 -se true"
+      "commandLineArgs": "-b MaltheMCTS RandomWithoutEndTurnBot MCTSBot BeamSearchBot -n 3 -to 2 -t 1 -s MaltheMCTS/Settings/MaltheMCTS_New_FF -bm newInfoCheck_5_without_se -se false"
     }
   }
 }
