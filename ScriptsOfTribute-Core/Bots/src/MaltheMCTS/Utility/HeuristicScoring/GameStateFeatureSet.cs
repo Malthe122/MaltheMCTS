@@ -7,7 +7,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using static SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring.HeuristicScoring;
-using EnsembleTreeModelBuilder;
 
 namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
 {
