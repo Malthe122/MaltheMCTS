@@ -3,7 +3,6 @@ MaltheMCTS is a MCTS agent for Scripts of Tribute, SoT (https://github.com/Scrip
 It was created as research for a final master project, and the paper can be accessed here at \[Insert link once its public\].
 As I did not have rights to fork the SoT repository, I just pushed the content to this repository manually.
 Contributions of this repository are in:
-Contributions are in:
 - ScriptsOfTribute-Core/Benchmarking/
 - ScriptsOfTribute-Core/Bots/src/MaltheMCTS/
 - ScriptsOfTribute-Core/EnsembleTreeModelBuilder/
