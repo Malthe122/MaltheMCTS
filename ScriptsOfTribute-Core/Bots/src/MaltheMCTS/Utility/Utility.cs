@@ -1,5 +1,4 @@
 using Bots;
-using ExternalHeuristic;
 using ScriptsOfTribute;
 using ScriptsOfTribute.Board.Cards;
 using ScriptsOfTribute.Serializers;
@@ -9,14 +8,6 @@ namespace MaltheMCTS;
 
 public static class Utility
 {
-    /// <summary>
-    /// Calculated average from 500,800 evaluations on a version of AauBot that only evaluated states at the end of turns
-    /// </summary>
-    private const double average_bestmcts3_heuristic_end_of_turn_score = 0.35039018318061976f;
-    /// <summary>
-    /// Calculated average from 11_193_363 states appearing in games of RandomBot playing versus RandomBot and 45_886_781 states generated from AauBot playing versus AauBot
-    /// </summary>
-    private const double average_bestmcts3_heuristic_score = 0.4855746429f;
     public static Random Rng = new Random();
 
     public static readonly List<CardId> RANDOM_EFFECT_CARDS = new List<CardId>();
@@ -29,7 +20,7 @@ public static class Utility
         foreach (var card in GlobalCardDatabase.Instance.AllCards)
         {
             // Effect 0 is play/activation effect
-            // FUTURE handle combos
+            // FUTURE handle combos. CORRECTION: Probably just look at the action in action completedActions instead of caring about the card
             if (card.Effects[0].IsStochastic())
             {
                 RANDOM_EFFECT_CARDS.Add(card.CommonId);
@@ -41,68 +32,6 @@ public static class Utility
             }))
             {
                 INSTANT_EFFECT_PLAY_CARDS.Add(card.CommonId);
-            }
-        }
-    }
-
-    public static double UseBestMCTS3Heuristic(SeededGameState gameState, bool onlyEndOfTurns, bool normalize = true)
-    {
-
-        GameStrategy strategy;
-
-        var currentPlayer = gameState.CurrentPlayer;
-        int cardCount = currentPlayer.Hand.Count + currentPlayer.CooldownPile.Count + currentPlayer.DrawPile.Count;
-        int points = gameState.CurrentPlayer.Prestige;
-        if (points >= 27 || gameState.EnemyPlayer.Prestige >= 30)
-        {
-            strategy = new GameStrategy(cardCount, GamePhase.LateGame);
-        }
-        else if (points <= 10 && gameState.EnemyPlayer.Prestige <= 13)
-        {
-            strategy = new GameStrategy(cardCount, GamePhase.EarlyGame);
-        }
-        else
-        {
-            strategy = new GameStrategy(cardCount, GamePhase.MidGame);
-        }
-
-        var result = strategy.Heuristic(gameState);
-
-        if (normalize)
-        {
-            return NormalizeBestMCTS3Score(result, onlyEndOfTurns);
-        }
-
-        return result;
-    }
-
-    /// <summary>
-    /// For normalizing BestMCTS3 heuristic score into a -1 - 1 value, using knowledge of average BestMCTS3 score
-    /// This is needed to be able to treat the game like a zero-sum-game with this heuristic that was made for the
-    /// BestMCTS3 that treated the game like a planning problem of a single turn rather than a zero-sum-game
-    /// </summary>
-    private static double NormalizeBestMCTS3Score(double score, bool onlyEndOfTurns)
-    {
-        if (onlyEndOfTurns)
-        {
-            if (score < average_bestmcts3_heuristic_end_of_turn_score)
-            {
-                return (score - average_bestmcts3_heuristic_end_of_turn_score) / average_bestmcts3_heuristic_end_of_turn_score;
-            }
-            else
-            {
-                return (score - average_bestmcts3_heuristic_end_of_turn_score) / (1 - average_bestmcts3_heuristic_end_of_turn_score);
-            }
-        }
-        else
-        {
-            if (score < average_bestmcts3_heuristic_score)
-            {
-                return (score - average_bestmcts3_heuristic_score) / average_bestmcts3_heuristic_score;
-            }
-            else
-            {
-                return (score - average_bestmcts3_heuristic_score) / (1 - average_bestmcts3_heuristic_score);
             }
         }
     }
@@ -155,16 +84,6 @@ public static class Utility
     public static Move FindOfficialMove(Move move, List<Move> possibleMoves)
     {
         return possibleMoves.First(m => m.IsIdentical(move));
-    }
-
-    internal static float SaveDivision(int arg1, int arg2)
-    {
-        if (arg1 == 0 || arg2 == 0)
-        {
-            return 0;
-        }
-
-        return arg1 / arg2;
     }
 
     /// <summary>

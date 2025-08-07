@@ -13,22 +13,6 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring.ModelEvaluation
     public static class EnsembledTreeModelEvaluation
     {
         private static readonly MLContext mlContext = new MLContext();
-        private static Dictionary<RegressionTrainer, PredictionEngine<GameStateFeatureSetCsvRow, ModelOutput>> predictionEngines;
-
-        //static EnsembledTreeModelEvaluation()
-        //{
-        //    string basePath = "MaltheMCTS/Ensemble_Tree_Models/";
-        //    var fastForestModel = mlContext.Model.Load(basePath + "FastForest", out var _);
-        //    var fastTreeModel = mlContext.Model.Load(basePath + "FastTree", out var _);
-        //    var fastTreeTweedieModel = mlContext.Model.Load(basePath + "FastTreeTweedie", out var _);
-        //    predictionEngines = new Dictionary<RegressionTrainer, PredictionEngine<GameStateFeatureSetCsvRow, ModelOutput>>
-        //    {
-        //        [RegressionTrainer.FastForest] = mlContext.Model.CreatePredictionEngine<GameStateFeatureSetCsvRow, ModelOutput>(fastForestModel),
-        //        [RegressionTrainer.FastTree] = mlContext.Model.CreatePredictionEngine<GameStateFeatureSetCsvRow, ModelOutput>(fastTreeModel),
-        //        [RegressionTrainer.FastTreeTweedie] = mlContext.Model.CreatePredictionEngine<GameStateFeatureSetCsvRow, ModelOutput>(fastTreeTweedieModel),
-        //        [RegressionTrainer.LightGbm] = mlContext.Model.CreatePredictionEngine<GameStateFeatureSetCsvRow, ModelOutput>(lightGbmModel),
-        //    };
-        //}
 
         public static PredictionEngine<GameStateFeatureSetCsvRow, ModelOutput>? GetPredictionEngine(RegressionTrainer? modelType)
         {

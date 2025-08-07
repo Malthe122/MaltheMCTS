@@ -10,7 +10,7 @@ namespace MaltheMCTS
 {
     /// <summary>
     /// Only used when SimulateMultipleTurns is disabled. It is a copy of this node, but representing the current score/visits of the node if end_turn is played, but without
-    /// affecting the state with the card draws that happens on end_turn, since with this feature disabled, we do not want this to be part of our simulations.
+    /// affecting the state with the card draws that happens on end_turn, since with this feature disabled, i do not want this to be part of the simulations.
     /// </summary>
     public class EndNode : Node
     {
