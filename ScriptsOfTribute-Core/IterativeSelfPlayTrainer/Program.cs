@@ -113,30 +113,39 @@ namespace IterativeSelfPlayTrainer
                 settings = new Settings();
                 Console.WriteLine("Using default settings");
             }
-            var originalBotBuffer = settings.ITERATION_COMPLETION_MILLISECONDS_BUFFER;
 
-            Console.WriteLine("Starting iteration 0...");
+            MaltheMCTS.MaltheMCTS bestBot;
 
-            if(startFromRollout)
+            if (startFromRollout)
             {
+
+                var originalBotBuffer = settings.ITERATION_COMPLETION_MILLISECONDS_BUFFER;
+                Console.WriteLine("Starting iteration 0...");
+
                 settings.CHOSEN_SCORING_METHOD = ScoringMethod.Rollout;
                 settings.ITERATION_COMPLETION_MILLISECONDS_BUFFER = 500;
+
+                string iteration0DataPath = basePath + "/0" + "/data.csv";
+                string iteration0ModelPath = basePath + "/0" + "/model";
+                HideLogsFromConsole(0, resultModelName);
+                GameDataCollection.Program.CollectMaltheMCTSData(matchupsPerIteration, timeout, iteration0DataPath, settings);
+                var iteration0RsquareScore = EnsembleTreeModelBuilder.Program.TrainModel(iteration0DataPath, iteration0ModelPath, Int32.MaxValue, true, settings.FEATURE_SET_MODEL_TYPE);
+                EnableConsoleLog();
+                ApplyModel(iteration0ModelPath, settings.FEATURE_SET_MODEL_TYPE!.Value, iteration0RsquareScore);
+                Console.WriteLine("Iteration 0 completed");
+
+                // Resets settings to original
+                settings.CHOSEN_SCORING_METHOD = ScoringMethod.ModelScoring;
+                settings.ITERATION_COMPLETION_MILLISECONDS_BUFFER = originalBotBuffer;
+
+                bestBot = new MaltheMCTS.MaltheMCTS("iteration-0-MaltheMCTS", settings);
+                bestBot.PredictionEngine = GetModel(iteration0ModelPath, settings.FEATURE_SET_MODEL_TYPE!.Value);
             }
-            string iteration0DataPath = basePath + "/0" + "/data.csv";
-            string iteration0ModelPath = basePath + "/0" + "/model";
-            HideLogsFromConsole(0, resultModelName);
-            GameDataCollection.Program.CollectMaltheMCTSData(matchupsPerIteration, timeout, iteration0DataPath, settings);
-            var iteration0RsquareScore = EnsembleTreeModelBuilder.Program.TrainModel(iteration0DataPath, iteration0ModelPath, Int32.MaxValue, true, settings.FEATURE_SET_MODEL_TYPE);
-            EnableConsoleLog();
-            ApplyModel(iteration0ModelPath, settings.FEATURE_SET_MODEL_TYPE!.Value, iteration0RsquareScore);
-            Console.WriteLine("Iteration 0 completed");
+            else
+            {
+                bestBot = new MaltheMCTS.MaltheMCTS("starting-MaltheMCTS", settings);
+            }
 
-            // Resets settings to original if it was changed to use rollout for 0th iteration
-            settings.CHOSEN_SCORING_METHOD = ScoringMethod.ModelScoring;
-            settings.ITERATION_COMPLETION_MILLISECONDS_BUFFER = originalBotBuffer;
-
-            var bestBot = new MaltheMCTS.MaltheMCTS("iteration-0-MaltheMCTS", settings);
-            bestBot.PredictionEngine = GetModel(iteration0ModelPath, settings.FEATURE_SET_MODEL_TYPE!.Value);
 
             for (int i = 1; i < iterationCount; i++)
             {
@@ -147,7 +156,7 @@ namespace IterativeSelfPlayTrainer
                 GameDataCollection.Program.CollectMaltheMCTSData(matchupsPerIteration, timeout, dataPath, settings);
                 var iterationRsquareScore = EnsembleTreeModelBuilder.Program.TrainModel(dataPath, modelPath, Int32.MaxValue, true, settings.FEATURE_SET_MODEL_TYPE);
                 var iterationModel = GetModel(modelPath, settings.FEATURE_SET_MODEL_TYPE!.Value);
-                var newBot = new MaltheMCTS.MaltheMCTS(instanceName: "iteration-" + i + "-bot", settings);
+                var newBot = new MaltheMCTS.MaltheMCTS(instanceName: "iteration-" + i + "-MaltheMCTS", settings);
                 newBot.PredictionEngine = iterationModel;
                 var benchmarkResult = MaltheMCTSSettingsBenchmarking.Program.PlayMatches(new List<MaltheMCTS.MaltheMCTS>() { bestBot, newBot }, numberOfBenchmarkMatchupsOption, timeout);
                 EnableConsoleLog();

@@ -147,10 +147,12 @@ namespace MaltheMCTSSettingsBenchmarking
             }
 
             var matchups = Utility.BuildMatchups(bots.Cast<AI>().ToList(), numberOfMatchups, false);
-            
+
+            int matchcount = 0;
             foreach (var matchup in matchups)
             {
-                Console.WriteLine("Playing match - " + (matchup.Item1 as MaltheMCTS.MaltheMCTS).InstanceName + " VS " + (matchup.Item2 as MaltheMCTS.MaltheMCTS).InstanceName + "...");
+                matchcount++;
+                Console.WriteLine("Playing match - " + (matchup.Item1 as MaltheMCTS.MaltheMCTS).InstanceName + " VS " + (matchup.Item2 as MaltheMCTS.MaltheMCTS).InstanceName + "(" + matchcount + ")...");
                 var match = new ScriptsOfTribute.AI.ScriptsOfTribute(matchup.Item1, matchup.Item2, TimeSpan.FromSeconds(timeout));
                 var result = match.Play().Item1;
                 switch (result.Winner)
