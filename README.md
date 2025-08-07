@@ -16,6 +16,7 @@ Full details of experiements mentioned in paper will also be uploaded to this br
 
 Thesis link: \[Insert link once its public\]
 # 2025 Competition Version
+- Updated to work with the new version of SoT
 - IterativeSelfPlayTrainer was added to try to create a better model by iteratively collecting data from playing games, training a new model on these and then collect data from games played by the new model.
 - Changed to use LightGBM instead of Random Forest
 - Removed patron features and added agent prestige strength feature (as agents with prestige was added to the 2025 version of SoT)
