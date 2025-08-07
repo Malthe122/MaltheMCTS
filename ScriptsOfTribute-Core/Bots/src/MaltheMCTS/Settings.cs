@@ -10,33 +10,25 @@ public class Settings
     public bool FORCE_DELAY_TURN_END_IN_ROLLOUT { get; set; }
     public bool INCLUDE_PLAY_MOVE_CHANCE_NODES { get; set; }
     public bool INCLUDE_END_TURN_CHANCE_NODES { get; set; }
-        public int? CHANCE_NODE_BRANCH_LIMIT { get; set; }
-    public SelectionMethod CHOSEN_SELECTION_METHOD { get; set; }
-    public ScoringMethod CHOSEN_SCORING_METHOD { get; set; }
-        // These indent properties are dependent on the chosen scoring method to be relevant
-        public int ROLLOUT_TURNS_BEFORE_HEURISTIC { get; set; }
-        /// <summary>
-        /// Uses manual (non-ensembled tree) model, if set as null
-        /// </summary>
-        public RegressionTrainer? FEATURE_SET_MODEL_TYPE { get; set; }
+    public int? CHANCE_NODE_BRANCH_LIMIT { get; set; }
+    public int ROLLOUT_TURNS_BEFORE_HEURISTIC { get; set; }
+    public RegressionTrainer? FEATURE_SET_MODEL_TYPE { get; set; }
     public bool REUSE_TREE { get; set; }
-        public bool UPDATED_TREE_REUSE { get; set; }
+    public bool UPDATED_TREE_REUSE { get; set; }
     public bool SIMULATE_MULTIPLE_TURNS { get; set; }
     public int? CHOICE_BRANCH_LIMIT { get; set; }
     public bool ADDITIONAL_MOVE_FILTERING { get; set; }
 
     public Settings()
     {
-        ITERATION_COMPLETION_MILLISECONDS_BUFFER = 100;
+        ITERATION_COMPLETION_MILLISECONDS_BUFFER = 50;
         UCT_EXPLORATION_CONSTANT = 1.41421356237; // sqrt(2) generally used default value
         FORCE_DELAY_TURN_END_IN_ROLLOUT = true;
         INCLUDE_PLAY_MOVE_CHANCE_NODES = true;
         INCLUDE_END_TURN_CHANCE_NODES = false;
         CHANCE_NODE_BRANCH_LIMIT = 3;
-        CHOSEN_SELECTION_METHOD = SelectionMethod.UCT;
-        CHOSEN_SCORING_METHOD = ScoringMethod.RolloutTurnsCompletionsThenHeuristic;
             ROLLOUT_TURNS_BEFORE_HEURISTIC = 1;
-            FEATURE_SET_MODEL_TYPE = null;
+            FEATURE_SET_MODEL_TYPE = RegressionTrainer.LightGbm;
         REUSE_TREE = true;
             UPDATED_TREE_REUSE = true;
         SIMULATE_MULTIPLE_TURNS = false;

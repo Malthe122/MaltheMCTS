@@ -15,8 +15,7 @@ public class MaltheMCTS : AI
 {
     public Dictionary<int, List<Node>> NodeGameStateHashMap = new Dictionary<int, List<Node>>();
     public Settings Settings { get; set; }
-    // Having this here only makes sense when competing MaltheMCTS aganist each other with different prediction Engines
-    // Consider refactoring it back to Utility when submitting agent
+
     public PredictionEngine<GameStateFeatureSetCsvRow, ModelOutput> PredictionEngine;
 
     public string InstanceName;
@@ -28,29 +27,25 @@ public class MaltheMCTS : AI
         PredictionEngine = EnsembledTreeModelEvaluation.GetPredictionEngine(Settings.FEATURE_SET_MODEL_TYPE);
     }
 
-    // TODO initiate the static model class, so its not using time on the first turn
-    /// <summary>
-    /// Explicitly parameterless constructor is needed for SoT framework
-    /// </summary>
     public MaltheMCTS() : base()
     {
         InstanceName = "MaltheMCTS_" + Guid.NewGuid();
         Settings = new Settings(); // Hardcoded
         PredictionEngine = EnsembledTreeModelEvaluation.GetPredictionEngine(Settings.FEATURE_SET_MODEL_TYPE);
+        Utility.CategorizeCards();
     }
 
     public override void PregamePrepare()
     {
-        Utility.CategorizeCards();
         NodeGameStateHashMap = new Dictionary<int, List<Node>>();
     }
 
     public override void GameEnd(EndGameState state, FullGameState? finalBoardState)
     {
-        Console.WriteLine("@@@ Game ended because of " + state.Reason + " @@@");
-        Console.WriteLine("@@@ Winner was " + state.Winner + " @@@");
-        Console.WriteLine("Patrons were:");
-        finalBoardState?.Patrons.ForEach(p => Console.WriteLine(p));
+        //Console.WriteLine("@@@ Game ended because of " + state.Reason + " @@@");
+        //Console.WriteLine("@@@ Winner was " + state.Winner + " @@@");
+        //Console.WriteLine("Patrons were:");
+        //finalBoardState?.Patrons.ForEach(p => Console.WriteLine(p));
     }
 
     public override Move Play(GameState gameState, List<Move> possibleMoves, TimeSpan remainingTime)
@@ -79,18 +74,13 @@ public class MaltheMCTS : AI
             double millisecondsForMove = (remainingTime.TotalMilliseconds / estimatedRemainingMovesInTurn) - Settings.ITERATION_COMPLETION_MILLISECONDS_BUFFER;
             while (moveTimer.ElapsedMilliseconds < millisecondsForMove)
             {
-                // var iterationTimer = new Stopwatch();
-                // iterationTimer.Start();
-                // iterationCounter++;
                 rootNode.Visit(out double score, new HashSet<Node>());
-                // iterationTimer.Stop();
-                // Console.WriteLine("Iteration took: " + iterationTimer.ElapsedMilliseconds + " milliseconds");
             }
 
             if (rootNode.MoveToChildNode.Count == 0)
             {
-                // Console.WriteLine("NO TIME FOR CALCULATING MOVE@@@@@@@@@@@@@@@");
-                return possibleMoves[0];
+                // No time for calculating move
+                return possibleMoves.PickRandom(new SeededRandom());
             }
 
             var bestMove = rootNode.MoveToChildNode
@@ -98,40 +88,12 @@ public class MaltheMCTS : AI
                 .FirstOrDefault()
                 .Key;
 
-            if (!CheckMoveLegality(bestMove, rootNode, gameState, possibleMoves)) {
-                string errorMessage = "Tried to play illegal move\n";
-                errorMessage += "Settings:\n" + Settings.ToString();
-                SaveErrorLog(errorMessage);
-            }
-
             return Utility.FindOfficialMove(bestMove, possibleMoves);
         }
-        catch (Exception e)
+        catch
         {
-            Console.WriteLine("Something went wrong while trying to compute move. Playing random move instead. Exception:");
-            Console.WriteLine("Message: " + e.Message);
-            Console.WriteLine("Stacktrace: " + e.StackTrace);
-            Console.WriteLine("Data: " + e.Data);
-            if (e.InnerException != null)
-            {
-                Console.WriteLine("Inner excpetion: " + e.InnerException.Message);
-                Console.WriteLine("Inner stacktrace: " + e.InnerException.StackTrace);
-            }
-
-            var errorMessage = "Something went wrong while trying to compute move. Playing random move instead. Exception:" + "\n";
-            errorMessage += "Message: " + e.Message + "\n";
-            errorMessage += "Stacktrace: " + e.StackTrace + "\n";
-            errorMessage += "Data: " + e.Data + "\n";
-            if (e.InnerException != null)
-            {
-                errorMessage += "Inner excpetion: " + e.InnerException.Message + "\n";
-                errorMessage += "Inner stacktrace: " + e.InnerException.StackTrace + "\n";
-            }
-
-            errorMessage += "Settings was:\n" + Settings.ToString();
-
-            SaveErrorLog(errorMessage);
-            return possibleMoves[0];
+            // Something went wrong while trying to compute move. Playing random move instead.
+            return possibleMoves.PickRandom(new SeededRandom());
         }
     }
 
@@ -238,13 +200,6 @@ public class MaltheMCTS : AI
         return null;
     }
 
-    /// <summary>
-    /// Used for logging when debugging. Do not delete even though it has no references
-    /// </summary>
-    private double GetTimeSpentBeforeTurn(TimeSpan remainingTime)
-    {
-        return 10_000d - remainingTime.TotalMilliseconds;
-    }
     public override PatronId SelectPatron(List<PatronId> availablePatrons, int round)
     {
         return availablePatrons.PickRandom(new SeededRandom());
