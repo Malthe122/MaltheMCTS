@@ -1,0 +1,10 @@
+R²:0.2210453851717178
+
+Training time: manual (not tracked)
+RSquared: 0.2210453851717178
+Model type: FastForest
+Total Trees: 100
+Leaves per Tree - Min: 64, Max: 64, Avg: 64.00
+Nodes per Tree - Min: 63, Max: 63, Avg: 63.00
+Tree Weights (first 5): 1, 1, 1, 1, 1, ...
+Bias: 0

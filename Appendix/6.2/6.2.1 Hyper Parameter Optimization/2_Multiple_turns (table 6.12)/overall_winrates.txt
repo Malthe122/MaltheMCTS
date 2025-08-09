@@ -1,0 +1,3 @@
+MaltheMCTS/Settings7_FastForest_MultipleTurns/single_turn: 93.33333333333333
+MaltheMCTS/Settings7_FastForest_MultipleTurns/multiple_turns: 23.333333333333332
+MaltheMCTS/Settings7_FastForest_MultipleTurns/multiple_turns_with_end_turn_chance_nodes: 33.33333333333333

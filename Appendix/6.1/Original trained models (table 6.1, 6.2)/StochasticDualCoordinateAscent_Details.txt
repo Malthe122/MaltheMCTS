@@ -1,0 +1,34 @@
+R²:0.21900558661856884
+
+Best run details:
+Type: ReplaceMissingValues=>Concatenate=>SdcaRegression
+Training time: 8.936
+RSquared: 0.21900558661856884
+Model to string: Microsoft.ML.Data.TransformerChain`1[Microsoft.ML.ITransformer]
+ReplaceMissingValues=>Concatenate=>SdcaRegression details:
+
+Bias: 0.47710776
+Weight Count: 23
+Patron_1: 0.000
+Patron_2: 0.000
+Patron_3: 0.000
+Patron_4: 0.000
+CurrentPlayerPrestige: 0.028
+CurrentPlayerDeck_PrestigeStrength: 0.000
+CurrentPlayerDeck_PowerStrength: 0.067
+CurrentPlayerDeck_GoldStrength: 0.000
+CurrentPlayerDeck_MiscStrength: 0.000
+CurrentPlayerDeckComboProportion: 0.000
+CurrentPlayerAgent_PowerStrength: 0.013
+CurrentPlayerAgent_GoldStrength: 0.027
+CurrentPlayerAgent_MiscStrength: 0.000
+CurrentPlayerPatronFavour: 0.007
+OpponentPrestige: -0.030
+OpponentDeck_PrestigeStrength: 0.000
+OpponentDeck_PowerStrength: -0.011
+OpponentDeck_GoldStrength: 0.000
+OpponentDeck_MiscStrength: 0.000
+OpponentAgent_PowerStrength: 0.000
+OpponentAgent_GoldStrength: 0.000
+OpponentAgent_MiscStrength: 0.000
+OpponentPatronFavour: -0.027

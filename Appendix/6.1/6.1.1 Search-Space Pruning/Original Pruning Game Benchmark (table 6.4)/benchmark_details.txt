@@ -1,0 +1,5 @@
+Benchmark Details Log:
+Benchmark Name: ModelBenchmarks_3_Branch_Limitations_Again
+Number of Matchups: 50
+Timeout: 10
+Threads: 1

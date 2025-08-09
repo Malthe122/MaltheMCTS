@@ -1,0 +1,2 @@
+MaltheMCTS/Settings11_AdditionalMoveFiltering/NO_additionalFilter: 53.333333333333336
+MaltheMCTS/Settings11_AdditionalMoveFiltering/additionalFilter: 46.666666666666664

@@ -1,0 +1,7 @@
+vs;MaltheMCTS/Settings/config_LightGbm;MaltheMCTS/Settings/config_LbfgsPoissonRegression;MaltheMCTS/Settings/config_FastTree;MaltheMCTS/Settings/config_FastTreeTweedie;MaltheMCTS/Settings/config_StochasticDualCoordinateAscent;MaltheMCTS/Settings/config_FastForest
+MaltheMCTS/Settings/config_LightGbm;0;24.00;56.00;44.00;32.00;48.00
+MaltheMCTS/Settings/config_LbfgsPoissonRegression;76.00;0;84.00;88.00;72.00;56.00
+MaltheMCTS/Settings/config_FastTree;44.00;16.00;0;44.00;24.00;40.00
+MaltheMCTS/Settings/config_FastTreeTweedie;56.00;12.00;56.00;0;48.00;16.00
+MaltheMCTS/Settings/config_StochasticDualCoordinateAscent;68.00;28.00;76.00;52.00;0;72.00
+MaltheMCTS/Settings/config_FastForest;52.00;44.00;60.00;84.00;28.00;0

@@ -1,0 +1,9 @@
+vs;MaltheMCTS/Settings5/config_BestMCTS3Heuristic;MaltheMCTS/Settings5/config_LightGbm;MaltheMCTS/Settings5/config_LbfgsPoissonRegression;MaltheMCTS/Settings5/config_FastTree;MaltheMCTS/Settings5/config_FastTreeTweedie;MaltheMCTS/Settings5/config_StochasticDualCoordinateAscent;MaltheMCTS/Settings5/config_FastForest;MaltheMCTS/Settings5/config_ManualModel;Total Winrate %
+MaltheMCTS/Settings5/config_BestMCTS3Heuristic;0;76.67;63.33;73.33;83.33;73.33;73.33;60.00;71.9047619047619
+MaltheMCTS/Settings5/config_LightGbm;23.33;0;60.00;56.67;43.33;56.67;33.33;23.33;42.38095238095238
+MaltheMCTS/Settings5/config_LbfgsPoissonRegression;36.67;40.00;0;60.00;53.33;56.67;46.67;43.33;48.095238095238095
+MaltheMCTS/Settings5/config_FastTree;26.67;43.33;40.00;0;76.67;40.00;26.67;33.33;40.95238095238095
+MaltheMCTS/Settings5/config_FastTreeTweedie;16.67;56.67;46.67;23.33;0;36.67;43.33;50.00;39.04761904761905
+MaltheMCTS/Settings5/config_StochasticDualCoordinateAscent;26.67;43.33;43.33;60.00;63.33;0;60.00;56.67;50.476190476190474
+MaltheMCTS/Settings5/config_FastForest;26.67;66.67;53.33;73.33;56.67;40.00;0;50.00;52.38095238095239
+MaltheMCTS/Settings5/config_ManualModel;40.00;76.67;56.67;66.67;50.00;43.33;50.00;0;54.761904761904766

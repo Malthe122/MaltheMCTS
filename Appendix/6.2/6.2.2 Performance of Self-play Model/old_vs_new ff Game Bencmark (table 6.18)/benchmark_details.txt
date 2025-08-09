@@ -1,0 +1,5 @@
+Benchmark Details Log:
+Benchmark Name: FastForestBenchmarks/8_old_vs_new
+Number of Matchups: 100
+Timeout: 10
+Threads: 1

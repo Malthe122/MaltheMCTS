@@ -1,0 +1,5 @@
+MaltheMCTS: 50
+HQL_BOT: 85
+Aau903Bot:: 17.5
+BestMCTS3: 86.25
+Sakkiring: 11.25

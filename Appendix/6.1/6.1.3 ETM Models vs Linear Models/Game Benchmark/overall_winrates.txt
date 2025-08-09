@@ -1,0 +1,8 @@
+MaltheMCTS/Settings5/config_BestMCTS3Heuristic: 71.9047619047619
+MaltheMCTS/Settings5/config_LightGbm: 42.38095238095238
+MaltheMCTS/Settings5/config_LbfgsPoissonRegression: 48.095238095238095
+MaltheMCTS/Settings5/config_FastTree: 40.95238095238095
+MaltheMCTS/Settings5/config_FastTreeTweedie: 39.04761904761905
+MaltheMCTS/Settings5/config_StochasticDualCoordinateAscent: 50.476190476190474
+MaltheMCTS/Settings5/config_FastForest: 52.38095238095239
+MaltheMCTS/Settings5/config_ManualModel: 54.761904761904766

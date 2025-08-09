@@ -1,0 +1,1 @@
+In paper i claimed, only a 100 games were played. This is wrong, since 1.000 were played

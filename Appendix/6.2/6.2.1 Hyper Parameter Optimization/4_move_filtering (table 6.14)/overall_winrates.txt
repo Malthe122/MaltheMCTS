@@ -1,0 +1,3 @@
+MaltheMCTS/Settings9_MoveFiltering/light_filtering: 65
+MaltheMCTS/Settings9_MoveFiltering/no_filtering: 41.66666666666667
+MaltheMCTS/Settings9_MoveFiltering/heavy_filtering: 43.333333333333336

@@ -1,0 +1,4 @@
+DatasetName Name: collection5_mcts_randomforest
+Bot: MaltheMCTS
+Number of Matchups: 500
+Timeout: 30

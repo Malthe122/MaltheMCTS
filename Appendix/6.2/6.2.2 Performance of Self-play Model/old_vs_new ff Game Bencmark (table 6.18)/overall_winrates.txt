@@ -1,0 +1,2 @@
+MaltheMCTS/Settings13_fastforest_duel/NewModel: 47
+MaltheMCTS/Settings13_fastforest_duel/OldModel: 53

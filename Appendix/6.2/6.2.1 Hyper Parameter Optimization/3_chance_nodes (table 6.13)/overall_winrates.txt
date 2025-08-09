@@ -1,0 +1,3 @@
+MaltheMCTS/Settings8_ChanceNodes/unlimited_chance_nodes: 46.666666666666664
+MaltheMCTS/Settings8_ChanceNodes/3_chance_nodes: 23.333333333333332
+MaltheMCTS/Settings8_ChanceNodes/no_chance_nodes: 80

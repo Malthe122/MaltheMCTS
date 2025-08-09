@@ -1,0 +1,32 @@
+R²:0.3614395115172728
+
+Training time: manual (not tracked)
+RSquared: 0.3614395115172728
+Model type: StochasticDualCoordinateAscent
+Bias: 0.37155554
+Weight Count: 25
+CurrentPlayerPrestige: 0.027
+CurrentPlayerDeck_PrestigeStrength: 0.105
+CurrentPlayerDeck_PowerStrength: 0.013
+CurrentPlayerDeck_GoldStrength: 0.026
+CurrentPlayerDeck_MiscStrength: 0.065
+CurrentPlayerDeckComboProportion: 0.106
+CurrentPlayerAgent_PowerStrength: 0.001
+CurrentPlayerAgent_GoldStrength: -0.002
+CurrentPlayerAgent_MiscStrength: 0.020
+CurrentPlayerPatronFavour_0: -0.071
+CurrentPlayerPatronFavour_1: 0.000
+CurrentPlayerPatronFavour_2: 0.014
+CurrentPlayerPatronFavour_3: 0.000
+OpponentPrestige: -0.031
+OpponentDeck_PrestigeStrength: -0.039
+OpponentDeck_PowerStrength: -0.002
+OpponentDeck_GoldStrength: -0.004
+OpponentDeck_MiscStrength: -0.040
+OpponentAgent_PowerStrength: 0.000
+OpponentAgent_GoldStrength: 0.000
+OpponentAgent_MiscStrength: -0.025
+OpponentPatronFavour_0: 0.076
+OpponentPatronFavour_1: -0.010
+OpponentPatronFavour_2: -0.033
+OpponentPatronFavour_3: 0.000

@@ -1,0 +1,7 @@
+vs;MaltheMCTS/Settings3/config_LightGbm;MaltheMCTS/Settings3/config_LbfgsPoissonRegression;MaltheMCTS/Settings3/config_FastTree;MaltheMCTS/Settings3/config_FastTreeTweedie;MaltheMCTS/Settings3/config_StochasticDualCoordinateAscent;MaltheMCTS/Settings3/config_FastForest;Total Winrate %
+MaltheMCTS/Settings3/config_LightGbm;0;64.00;54.00;58.00;56.00;34.00;53.2
+MaltheMCTS/Settings3/config_LbfgsPoissonRegression;36.00;0;68.00;60.00;60.00;46.00;54
+MaltheMCTS/Settings3/config_FastTree;46.00;32.00;0;48.00;34.00;40.00;40
+MaltheMCTS/Settings3/config_FastTreeTweedie;42.00;40.00;52.00;0;48.00;40.00;44.4
+MaltheMCTS/Settings3/config_StochasticDualCoordinateAscent;44.00;40.00;66.00;52.00;0;48.00;50
+MaltheMCTS/Settings3/config_FastForest;66.00;54.00;60.00;60.00;52.00;0;58.4

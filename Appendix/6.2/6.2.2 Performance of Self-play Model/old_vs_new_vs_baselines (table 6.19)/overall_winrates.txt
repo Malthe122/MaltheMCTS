@@ -1,0 +1,5 @@
+MaltheMCTS/Settings14_final_mmcts_variants/NewModel: 45
+MaltheMCTS/Settings14_final_mmcts_variants/OldModel: 52.5
+MaltheMCTS/Settings14_final_mmcts_variants/M_BestMCTS3: 72.5
+MaltheMCTS/Settings14_final_mmcts_variants/Rollout: 25
+MaltheMCTS/Settings14_final_mmcts_variants/Manual: 55.00000000000001

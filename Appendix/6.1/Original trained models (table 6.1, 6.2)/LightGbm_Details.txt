@@ -1,0 +1,14 @@
+R²:0.43919080716906167
+
+Best run details:
+Type: ReplaceMissingValues=>Concatenate=>LightGbmRegression
+Training time: 739.742
+RSquared: 0.43919080716906167
+Model to string: Microsoft.ML.Data.TransformerChain`1[Microsoft.ML.ITransformer]
+ReplaceMissingValues=>Concatenate=>LightGbmRegression details:
+
+Total Trees: 5375
+Leaves per Tree - Min: 121, Max: 146, Avg: 136.83
+Nodes per Tree - Min: 120, Max: 145, Avg: 135.83
+Tree Weights (first 5): 1, 1, 1, 1, 1, ...
+Bias: 0

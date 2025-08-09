@@ -1,0 +1,6 @@
+MaltheMCTS/Settings3/config_LightGbm: 53.2
+MaltheMCTS/Settings3/config_LbfgsPoissonRegression: 54
+MaltheMCTS/Settings3/config_FastTree: 40
+MaltheMCTS/Settings3/config_FastTreeTweedie: 44.4
+MaltheMCTS/Settings3/config_StochasticDualCoordinateAscent: 50
+MaltheMCTS/Settings3/config_FastForest: 58.4

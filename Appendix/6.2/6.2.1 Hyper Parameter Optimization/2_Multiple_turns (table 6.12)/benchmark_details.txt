@@ -1,0 +1,5 @@
+Benchmark Details Log:
+Benchmark Name: FastForestBenchmarks/2_Multiple_turns
+Number of Matchups: 30
+Timeout: 10
+Threads: 1

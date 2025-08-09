@@ -1,0 +1,3 @@
+MaltheMCTS/Settings10_MoveFiltering-more/5_filtering: 66.66666666666666
+MaltheMCTS/Settings10_MoveFiltering-more/10_filtering: 35
+MaltheMCTS/Settings10_MoveFiltering-more/7_filtering: 48.333333333333336

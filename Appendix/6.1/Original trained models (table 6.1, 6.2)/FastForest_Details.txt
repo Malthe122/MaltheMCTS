@@ -1,0 +1,14 @@
+R²:0.2287105506508904
+
+Best run details:
+Type: ReplaceMissingValues=>Concatenate=>FastForestRegression
+Training time: 1.363
+RSquared: 0.2287105506508904
+Model to string: Microsoft.ML.Data.TransformerChain`1[Microsoft.ML.ITransformer]
+ReplaceMissingValues=>Concatenate=>FastForestRegression details:
+
+Total Trees: 17
+Leaves per Tree - Min: 20, Max: 20, Avg: 20.00
+Nodes per Tree - Min: 19, Max: 19, Avg: 19.00
+Tree Weights (first 5): 1, 1, 1, 1, 1, ...
+Bias: 0

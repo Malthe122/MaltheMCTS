@@ -1,0 +1,34 @@
+R²:0.17547066836787817
+
+Best run details:
+Type: ReplaceMissingValues=>Concatenate=>LbfgsPoissonRegressionRegression
+Training time: 0.318
+RSquared: 0.17547066836787817
+Model to string: Microsoft.ML.Data.TransformerChain`1[Microsoft.ML.ITransformer]
+ReplaceMissingValues=>Concatenate=>LbfgsPoissonRegressionRegression details:
+
+Bias: -1.025391
+Weight Count: 23
+Patron_1: -0.010
+Patron_2: 0.010
+Patron_3: -0.003
+Patron_4: -0.004
+CurrentPlayerPrestige: 0.049
+CurrentPlayerDeck_PrestigeStrength: 0.168
+CurrentPlayerDeck_PowerStrength: 0.647
+CurrentPlayerDeck_GoldStrength: 0.369
+CurrentPlayerDeck_MiscStrength: 0.478
+CurrentPlayerDeckComboProportion: 0.508
+CurrentPlayerAgent_PowerStrength: 0.045
+CurrentPlayerAgent_GoldStrength: 0.037
+CurrentPlayerAgent_MiscStrength: 0.103
+CurrentPlayerPatronFavour: -0.004
+OpponentPrestige: -0.060
+OpponentDeck_PrestigeStrength: -0.233
+OpponentDeck_PowerStrength: -0.531
+OpponentDeck_GoldStrength: -0.313
+OpponentDeck_MiscStrength: -0.800
+OpponentAgent_PowerStrength: -0.234
+OpponentAgent_GoldStrength: -0.281
+OpponentAgent_MiscStrength: -0.367
+OpponentPatronFavour: -0.156

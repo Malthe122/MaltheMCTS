@@ -1,0 +1,5 @@
+Benchmark Details Log:
+Benchmark Name: ModelBenchmarks_4_2000_iterations
+Number of Matchups: 50
+Timeout: 1000000
+Threads: 1

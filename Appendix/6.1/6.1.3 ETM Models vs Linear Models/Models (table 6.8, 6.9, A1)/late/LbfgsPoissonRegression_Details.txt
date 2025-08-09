@@ -1,0 +1,32 @@
+R²:0.47485100195394636
+
+Training time: manual (not tracked)
+RSquared: 0.47485100195394636
+Model type: LbfgsPoissonRegression
+Bias: -2.267057
+Weight Count: 25
+CurrentPlayerPrestige: 0.093
+CurrentPlayerDeck_PrestigeStrength: 0.000
+CurrentPlayerDeck_PowerStrength: 0.021
+CurrentPlayerDeck_GoldStrength: 0.006
+CurrentPlayerDeck_MiscStrength: 0.001
+CurrentPlayerDeckComboProportion: 0.000
+CurrentPlayerAgent_PowerStrength: 0.000
+CurrentPlayerAgent_GoldStrength: -0.007
+CurrentPlayerAgent_MiscStrength: 0.028
+CurrentPlayerPatronFavour_0: -0.101
+CurrentPlayerPatronFavour_1: 0.000
+CurrentPlayerPatronFavour_2: 0.015
+CurrentPlayerPatronFavour_3: 0.000
+OpponentPrestige: -0.052
+OpponentDeck_PrestigeStrength: 0.000
+OpponentDeck_PowerStrength: -0.004
+OpponentDeck_GoldStrength: -0.066
+OpponentDeck_MiscStrength: 0.000
+OpponentAgent_PowerStrength: -0.001
+OpponentAgent_GoldStrength: 0.000
+OpponentAgent_MiscStrength: 0.000
+OpponentPatronFavour_0: 0.000
+OpponentPatronFavour_1: -0.120
+OpponentPatronFavour_2: -0.233
+OpponentPatronFavour_3: 0.000

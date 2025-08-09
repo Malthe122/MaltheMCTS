@@ -1,0 +1,4 @@
+DatasetName Name: GameDataCollection_4
+Bot: BestMCTS3
+Number of Matchups: 1000
+Timeout: 30

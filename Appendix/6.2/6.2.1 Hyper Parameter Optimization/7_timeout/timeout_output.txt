@@ -1,0 +1,361 @@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PATRON_FAVOR @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PATRON_FAVOR @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PATRON_FAVOR @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PATRON_FAVOR @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PATRON_FAVOR @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PATRON_FAVOR @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PATRON_FAVOR @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PATRON_FAVOR @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PATRON_FAVOR @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PATRON_FAVOR @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PATRON_FAVOR @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PATRON_FAVOR @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PATRON_FAVOR @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PATRON_FAVOR @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PATRON_FAVOR @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PATRON_FAVOR @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PATRON_FAVOR @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PATRON_FAVOR @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PATRON_FAVOR @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PATRON_FAVOR @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PATRON_FAVOR @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PATRON_FAVOR @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PATRON_FAVOR @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PATRON_FAVOR @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PATRON_FAVOR @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PATRON_FAVOR @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PATRON_FAVOR @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PATRON_FAVOR @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PATRON_FAVOR @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PATRON_FAVOR @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PATRON_FAVOR @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PATRON_FAVOR @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PATRON_FAVOR @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PATRON_FAVOR @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PATRON_FAVOR @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PATRON_FAVOR @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER2 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+@@@ Game ended because of PRESTIGE_OVER_40_NOT_MATCHED @@@
+@@@ Winner was PLAYER1 @@@
+Benchmark complete. Results logged in folder: FastForestBenchmarks/7_timeout
