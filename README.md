@@ -23,4 +23,4 @@ Thesis link: \[Insert link once its public\]
 
 Branch with version of MaltheMCTS for tournament: [2025-competition/hand-in-version](https://github.com/Malthe122/MaltheMCTS/tree/2025-competition/hand-in-version/ScriptsOfTribute-Core/Bots/src/MaltheMCTS)
 
-main branch currently contains the newest work done for this competition
+Branch with state of all projects when MaltheMCTS was handed in for 2025 competition: [https://github.com/Malthe122/MaltheMCTS/tree/2025-competition/code-state](https://github.com/Malthe122/MaltheMCTS/tree/2025-competition/code-state)
