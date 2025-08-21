@@ -135,7 +135,7 @@ namespace IterativeSelfPlayTrainer
                 Console.WriteLine("Iteration 0 completed");
 
                 // Resets settings to original
-                settings.CHOSEN_SCORING_METHOD = ScoringMethod.ModelScoring;
+                settings.CHOSEN_SCORING_METHOD = ScoringMethod.LightGbmScoring;
                 settings.ITERATION_COMPLETION_MILLISECONDS_BUFFER = originalBotBuffer;
 
                 bestBot = new MaltheMCTS.MaltheMCTS("iteration-0-MaltheMCTS", settings);

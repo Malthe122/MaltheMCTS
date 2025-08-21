@@ -155,7 +155,7 @@ namespace BotBenchmarking
 
             var results = new List<Result>();
 
-            Parallel.ForEach(matchups, options, matchup =>
+            Parallel.ForEach(matchups, options, (Action<(AI, AI)>)(matchup =>
             {
                 var bot1 = matchup.Item1;
                 var bot2 = matchup.Item2;
@@ -163,7 +163,7 @@ namespace BotBenchmarking
                 if (bot1 is MaltheMCTS.MaltheMCTS && maltheMCTSSettings != null)
                 {
                     (bot1 as MaltheMCTS.MaltheMCTS).Settings = maltheMCTSSettings;
-                    if (maltheMCTSSettings.CHOSEN_SCORING_METHOD == ScoringMethod.ModelScoring)
+                    if (maltheMCTSSettings.CHOSEN_SCORING_METHOD == ScoringMethod.LightGbmScoring)
                     {
                         (bot1 as MaltheMCTS.MaltheMCTS).PredictionEngine = EnsembledTreeModelEvaluation.GetPredictionEngine(maltheMCTSSettings.FEATURE_SET_MODEL_TYPE);
                     }
@@ -172,7 +172,7 @@ namespace BotBenchmarking
                 if (bot2 is MaltheMCTS.MaltheMCTS && maltheMCTSSettings != null)
                 {
                     (bot2 as MaltheMCTS.MaltheMCTS).Settings = maltheMCTSSettings;
-                    if (maltheMCTSSettings.CHOSEN_SCORING_METHOD == ScoringMethod.ModelScoring)
+                    if (maltheMCTSSettings.CHOSEN_SCORING_METHOD == ScoringMethod.LightGbmScoring)
                     {
                         (bot2 as MaltheMCTS.MaltheMCTS).PredictionEngine = EnsembledTreeModelEvaluation.GetPredictionEngine(maltheMCTSSettings.FEATURE_SET_MODEL_TYPE);
                     }
@@ -198,7 +198,7 @@ namespace BotBenchmarking
                         break;
                 }
 
-                
+
 
                 Result result = new Result
                 {
@@ -211,7 +211,7 @@ namespace BotBenchmarking
                 };
 
                 results.Add(result);
-            });
+            }));
 
             return results;
         }

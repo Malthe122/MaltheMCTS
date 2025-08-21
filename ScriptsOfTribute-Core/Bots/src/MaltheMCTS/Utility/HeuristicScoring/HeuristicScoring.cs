@@ -24,12 +24,12 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
         /// To lower the amount of variables (hand strengths, patron moves available, coins, power, whether agents have been activated) the model needs to process,
         /// this model scores states just before ending turn
         /// </summary>
-        public static double Score(SeededGameState gameState, PredictionEngine<GameStateFeatureSetCsvRow, ModelOutput> predictionEngine, bool endOfTurnExclusive = true)
+        public static double Score(SeededGameState gameState, PredictionEngine<GameStateFeatureSetCsvRow, ModelOutput>? predictionEngine)
         {
             // The manual model (null) does not return either 0 and 1 or -1 and 1, so this logic does not apply for it
             if (predictionEngine != null)
             {
-                var winner = CheckWinner(gameState, endOfTurnExclusive);
+                var winner = CheckWinner(gameState);
 
                 if (winner == gameState.CurrentPlayer.PlayerID)
                 {
@@ -46,7 +46,7 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
             return ModelEvaluation(featureSet, predictionEngine);
         }
 
-        private static PlayerEnum CheckWinner(SeededGameState gameState, bool endOfTurnExclusiveEvaluation)
+        private static PlayerEnum CheckWinner(SeededGameState gameState)
         {
             int currentPlayerPrestige = gameState.CurrentPlayer.Prestige;
             int opponentPrestige = gameState.EnemyPlayer.Prestige;
@@ -63,12 +63,6 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
             {
                 return gameState.CurrentPlayer.PlayerID;
             }
-
-            if (endOfTurnExclusiveEvaluation && opponentPrestige >= 40 && opponentPrestige > currentPlayerPrestige)
-            {
-                return gameState.EnemyPlayer.PlayerID;
-            }
-
 
             int patronCount = 0;
 

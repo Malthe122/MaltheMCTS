@@ -17,7 +17,10 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
     /// </summary>
     public struct GameStateFeatureSet
     {
+        public int CurrentPlayerGold {  get; set; }
+        public int CurrentPlayerPower { get; set; }
         public int CurrentPlayerPrestige { get; set; }
+        public int CurrentPlayerPatronCalls { get; set; }
         public double CurrentPlayerDeck_PrestigeStrength { get; set; }
         public double CurrentPlayerDeck_PowerStrength { get; set; }
         public double CurrentPlayerDeck_GoldStrength { get; set; }
@@ -28,6 +31,8 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
         public double CurrentPlayerAgent_GoldStrength { get; set; }
         public double CurrentPlayerAgent_MiscStrength { get; set; }
         public int CurrentPlayerPatronFavour { get; set; }
+        public int OpponentDiscards { get; set; }
+        public int OpponentPower { get; set; }
         public int OpponentPrestige { get; set; }
         public double OpponentDeck_PrestigeStrength { get; set; }
         public double OpponentDeck_PowerStrength { get; set; }
@@ -76,8 +81,6 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
 
         public static GameStateFeatureSet BuildFeatureSet(SeededGameState gameState)
         {
-            // To make sure that a game with Hlaalu and Crows, is considered the same as one with Crows and Hlaalu
-            var patrons = gameState.Patrons.Order().ToList();
             // base resources
             int currentPlayerPrestige = gameState.CurrentPlayer.Prestige;
             if (gameState.EnemyPlayer.Agents.All(a => !a.RepresentingCard.Taunt))

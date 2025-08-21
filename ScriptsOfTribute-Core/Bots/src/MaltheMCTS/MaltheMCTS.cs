@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using BestMCTS3;
 using Microsoft.ML;
 using ScriptsOfTribute;
@@ -57,15 +57,15 @@ public class MaltheMCTS : AI
     {
         try
         {
-            var instantPlay = FindInstantPlayMove(possibleMoves);
-            if (instantPlay != null)
+            if (Settings.APPLY_INSTANT_MOVES)
             {
-                return instantPlay;
-            }
-
-            if (possibleMoves.Count == 1)
-            {
-                return possibleMoves[0];
+                // TODO consider Ayleid Quartermaster (and other Knock Out All) before playing any agents
+                // TODO consider removing instantplay as new effects such as knock out all, donate, etc. makes the logic to complicated to simplify 
+                var instantPlay = Utility.FindInstantPlayMove(possibleMoves, gameState);
+                if (instantPlay != null)
+                {
+                    return instantPlay;
+                }
             }
 
             ulong randomSeed = (ulong)Utility.Rng.Next();
@@ -75,21 +75,20 @@ public class MaltheMCTS : AI
 
             var moveTimer = new Stopwatch();
             moveTimer.Start();
-            int estimatedRemainingMovesInTurn = EstimateRemainingMovesInTurn(gameState, possibleMoves);
+            int estimatedRemainingMovesInTurn = EstimateRemainingMovesInTurn(seededGameState, possibleMoves);
             double millisecondsForMove = (remainingTime.TotalMilliseconds / estimatedRemainingMovesInTurn) - Settings.ITERATION_COMPLETION_MILLISECONDS_BUFFER;
             while (moveTimer.ElapsedMilliseconds < millisecondsForMove)
             {
-                // var iterationTimer = new Stopwatch();
-                // iterationTimer.Start();
-                // iterationCounter++;
                 rootNode.Visit(out double score, new HashSet<Node>());
-                // iterationTimer.Stop();
-                // Console.WriteLine("Iteration took: " + iterationTimer.ElapsedMilliseconds + " milliseconds");
             }
 
             if (rootNode.MoveToChildNode.Count == 0)
             {
-                // Console.WriteLine("NO TIME FOR CALCULATING MOVE@@@@@@@@@@@@@@@");
+                var nonEndMove = possibleMoves.FirstOrDefault(m => m.Command != CommandEnum.END_TURN);
+                if (nonEndMove != null)
+                {
+                    return nonEndMove;
+                }
                 return possibleMoves[0];
             }
 
@@ -98,41 +97,40 @@ public class MaltheMCTS : AI
                 .FirstOrDefault()
                 .Key;
 
-            if (!CheckMoveLegality(bestMove, rootNode, gameState, possibleMoves)) {
-                string errorMessage = "Tried to play illegal move\n";
-                errorMessage += "Settings:\n" + Settings.ToString();
-                SaveErrorLog(errorMessage);
-            }
-
-            return Utility.FindOfficialMove(bestMove, possibleMoves);
+            return Utility.FindOfficialMove(bestMove, possibleMoves, seededGameState);
         }
         catch (Exception e)
         {
-            Console.WriteLine("Something went wrong while trying to compute move. Playing random move instead. Exception:");
-            Console.WriteLine("Message: " + e.Message);
-            Console.WriteLine("Stacktrace: " + e.StackTrace);
-            Console.WriteLine("Data: " + e.Data);
-            if (e.InnerException != null)
-            {
-                Console.WriteLine("Inner excpetion: " + e.InnerException.Message);
-                Console.WriteLine("Inner stacktrace: " + e.InnerException.StackTrace);
-            }
-
-            var errorMessage = "Something went wrong while trying to compute move. Playing random move instead. Exception:" + "\n";
-            errorMessage += "Message: " + e.Message + "\n";
-            errorMessage += "Stacktrace: " + e.StackTrace + "\n";
-            errorMessage += "Data: " + e.Data + "\n";
-            if (e.InnerException != null)
-            {
-                errorMessage += "Inner excpetion: " + e.InnerException.Message + "\n";
-                errorMessage += "Inner stacktrace: " + e.InnerException.StackTrace + "\n";
-            }
-
-            errorMessage += "Settings was:\n" + Settings.ToString();
-
-            SaveErrorLog(errorMessage);
+            LogError(e);
             return possibleMoves[0];
         }
+    }
+
+    private void LogError(Exception e)
+    {
+        Console.WriteLine("Something went wrong while trying to compute move. Playing random move instead. Exception:");
+        Console.WriteLine("Message: " + e.Message);
+        Console.WriteLine("Stacktrace: " + e.StackTrace);
+        Console.WriteLine("Data: " + e.Data);
+        if (e.InnerException != null)
+        {
+            Console.WriteLine("Inner excpetion: " + e.InnerException.Message);
+            Console.WriteLine("Inner stacktrace: " + e.InnerException.StackTrace);
+        }
+
+        var errorMessage = "Something went wrong while trying to compute move. Playing random move instead. Exception:" + "\n";
+        errorMessage += "Message: " + e.Message + "\n";
+        errorMessage += "Stacktrace: " + e.StackTrace + "\n";
+        errorMessage += "Data: " + e.Data + "\n";
+        if (e.InnerException != null)
+        {
+            errorMessage += "Inner excpetion: " + e.InnerException.Message + "\n";
+            errorMessage += "Inner stacktrace: " + e.InnerException.StackTrace + "\n";
+        }
+
+        errorMessage += "Settings was:\n" + Settings.ToString();
+
+        SaveErrorLog(errorMessage);
     }
 
     private void SaveErrorLog(string errorMessage)
@@ -150,28 +148,6 @@ public class MaltheMCTS : AI
             writer.Write("\n");
             writer.Write(errorMessage);
         }
-    }
-
-    private bool CheckMoveLegality(Move moveToCheck, Node rootNode, GameState officialGameState, List<Move> officialPossiblemoves)
-    {
-        if (!officialPossiblemoves.Any(move => move.IsIdentical(moveToCheck)))
-        {
-            Console.WriteLine("----- ABOUT TO PERFORM ILLEGAL MOVE -----");
-            Console.WriteLine("Our state:");
-            rootNode?.GameState.Log();
-            Console.WriteLine("Actual state:");
-            officialGameState.ToSeededGameState((ulong)Utility.Rng.Next()).Log();
-            Console.WriteLine("@@@@ Trying to play move:");
-            moveToCheck.Log();
-            Console.WriteLine("@@@@@@@ But available moves were:");
-            officialPossiblemoves.ForEach(m => m.Log());
-            Console.WriteLine("@@@@@@ But we thought moves were:");
-            rootNode.PossibleMoves.ForEach(m => m.Log());
-
-            return false;
-        }
-
-        return true;
     }
 
     private int EstimateRemainingMovesInTurn(GameState inputState, List<Move> inputPossibleMoves)
@@ -198,7 +174,7 @@ public class MaltheMCTS : AI
         while (currentPossibleMoves.Count > 0)
         {
 
-            var instantPlay = FindInstantPlayMove(currentPossibleMoves);
+            var instantPlay = Utility.FindInstantPlayMove(currentPossibleMoves, null); //TODO refactor to use seeded gamestate or insert gamestate here
             if (instantPlay != null)
             {
                 (currentState, currentPossibleMoves) = currentState.ApplyMove(instantPlay);
@@ -219,32 +195,6 @@ public class MaltheMCTS : AI
         return result;
     }
 
-    private Move FindInstantPlayMove(List<Move> possibleMoves)
-    {
-        if (possibleMoves.Count == 1)
-        {
-            // This can be different than "END_TURN" in cases where a choice needs to be made (between agents for example)
-            // while there is only one agent available.
-            return possibleMoves[0];
-        }
-
-        foreach (Move currMove in possibleMoves)
-        {
-            if (currMove.IsInstantPlay()) {
-                return currMove;
-            }
-        }
-
-        return null;
-    }
-
-    /// <summary>
-    /// Used for logging when debugging. Do not delete even though it has no references
-    /// </summary>
-    private double GetTimeSpentBeforeTurn(TimeSpan remainingTime)
-    {
-        return 10_000d - remainingTime.TotalMilliseconds;
-    }
     public override PatronId SelectPatron(List<PatronId> availablePatrons, int round)
     {
         return availablePatrons.PickRandom(new SeededRandom());

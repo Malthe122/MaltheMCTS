@@ -33,10 +33,13 @@ public class Node
     public Node(SeededGameState gameState, List<Move> possibleMoves, MaltheMCTS bot)
     {
         GameState = gameState;
-        PossibleMoves = possibleMoves;
+        PossibleMoves = Utility.RemoveDuplicateMoves(possibleMoves, gameState);
         Bot = bot;
-        ApplyInstantMoves();
-        if (gameState.GameEndState == null)
+        if (bot.Settings.APPLY_INSTANT_MOVES)
+        {
+            ApplyInstantMoves();
+        }
+        if (bot.Settings.MANUAL_FILTERING)
         {
             FilterMoves();
         }
@@ -62,14 +65,44 @@ public class Node
         {
             if (VisitCount == 0)
             {
-                ApplyInstantMoves();
                 score = Score();
             }
             else if (PossibleMoves.Count > MoveToChildNode.Count)
             {
-                var expandedEdge = Expand();
-                expandedEdge.Child.Visit(out score, visitedNodes);
-                expandedEdge.VisitCount++;
+                if (Bot.Settings.MANUAL_FILTERING)
+                {
+                    var expandedEdge = Expand();
+                    score = expandedEdge.Visit(visitedNodes);
+                }
+                else
+                {
+                    var childrenCandidates = new Dictionary<Move, Edge>();
+                    foreach (var move in PossibleMoves)
+                    {
+                        Edge newEdge;
+                        if (!Bot.Settings.SIMULATE_MULTIPLE_TURNS && move.Command == CommandEnum.END_TURN)
+                        {
+                            var newEndNode = new EndNode(GameState, PossibleMoves, Bot);
+                            newEdge = new Edge(newEndNode, 0);
+                        }
+                        else
+                        {
+                            (var newState, var newMoves) = GameState.ApplyMove(move);
+                            var newNode = Utility.FindOrBuildNode(newState, this, newMoves, Bot);
+                            newEdge = new Edge(newNode, 0);
+                        }
+
+                        newEdge.Visit(visitedNodes);
+                        childrenCandidates.Add(move, newEdge);
+                    }
+
+                    var newChildren = childrenCandidates.OrderByDescending(n => n.Value.Child.TotalScore / n.Value.Child.VisitCount)
+                    .Take(Bot.Settings.BRANCH_LIMIT!.Value)
+                    .ToList();
+
+                    var totalChildrenScore = newChildren.Sum(c => c.Value.Child.TotalScore / c.Value.Child.VisitCount);
+                    score = totalChildrenScore / newChildren.Count;
+                }
             }
             else
             {
@@ -99,7 +132,7 @@ public class Node
         {
             Node newChild = null;
 
-            if (!MoveToChildNode.Keys.Any(m => m.IsIdentical(currMove)))
+            if (!MoveToChildNode.Keys.Any(m => m.IsIdentical(currMove, GameState)))
             {
                 if (!Bot.Settings.SIMULATE_MULTIPLE_TURNS && currMove.Command == CommandEnum.END_TURN)
                 {
@@ -140,13 +173,12 @@ public class Node
         {
             case ScoringMethod.Rollout:
                 return Rollout();
-            case ScoringMethod.BestMCTS3Heuristic:
-                return Utility.UseBestMCTS3Heuristic(GameState, false, Bot.Settings.SIMULATE_MULTIPLE_TURNS);
-            case ScoringMethod.RolloutTurnsCompletionsThenHeuristic:
-                return RolloutTillTurnsEndThenHeuristic(Bot.Settings.ROLLOUT_TURNS_BEFORE_HEURISTIC);
-            case ScoringMethod.ModelScoring:
-                var gameState = RollOutTillEndOfTurn();
-                return HeuristicScoring.Score(gameState, Bot.PredictionEngine);
+            case ScoringMethod.ManualModelScoring:
+                return HeuristicScoring.Score(GameState, null);
+            case ScoringMethod.LightGbmScoring:
+                // Trying without this and with more features instead to represent changes during turn
+                //var gameState = RollOutTillEndOfTurn(); 
+                return HeuristicScoring.Score(GameState, Bot.PredictionEngine);
             default:
                 throw new NotImplementedException("Tried to applied non-implemented scoring method: " + Bot.Settings.CHOSEN_SCORING_METHOD);
         }
@@ -180,48 +212,6 @@ public class Node
         return gameState;
     }
 
-    private double RolloutTillTurnsEndThenHeuristic(int turnsToComplete) //TODO fix, so that rollout till end of turn, does not end turn
-    {
-        int rolloutTurnsCompleted = 0;
-        var rolloutPlayer = GameState.CurrentPlayer;
-        var rolloutGameState = GameState;
-        var rolloutPossibleMoves = PossibleMoves.ToList();
-
-        while (rolloutTurnsCompleted < turnsToComplete && rolloutGameState.GameEndState == null)
-        {
-            if (Bot.Settings.FORCE_DELAY_TURN_END_IN_ROLLOUT)
-            {
-                if (rolloutPossibleMoves.Count > 1)
-                {
-                    rolloutPossibleMoves.RemoveAll(Move => Move.Command == CommandEnum.END_TURN);
-                }
-            }
-
-            var chosenIndex = Utility.Rng.Next(rolloutPossibleMoves.Count);
-            var moveToMake = rolloutPossibleMoves[chosenIndex];
-
-            var (newGameState, newPossibleMoves) = rolloutGameState.ApplyMove(moveToMake);
-
-            if (newGameState.CurrentPlayer != rolloutPlayer)
-            {
-                rolloutTurnsCompleted++;
-                rolloutPlayer = newGameState.CurrentPlayer;
-            }
-
-            rolloutGameState = newGameState;
-            rolloutPossibleMoves = newPossibleMoves;
-        }
-
-        var stateScore = Utility.UseBestMCTS3Heuristic(rolloutGameState, false, Bot.Settings.SIMULATE_MULTIPLE_TURNS);
-
-        if (GameState.CurrentPlayer != rolloutGameState.CurrentPlayer)
-        {
-            stateScore *= -1;
-        }
-
-        return stateScore;
-    }
-
     internal double Rollout()
     {
         double result = 0;
@@ -244,7 +234,7 @@ public class Node
 
             var (newGameState, newPossibleMoves) = rolloutGameState.ApplyMove(moveToMake);
             rolloutGameState = newGameState;
-            rolloutPossibleMoves = Utility.RemoveDuplicateMoves(newPossibleMoves);
+            rolloutPossibleMoves = Utility.RemoveDuplicateMoves(newPossibleMoves, GameState);
         }
 
         if (rolloutGameState.GameEndState.Winner != PlayerEnum.NO_PLAYER_SELECTED)
@@ -329,7 +319,7 @@ public class Node
 
     private void FilterMoves()
     {
-        PossibleMoves = Utility.RemoveDuplicateMoves(PossibleMoves);
+        PossibleMoves = Utility.RemoveDuplicateMoves(PossibleMoves, GameState);
 
         #region additionalFiltering
         if (Bot.Settings.ADDITIONAL_MOVE_FILTERING)
@@ -424,23 +414,23 @@ public class Node
                                 ).ToList();
                             break;
                         case ChoiceFollowUp.DESTROY_CARDS:
-                                if (CardsPlayedRanked == null) // In SoT, the destroy also allows to destroy from hand, but to assist bot, i exclude this, cause its almost always best to play the card first
-                                {
-                                    CardsPlayedRanked = Utility.RankCardsInGameState(GameState, GameState.CurrentPlayer.Played);
-                                }
-                                int maxAmount = PossibleMoves.Max(m => (m as MakeChoiceMoveUniqueCard).Choices.Count);
-                                if (maxAmount == 1)
-                                {
-                                    var worstPlayedPileCards = CardsPlayedRanked.TakeLast(Bot.Settings.CHOICE_BRANCH_LIMIT!.Value - 1);
-                                    PossibleMoves = PossibleMoves.Where(m =>
-                                    (m as MakeChoiceMoveUniqueCard).Choices.Count == 0
-                                    || worstPlayedPileCards.Any(c => (m as MakeChoiceMoveUniqueCard).Choices[0].CommonId == c.CommonId))
-                                    .ToList();
-                                }
-                                else // Here the possible destroy amount is 2, since thats the max in the patch
-                                {
-                                    PossibleMoves = Utility.GetRankedCardCombinationMoves(PossibleMoves, CardsPlayedRanked.AsEnumerable().Reverse().ToList(), Bot.Settings.CHOICE_BRANCH_LIMIT!.Value, true);
-                                }
+                            if (CardsPlayedRanked == null) // In SoT, the destroy also allows to destroy from hand, but to assist bot, i exclude this, cause its almost always best to play the card first
+                            {
+                                CardsPlayedRanked = Utility.RankCardsInGameState(GameState, GameState.CurrentPlayer.Played);
+                            }
+                            int maxAmount = PossibleMoves.Max(m => (m as MakeChoiceMoveUniqueCard).Choices.Count);
+                            if (maxAmount == 1)
+                            {
+                                var worstPlayedPileCards = CardsPlayedRanked.TakeLast(Bot.Settings.CHOICE_BRANCH_LIMIT!.Value - 1);
+                                PossibleMoves = PossibleMoves.Where(m =>
+                                (m as MakeChoiceMoveUniqueCard).Choices.Count == 0
+                                || worstPlayedPileCards.Any(c => (m as MakeChoiceMoveUniqueCard).Choices[0].CommonId == c.CommonId))
+                                .ToList();
+                            }
+                            else // Here the possible destroy amount is 2, since thats the max in the patch
+                            {
+                                PossibleMoves = Utility.GetRankedCardCombinationMoves(PossibleMoves, CardsPlayedRanked.AsEnumerable().Reverse().ToList(), Bot.Settings.CHOICE_BRANCH_LIMIT!.Value, true);
+                            }
                             break;
                         case ChoiceFollowUp.DISCARD_CARDS:
                             // Discard in this patch is always 1 card
@@ -550,53 +540,69 @@ public class Node
                     {
                         // This is because for in SoT (unlike ToT) you can use the Hlaalu effect even with no eligible cards in play, but only in hand
                         // And since i only look at played cards, it might be that none of them are eligible. In this edge case, i just do no filtering
-                        PossibleMoves = listAtThisPoint; 
+                        PossibleMoves = listAtThisPoint;
                     }
                     break;
+            }
         }
-    }
 
-
-        PossibleMoves = Utility.RemoveDuplicateMoves(PossibleMoves);
+        PossibleMoves = Utility.RemoveDuplicateMoves(PossibleMoves, GameState);
     }
 
     private void SetBewildermentGoldChoiceMoves(IEnumerable<UniqueCard> cardPool)
-{
-    int maxAmount = PossibleMoves.Max(m => (m as MakeChoiceMoveUniqueCard).Choices.Count);
-    var bewilderments = cardPool.Count(c => c.CommonId == CardId.BEWILDERMENT);
-    if (bewilderments > 0)
     {
-        if (bewilderments >= maxAmount)
+        int maxAmount = PossibleMoves.Max(m => (m as MakeChoiceMoveUniqueCard).Choices.Count);
+        var bewilderments = cardPool.Count(c => c.CommonId == CardId.BEWILDERMENT);
+        if (bewilderments > 0)
         {
-            PossibleMoves.RemoveAll(m => !(m as MakeChoiceMoveUniqueCard).Choices.All(m => m.CommonId == CardId.BEWILDERMENT));
+            if (bewilderments >= maxAmount)
+            {
+                PossibleMoves.RemoveAll(m => !(m as MakeChoiceMoveUniqueCard).Choices.All(m => m.CommonId == CardId.BEWILDERMENT));
+            }
+            else
+            {
+                PossibleMoves.RemoveAll(m => !(m as MakeChoiceMoveUniqueCard).Choices.Any(m => m.CommonId == CardId.BEWILDERMENT));
+            }
         }
-        else
+
+        int remainingAmount = maxAmount - bewilderments;
+
+        if (remainingAmount > 0)
         {
-            PossibleMoves.RemoveAll(m => !(m as MakeChoiceMoveUniqueCard).Choices.Any(m => m.CommonId == CardId.BEWILDERMENT));
+            var gold = cardPool.Count(c => c.CommonId == CardId.GOLD);
+            if (gold > 0)
+            {
+                PossibleMoves.RemoveAll(m => !(m as MakeChoiceMoveUniqueCard).Choices.Any(c => c.CommonId == CardId.GOLD));
+            }
         }
     }
 
-    int remainingAmount = maxAmount - bewilderments;
-
-    if (remainingAmount > 0)
+    public class Edge
     {
-        var gold = cardPool.Count(c => c.CommonId == CardId.GOLD);
-        if (gold > 0)
+        public Node Child;
+        public int VisitCount;
+
+        public Edge(Node child, int visitCount)
         {
-            PossibleMoves.RemoveAll(m => !(m as MakeChoiceMoveUniqueCard).Choices.Any(c => c.CommonId == CardId.GOLD));
+            Child = child;
+            VisitCount = visitCount;
+        }
+
+        public double Visit(HashSet<Node> visitedNodes)
+        {
+            VisitCount++;
+            double score;
+            Child.Visit(out score, visitedNodes);
+            return score;
         }
     }
 }
 
-public class Edge
-{
-    public Node Child;
-    public int VisitCount;
-
-    public Edge(Node child, int visitCount)
-    {
-        Child = child;
-        VisitCount = visitCount;
-    }
-}
-}
+//List<Node> newChildren = new List<Node>();
+//                foreach(var move in PossibleMoves)
+//                {
+//                    (var newState, var newMoves) = GameState.ApplyMove(move);
+//                    var newNode = new Node(newState, newMoves, Bot);
+//newNode.Visit(out _, visitedNodes);
+//                    newChildren.Add(newNode);
+//                }

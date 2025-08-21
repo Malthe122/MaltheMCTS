@@ -1,5 +1,3 @@
-using Bots;
-using ExternalHeuristic;
 using ScriptsOfTribute;
 using ScriptsOfTribute.Board.Cards;
 using ScriptsOfTribute.Serializers;
@@ -9,14 +7,6 @@ namespace MaltheMCTS;
 
 public static class Utility
 {
-    /// <summary>
-    /// Calculated average from 500,800 evaluations on a version of AauBot that only evaluated states at the end of turns
-    /// </summary>
-    private const double average_bestmcts3_heuristic_end_of_turn_score = 0.35039018318061976f;
-    /// <summary>
-    /// Calculated average from 11_193_363 states appearing in games of RandomBot playing versus RandomBot and 45_886_781 states generated from AauBot playing versus AauBot
-    /// </summary>
-    private const double average_bestmcts3_heuristic_score = 0.4855746429f;
     public static Random Rng = new Random();
 
     public static readonly List<CardId> RANDOM_EFFECT_CARDS = new List<CardId>();
@@ -44,69 +34,41 @@ public static class Utility
             }
         }
     }
-
-    public static double UseBestMCTS3Heuristic(SeededGameState gameState, bool onlyEndOfTurns, bool normalize = true)
+    public static Move FindInstantPlayMove(List<Move> possibleMoves, GameState gameState)
     {
-
-        GameStrategy strategy;
-
-        var currentPlayer = gameState.CurrentPlayer;
-        int cardCount = currentPlayer.Hand.Count + currentPlayer.CooldownPile.Count + currentPlayer.DrawPile.Count;
-        int points = gameState.CurrentPlayer.Prestige;
-        if (points >= 27 || gameState.EnemyPlayer.Prestige >= 30)
+        return null; //TODO fix this block. Just added for debugging
+        var drawMove = FindCardPlayOrAgentDrawMove(possibleMoves, gameState);
+        if (drawMove != null)
         {
-            strategy = new GameStrategy(cardCount, GamePhase.LateGame);
+            return drawMove;
         }
-        else if (points <= 10 && gameState.EnemyPlayer.Prestige <= 13)
+        var donateMove = FindCardPlayOrAgentDonateMove(possibleMoves, gameState);
+        if (donateMove != null)
         {
-            strategy = new GameStrategy(cardCount, GamePhase.EarlyGame);
+            return donateMove;
         }
-        else
+        var otherCardPlay = FindCardPlayOrAgentMove(possibleMoves, gameState);
+        if (otherCardPlay != null)
         {
-            strategy = new GameStrategy(cardCount, GamePhase.MidGame);
+            return otherCardPlay;
         }
 
-        var result = strategy.Heuristic(gameState);
-
-        if (normalize)
-        {
-            return NormalizeBestMCTS3Score(result, onlyEndOfTurns);
-        }
-
-        return result;
+        return null;
+    }
+    private static Move FindCardPlayOrAgentMove(List<Move> possibleMoves, GameState gameState)
+    {
+        throw new NotImplementedException();
     }
 
-    /// <summary>
-    /// For normalizing BestMCTS3 heuristic score into a -1 - 1 value, using knowledge of average BestMCTS3 score
-    /// This is needed to be able to treat the game like a zero-sum-game with this heuristic that was made for the
-    /// BestMCTS3 that treated the game like a planning problem of a single turn rather than a zero-sum-game
-    /// </summary>
-    private static double NormalizeBestMCTS3Score(double score, bool onlyEndOfTurns)
+    private static Move FindCardPlayOrAgentDonateMove(List<Move> possibleMoves, GameState gameState)
     {
-        if (onlyEndOfTurns)
-        {
-            if (score < average_bestmcts3_heuristic_end_of_turn_score)
-            {
-                return (score - average_bestmcts3_heuristic_end_of_turn_score) / average_bestmcts3_heuristic_end_of_turn_score;
-            }
-            else
-            {
-                return (score - average_bestmcts3_heuristic_end_of_turn_score) / (1 - average_bestmcts3_heuristic_end_of_turn_score);
-            }
-        }
-        else
-        {
-            if (score < average_bestmcts3_heuristic_score)
-            {
-                return (score - average_bestmcts3_heuristic_score) / average_bestmcts3_heuristic_score;
-            }
-            else
-            {
-                return (score - average_bestmcts3_heuristic_score) / (1 - average_bestmcts3_heuristic_score);
-            }
-        }
+        throw new NotImplementedException();
     }
 
+    private static Move FindCardPlayOrAgentDrawMove(List<Move> possibleMoves, GameState gameState)
+    {
+        throw new NotImplementedException();
+    }
     public static Node FindOrBuildNode(SeededGameState seededGameState, Node parent, List<Move> possibleMoves, MaltheMCTS bot)
     {
         var result = new Node(seededGameState, possibleMoves, bot);
@@ -152,31 +114,32 @@ public static class Utility
     /// we might have a specific card on hand with ID 1 in our gamestate, while the official gamestate has an identical card in our hand but with a different id.
     /// Becuase of this, we need to find the offical move that is logically identcal to our move
     /// </summary>
-    public static Move FindOfficialMove(Move move, List<Move> possibleMoves)
+    public static Move FindOfficialMove(Move move, List<Move> possibleMoves, SeededGameState gameState)
     {
-        return possibleMoves.First(m => m.IsIdentical(move));
+        return possibleMoves.First(m => m.IsIdentical(move, gameState));
     }
 
-    internal static float SaveDivision(int arg1, int arg2)
+    internal static float SaveDivision(int dividend, int divider)
     {
-        if (arg1 == 0 || arg2 == 0)
+        if (dividend == 0 || divider == 0)
         {
             return 0;
         }
 
-        return arg1 / arg2;
+        return dividend / divider;
     }
 
     /// <summary>
     /// SoT framework handles moves equal moves like different moves if they refer to different card ids of the same type. I consider
-    /// playing the same card (with different ids) as identical moves, since their impact on the game is 100 % identical
+    /// playing the same card (with different ids) as identical moves, since their impact on the game is 100 % identical. For agents this is different,
+    /// as the might have different hp. TODO take this into account
     /// </summary>
-    public static List<Move> RemoveDuplicateMoves(List<Move> moves)
+    public static List<Move> RemoveDuplicateMoves(List<Move> moves, SeededGameState gameState)
     {
         var uniqueMoves = new List<Move>();
         foreach (var currMove in moves)
         {
-            if (!uniqueMoves.Any(m => m.IsIdentical(currMove)))
+            if (!uniqueMoves.Any(m => m.IsIdentical(currMove, gameState)))
             {
                 uniqueMoves.Add(currMove);
             }
@@ -359,4 +322,25 @@ public static class Utility
         return result;
     }
 
+    public static bool CheckMoveLegality(Move moveToCheck, Node rootNode, GameState officialGameState, List<Move> officialPossiblemoves)
+    {
+        if (!officialPossiblemoves.Any(move => move.IsIdentical(moveToCheck, officialGameState.ToSeededGameState((ulong)Rng.Next()))))
+        {
+            Console.WriteLine("----- ABOUT TO PERFORM ILLEGAL MOVE -----");
+            Console.WriteLine("Our state:");
+            rootNode?.GameState.Log();
+            Console.WriteLine("Actual state:");
+            officialGameState.ToSeededGameState((ulong)Utility.Rng.Next()).Log();
+            Console.WriteLine("@@@@ Trying to play move:");
+            moveToCheck.Log();
+            Console.WriteLine("@@@@@@@ But available moves were:");
+            officialPossiblemoves.ForEach(m => m.Log());
+            Console.WriteLine("@@@@@@ But we thought moves were:");
+            rootNode.PossibleMoves.ForEach(m => m.Log());
+
+            return false;
+        }
+
+        return true;
+    }
 }

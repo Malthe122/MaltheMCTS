@@ -10,7 +10,7 @@ public class Settings
     public bool FORCE_DELAY_TURN_END_IN_ROLLOUT { get; set; }
     public bool INCLUDE_PLAY_MOVE_CHANCE_NODES { get; set; }
     public bool INCLUDE_END_TURN_CHANCE_NODES { get; set; }
-        public int? CHANCE_NODE_BRANCH_LIMIT { get; set; }
+        public int? BRANCH_LIMIT { get; set; }
     public SelectionMethod CHOSEN_SELECTION_METHOD { get; set; }
     public ScoringMethod CHOSEN_SCORING_METHOD { get; set; }
         // These indent properties are dependent on the chosen scoring method to be relevant
@@ -24,6 +24,8 @@ public class Settings
     public bool SIMULATE_MULTIPLE_TURNS { get; set; }
     public int? CHOICE_BRANCH_LIMIT { get; set; }
     public bool ADDITIONAL_MOVE_FILTERING { get; set; }
+    public bool APPLY_INSTANT_MOVES { get; set; }
+    public bool MANUAL_FILTERING { get; internal set; }
 
     public Settings()
     {
@@ -32,9 +34,9 @@ public class Settings
         FORCE_DELAY_TURN_END_IN_ROLLOUT = true;
         INCLUDE_PLAY_MOVE_CHANCE_NODES = true;
         INCLUDE_END_TURN_CHANCE_NODES = false;
-        CHANCE_NODE_BRANCH_LIMIT = 3;
+        BRANCH_LIMIT = 3;
         CHOSEN_SELECTION_METHOD = SelectionMethod.UCT;
-        CHOSEN_SCORING_METHOD = ScoringMethod.RolloutTurnsCompletionsThenHeuristic;
+        CHOSEN_SCORING_METHOD = ScoringMethod.LightGbmScoring;
             ROLLOUT_TURNS_BEFORE_HEURISTIC = 1;
             FEATURE_SET_MODEL_TYPE = null;
         REUSE_TREE = true;
@@ -42,6 +44,8 @@ public class Settings
         SIMULATE_MULTIPLE_TURNS = false;
         CHOICE_BRANCH_LIMIT = 7;
         ADDITIONAL_MOVE_FILTERING = true;
+        APPLY_INSTANT_MOVES = false;
+        MANUAL_FILTERING = false;
     }
 
     public override string ToString()

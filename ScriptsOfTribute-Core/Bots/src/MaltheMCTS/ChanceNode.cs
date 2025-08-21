@@ -13,7 +13,7 @@ public class ChanceNode : Node
     public ChanceNode(SeededGameState gameState, Node parent, Move appliedMove, MaltheMCTS bot) : base(gameState, new List<Move>(), bot)
     {
         AppliedMove = appliedMove;
-        if (bot.Settings.CHANCE_NODE_BRANCH_LIMIT != null)
+        if (bot.Settings.BRANCH_LIMIT != null)
         {
             knownOutcomesWithVisitCount = new();
         }
@@ -24,9 +24,9 @@ public class ChanceNode : Node
     {
         Node child;
 
-        if (Bot.Settings.CHANCE_NODE_BRANCH_LIMIT != null)
+        if (Bot.Settings.BRANCH_LIMIT != null)
         {
-            if (knownOutcomesWithVisitCount.Count >= Bot.Settings.CHANCE_NODE_BRANCH_LIMIT.Value)
+            if (knownOutcomesWithVisitCount.Count >= Bot.Settings.BRANCH_LIMIT.Value)
             {
                 child = knownOutcomesWithVisitCount.MinBy(x => x.Value).Key;
             }
@@ -53,7 +53,7 @@ public class ChanceNode : Node
 
         child.Visit(out score, visitedNodes);
 
-        if (Bot.Settings.CHANCE_NODE_BRANCH_LIMIT != null)
+        if (Bot.Settings.BRANCH_LIMIT != null)
         {
             knownOutcomesWithVisitCount[child]++;
         }

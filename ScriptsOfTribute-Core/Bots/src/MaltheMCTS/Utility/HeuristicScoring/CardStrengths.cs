@@ -11,8 +11,21 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
         public double PrestigeStrength = 0;
         public double PowerStrength = 0;
         public double GoldStrength = 0;
-        public double MiscellaneousStrength = 0;
-        // Consider if i should consider other overall properties than these four
+        public double AquireTavernStrenth = 0;
+        public double SummersetSackingStrength = 0;
+        public double DestroyCardStrength = 0;
+        public double DrawStrength = 0;
+        public double HealStrength = 0;
+        public double OpponentDiscardStrength = 0;
+        public double IncreasedPatronCallStrength = 0;
+        public double ReplaceTavernStrength = 0;
+        public double ReturnTopStrength = 0;
+        public double TossStrength = 0;
+        public double KnockoutStrength = 0;
+        public double KnockoutAllStrength = 0;
+        public double ReturnAgentTopStrenth = 0;
+        public double DonateStrength = 0;
+
         public CardStrengths()
         {
         }

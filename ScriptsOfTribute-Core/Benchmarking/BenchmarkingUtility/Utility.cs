@@ -11,6 +11,7 @@ using ScriptsOfTribute.Board;
 using ScriptsOfTribute;
 using BenchmarkingUtility;
 using System.Text;
+using SimpleBots.src;
 
 public static class Utility
 {
@@ -84,6 +85,8 @@ public static class Utility
                 return new Aau903Bot.Aau903Bot();
             case "SOISMCTS":
                 return new SOISMCTS.SOISMCTS();
+            case "DebuggerBot":
+                return new DebuggerBot();
             case "ToT-BoT":
                 throw new NotImplementedException("Benchmark does not include the feature of running python bots yet");
             default:
