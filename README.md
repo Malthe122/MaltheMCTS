@@ -1,5 +1,5 @@
 # PaperVersion
-Version of MaltheMCTS described in \[insert paper link when public\]
+Version of MaltheMCTS described in [my master paper](https://kbdk-aub.primo.exlibrisgroup.com/permalink/45KBDK_AUB/a7me0f/alma9922172425205762)
 
 Contributions:
 - MaltheMCTS, agent for playing SoT
