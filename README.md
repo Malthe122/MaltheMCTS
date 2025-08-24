@@ -1,6 +1,6 @@
 # Introduction
 MaltheMCTS is a MCTS agent for Scripts of Tribute, SoT (https://github.com/ScriptsOfTribute). It was created on the foundation of AAU903Bot (https://github.com/Malthe122/SoTProject).
-It was created as research for a final master project, and the paper can be accessed here at \[Insert link once its public\].
+It was created as research for a final master project, and the paper can be accessed [here](https://kbdk-aub.primo.exlibrisgroup.com/permalink/45KBDK_AUB/a7me0f/alma9922172425205762).
 As I did not have rights to fork the SoT repository, I just pushed its content to this repository manually.
 
 Contributions of this repository are in:
