@@ -14,7 +14,7 @@ The version of MaltheMCTS that was used during thesis research has been pushed t
 
 Full details of experiements mentioned in paper will also be uploaded to this branch.
 
-Thesis link: \[Insert link once its public\]
+Thesis link: [https://kbdk-aub.primo.exlibrisgroup.com/permalink/45KBDK_AUB/a7me0f/alma9922172425205762](https://kbdk-aub.primo.exlibrisgroup.com/permalink/45KBDK_AUB/a7me0f/alma9922172425205762)
 # 2025 Competition Version
 - Updated to work with the new version of SoT
 - IterativeSelfPlayTrainer was added to try to create a better model by iteratively collecting data from playing games, training a new model on these and then collect data from games played by the new model.
