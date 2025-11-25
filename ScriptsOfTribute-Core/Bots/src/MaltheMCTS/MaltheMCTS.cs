@@ -15,6 +15,8 @@ public class MaltheMCTS : AI
 {
     public Dictionary<int, List<Node>> NodeGameStateHashMap = new Dictionary<int, List<Node>>();
     public Settings Settings { get; set; }
+    public RuleBasedModelSettings RulebasedModelSettings { get; internal set; }
+
     // Having this here only makes sense when competing MaltheMCTS aganist each other with different prediction Engines
     // Consider refactoring it back to Utility when submitting agent
     public PredictionEngine<GameStateFeatureSetCsvRow, ModelOutput> PredictionEngine;

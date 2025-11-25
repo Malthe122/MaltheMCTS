@@ -21,55 +21,48 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
         public int CurrentPlayerPower { get; set; }
         public int CurrentPlayerPrestige { get; set; }
         public int CurrentPlayerPatronCalls { get; set; }
-        public double CurrentPlayerDeck_PrestigeStrength { get; set; }
-        public double CurrentPlayerDeck_PowerStrength { get; set; }
-        public double CurrentPlayerDeck_GoldStrength { get; set; }
-        public double CurrentPlayerDeck_MiscStrength { get; set; }
+        
+        public CardStrengths CurrentPlayerDeckStrengths { get; set; }
+
         public double CurrentPlayerDeckComboProportion { get; set; }
-        public double CurrentPlayerAgent_PrestigeStrength { get; set; }
-        public double CurrentPlayerAgent_PowerStrength { get; set; }
-        public double CurrentPlayerAgent_GoldStrength { get; set; }
-        public double CurrentPlayerAgent_MiscStrength { get; set; }
+
+        public CardStrengths CurrentPlayerAgentStrengths { get; set; }
         public int CurrentPlayerPatronFavour { get; set; }
         public int OpponentDiscards { get; set; }
-        public int OpponentPower { get; set; }
         public int OpponentPrestige { get; set; }
-        public double OpponentDeck_PrestigeStrength { get; set; }
-        public double OpponentDeck_PowerStrength { get; set; }
-        public double OpponentDeck_GoldStrength { get; set; }
-        public double OpponentDeck_MiscStrength { get; set; }
-        public double OpponentAgent_PrestigeStrength { get; set; }
-        public double OpponentAgent_PowerStrength { get; set; }
-        public double OpponentAgent_GoldStrength { get; set; }
-        public double OpponentAgent_MiscStrength { get; set; }
+        public CardStrengths OpponentDeckStrengths {  get; set; }
+        public CardStrengths OpponentAgentStrengths { get; set; }
         public int OpponentPatronFavour { get; set; }
         public double? WinProbability { get; set; }
+        public CardStrengths CurrentPlayerHandStrengths { get; internal set; }
+        public CardStrengths DrawPileStrengths { get; internal set; }
 
+        // TODO implement for LightGBM
         public GameStateFeatureSetCsvRow ToCsvRow()
         {
             return new GameStateFeatureSetCsvRow
             {
-                CurrentPlayerPrestige = (float)CurrentPlayerPrestige,
-                CurrentPlayerDeck_PrestigeStrength = (float)CurrentPlayerDeck_PrestigeStrength,
-                CurrentPlayerDeck_PowerStrength = (float)CurrentPlayerDeck_PowerStrength,
-                CurrentPlayerDeck_GoldStrength = (float)CurrentPlayerDeck_GoldStrength,
-                CurrentPlayerDeck_MiscStrength = (float)CurrentPlayerDeck_MiscStrength,
-                CurrentPlayerDeckComboProportion = (float)CurrentPlayerDeckComboProportion,
-                CurrentPlayerAgent_PrestigeStrength = (float)CurrentPlayerAgent_PrestigeStrength,
-                CurrentPlayerAgent_PowerStrength = (float)CurrentPlayerAgent_PowerStrength,
-                CurrentPlayerAgent_GoldStrength = (float)CurrentPlayerAgent_GoldStrength,
-                CurrentPlayerAgent_MiscStrength = (float)CurrentPlayerAgent_MiscStrength,
-                CurrentPlayerPatronFavour = (float)CurrentPlayerPatronFavour,
-                OpponentPrestige = (float)OpponentPrestige,
-                OpponentDeck_PrestigeStrength = (float)OpponentDeck_PrestigeStrength,
-                OpponentDeck_PowerStrength = (float)OpponentDeck_PowerStrength,
-                OpponentDeck_GoldStrength = (float)OpponentDeck_GoldStrength,
-                OpponentDeck_MiscStrength = (float)OpponentDeck_MiscStrength,
-                OpponentAgent_PrestigeStrength = (float)OpponentAgent_PrestigeStrength,
-                OpponentAgent_PowerStrength = (float)OpponentAgent_PowerStrength,
-                OpponentAgent_GoldStrength = (float)OpponentAgent_GoldStrength,
-                OpponentAgent_MiscStrength = (float)OpponentAgent_MiscStrength,
-                OpponentPatronFavour = (float)OpponentPatronFavour
+                //CurrentPlayerPrestige = (float)CurrentPlayerPrestige,
+                //CurrentPlayerDeck_PrestigeStrength = (float)CurrentPlayerDeck_PrestigeStrength,
+                //CurrentPlayerDeck_PowerStrength = (float)CurrentPlayerDeck_PowerStrength,
+                //CurrentPlayerDeck_GoldStrength = (float)CurrentPlayerDeck_GoldStrength,
+                //CurrentPlayerDeck_MiscStrength = (float)CurrentPlayerDeck_MiscStrength,
+                //CurrentPlayerDeckComboProportion = (float)CurrentPlayerDeckComboProportion,
+                //CurrentPlayerAgent_PrestigeStrength = (float)CurrentPlayerAgent_PrestigeStrength,
+                //CurrentPlayerAgent_PowerStrength = (float)CurrentPlayerAgent_PowerStrength,
+                //CurrentPlayerAgent_GoldStrength = (float)CurrentPlayerAgent_GoldStrength,
+                //CurrentPlayerAgent_MiscStrength = (float)CurrentPlayerAgent_MiscStrength,
+                //CurrentPlayerPatronFavour = (float)CurrentPlayerPatronFavour,
+                //OpponentPrestige = (float)OpponentPrestige,
+                //OpponentDeck_PrestigeStrength = (float)OpponentDeck_PrestigeStrength,
+                //OpponentDeck_PowerStrength = (float)OpponentDeck_PowerStrength,
+                //OpponentDeck_GoldStrength = (float)OpponentDeck_GoldStrength,
+                //OpponentDeck_MiscStrength = (float)OpponentDeck_MiscStrength,
+                //OpponentAgent_PrestigeStrength = (float)OpponentAgent_PrestigeStrength,
+                //OpponentAgent_PowerStrength = (float)OpponentAgent_PowerStrength,
+                //OpponentAgent_GoldStrength = (float)OpponentAgent_GoldStrength,
+                //OpponentAgent_MiscStrength = (float)OpponentAgent_MiscStrength,
+                //OpponentPatronFavour = (float)OpponentPatronFavour
             };
         }
     }
@@ -135,25 +128,13 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
             var featureSet = new GameStateFeatureSet()
             {
                 CurrentPlayerPrestige = currentPlayerPrestige,
-                CurrentPlayerDeck_PrestigeStrength = currentPlayerDeckStrengths.PrestigeStrength,
-                CurrentPlayerDeck_PowerStrength = currentPlayerDeckStrengths.PowerStrength,
-                CurrentPlayerDeck_GoldStrength = currentPlayerDeckStrengths.GoldStrength,
-                CurrentPlayerDeck_MiscStrength = currentPlayerDeckStrengths.MiscellaneousStrength,
+                CurrentPlayerDeckStrengths = currentPlayerDeckStrengths,
                 CurrentPlayerDeckComboProportion = currentPlayerDeckComboProportion,
-                CurrentPlayerAgent_PrestigeStrength = currentPlayerAgentStrengths.PrestigeStrength,
-                CurrentPlayerAgent_PowerStrength = currentPlayerAgentStrengths.PowerStrength,
-                CurrentPlayerAgent_GoldStrength = currentPlayerAgentStrengths.GoldStrength,
-                CurrentPlayerAgent_MiscStrength = currentPlayerAgentStrengths.MiscellaneousStrength,
+                CurrentPlayerAgentStrengths = currentPlayerAgentStrengths,
                 CurrentPlayerPatronFavour = currentPlayerPatronFavour,
                 OpponentPrestige = opponentPrestige,
-                OpponentDeck_PrestigeStrength = opponentDeckStrengths.PrestigeStrength,
-                OpponentDeck_PowerStrength = opponentDeckStrengths.PowerStrength,
-                OpponentDeck_GoldStrength = opponentDeckStrengths.GoldStrength,
-                OpponentDeck_MiscStrength = opponentDeckStrengths.MiscellaneousStrength,
-                OpponentAgent_PrestigeStrength = opponentAgentStrengths.PrestigeStrength,
-                OpponentAgent_PowerStrength = opponentAgentStrengths.PowerStrength,
-                OpponentAgent_GoldStrength = opponentAgentStrengths.GoldStrength,
-                OpponentAgent_MiscStrength = opponentAgentStrengths.MiscellaneousStrength,
+                OpponentDeckStrengths = opponentDeckStrengths,
+                OpponentAgentStrengths = opponentAgentStrengths,
                 OpponentPatronFavour = opponentPatronFavour,
             };
 
@@ -173,6 +154,29 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
             foreach (var currCard in deck)
             {
                 patronToAmount[currCard.Deck]+=1;
+            }
+
+            foreach (var currPair in patronToAmount)
+            {
+                patronToDeckRatio.Add(currPair.Key, (double)currPair.Value / deck.Count);
+            }
+
+            return patronToDeckRatio;
+        }
+
+        public static Dictionary<PatronId, double> GetPatronRatios(List<UniqueCard> deck, List<PatronId> patrons)
+        {
+            var patronToAmount = new Dictionary<PatronId, int>();
+            var patronToDeckRatio = new Dictionary<PatronId, double>();
+
+            foreach (var patron in patrons)
+            {
+                patronToAmount.Add(patron, 0);
+            }
+
+            foreach (var currCard in deck)
+            {
+                patronToAmount[currCard.Deck] += 1;
             }
 
             foreach (var currPair in patronToAmount)
@@ -273,37 +277,59 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
             var result = new CardStrengths();
             switch (effect.Type)
             {
-                case EffectType.ACQUIRE_TAVERN:
-                case EffectType.CREATE_SUMMERSET_SACKING:
-                case EffectType.DESTROY_CARD:
-                // FUTURE use overall strengths of deck if possible
-                case EffectType.DRAW:
-                case EffectType.HEAL:
-                case EffectType.OPP_DISCARD:
-                case EffectType.PATRON_CALL:
-                case EffectType.REPLACE_TAVERN:
-                case EffectType.RETURN_TOP:
-                case EffectType.TOSS:
-                case EffectType.KNOCKOUT_ALL:
-                case EffectType.RETURN_AGENT_TOP:
-                    // FUTURE Do something more sophisticated with these
-                    result.MiscellaneousStrength += 1;
-                    break;
-                case EffectType.KNOCKOUT:
-                case EffectType.DONATE:
-                    // TODO fix hardcoded value.
-                    // weight because its not as good as a draw since you have to discard as well
-                    result.MiscellaneousStrength += (effect.Amount * 0.75);
-                    break;
                 case EffectType.GAIN_COIN:
-                    result.GoldStrength += effect.Amount;
+                    result.GoldStrength = effect.Amount;
                     break;
                 case EffectType.GAIN_POWER:
-                    result.PowerStrength += effect.Amount;
+                    result.PowerStrength = effect.Amount;
                     break;
                 case EffectType.GAIN_PRESTIGE:
+                    result.PrestigeStrength = effect.Amount;
+                    break;
                 case EffectType.OPP_LOSE_PRESTIGE:
                     result.PrestigeStrength += effect.Amount;
+                    break;
+                case EffectType.REPLACE_TAVERN:
+                    result.ReplaceTavernStrength = effect.Amount;
+                    break;
+                case EffectType.ACQUIRE_TAVERN:
+                    result.AquireTavernStrenth = effect.Amount; //TODO debug amount of cards vs card price
+                    break;
+                case EffectType.DESTROY_CARD:
+                    result.DestroyCardStrength = effect.Amount;
+                    break;
+                case EffectType.DRAW:
+                    result.DrawStrength = effect.Amount;
+                    break;
+                case EffectType.OPP_DISCARD:
+                    result.OpponentDiscardStrength = effect.Amount;
+                    break;
+                case EffectType.RETURN_TOP:
+                    result.ReturnTopStrength = effect.Amount;
+                    break;
+                case EffectType.RETURN_AGENT_TOP:
+                    result.ReturnAgentTopStrenth = effect.Amount;
+                    break;
+                case EffectType.TOSS:
+                    result.TossStrength = effect.Amount;
+                    break;
+                case EffectType.KNOCKOUT:
+                    result.KnockoutStrength = effect.Amount;
+                    break;
+                case EffectType.PATRON_CALL:
+                    result.IncreasedPatronCallStrength = effect.Amount;
+                    break;
+                case EffectType.CREATE_SUMMERSET_SACKING:
+                    result.SummersetSackingStrength = effect.Amount;
+                    break;
+                case EffectType.HEAL:
+                    result.HealStrength = effect.Amount;
+                    break;
+                case EffectType.KNOCKOUT_ALL:
+                    result.KnockoutAllStrength = effect.Amount;
+                    break;
+                case EffectType.DONATE:
+                    result.DonateStrength = effect.Amount;
                     break;
             }
 

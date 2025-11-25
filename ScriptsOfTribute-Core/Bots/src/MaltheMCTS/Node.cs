@@ -174,7 +174,7 @@ public class Node
             case ScoringMethod.Rollout:
                 return Rollout();
             case ScoringMethod.ManualModelScoring:
-                return HeuristicScoring.Score(GameState, null);
+                return RulebasedModel.Score(GameState, Bot.RulebasedModelSettings);
             case ScoringMethod.LightGbmScoring:
                 // Trying without this and with more features instead to represent changes during turn
                 //var gameState = RollOutTillEndOfTurn(); 

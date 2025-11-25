@@ -32,16 +32,25 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
 
         public static CardStrengths operator +(CardStrengths a, CardStrengths b)
         {
-            var prestigeStrength = a.PrestigeStrength + b.PrestigeStrength;
-            var powerStrength = a.PowerStrength + b.PowerStrength;
-            var goldStrength = a.GoldStrength + b.GoldStrength;
-            var miscellaneousStrength = a.MiscellaneousStrength + b.MiscellaneousStrength;
             return new CardStrengths()
             {
-                PrestigeStrength = prestigeStrength,
-                PowerStrength = powerStrength,
-                GoldStrength = goldStrength,
-                MiscellaneousStrength = miscellaneousStrength
+                AquireTavernStrenth = a.AquireTavernStrenth + b.AquireTavernStrenth,
+                DestroyCardStrength = a.DestroyCardStrength + b.DestroyCardStrength,
+                DonateStrength = a.DonateStrength + b.DonateStrength,
+                DrawStrength = a.DrawStrength + b.DrawStrength,
+                GoldStrength = a.GoldStrength + b.GoldStrength,
+                HealStrength = a.HealStrength + b.HealStrength,
+                IncreasedPatronCallStrength = a.IncreasedPatronCallStrength + b.IncreasedPatronCallStrength,
+                KnockoutAllStrength = a.KnockoutAllStrength + b.KnockoutAllStrength,
+                KnockoutStrength = a.KnockoutStrength + b.KnockoutStrength,
+                OpponentDiscardStrength = a.OpponentDiscardStrength + b.OpponentDiscardStrength,
+                PowerStrength = a.PowerStrength + b.PowerStrength,
+                PrestigeStrength = a.PrestigeStrength + b.PrestigeStrength,
+                ReplaceTavernStrength = a.ReplaceTavernStrength + b.ReplaceTavernStrength,
+                ReturnAgentTopStrenth = a.ReturnAgentTopStrenth + b.ReturnAgentTopStrenth,
+                ReturnTopStrength = a.ReturnTopStrength + b.ReturnTopStrength,
+                SummersetSackingStrength = a.SummersetSackingStrength + b.SummersetSackingStrength,
+                TossStrength = a.TossStrength + b.TossStrength
             };
         }
 
@@ -49,10 +58,23 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
         {
             return new CardStrengths()
             {
-                PrestigeStrength = a.PrestigeStrength * multiplier,
-                PowerStrength = a.PowerStrength * multiplier,
-                GoldStrength = a.GoldStrength * multiplier,
-                MiscellaneousStrength = a.MiscellaneousStrength * multiplier
+                 AquireTavernStrenth = a.AquireTavernStrenth * multiplier,
+                 DestroyCardStrength = a.DestroyCardStrength * multiplier,
+                 DonateStrength = a.DonateStrength * multiplier,
+                 DrawStrength = a.DrawStrength * multiplier,
+                 GoldStrength = a.GoldStrength * multiplier,
+                 HealStrength = a.HealStrength * multiplier,
+                 IncreasedPatronCallStrength = a.IncreasedPatronCallStrength * multiplier,
+                 KnockoutAllStrength = a.KnockoutAllStrength * multiplier,
+                 KnockoutStrength = a.KnockoutStrength * multiplier,
+                 OpponentDiscardStrength = a.OpponentDiscardStrength * multiplier,
+                 PowerStrength = a.PowerStrength * multiplier,
+                 PrestigeStrength = a.PrestigeStrength * multiplier,
+                 ReplaceTavernStrength = a.ReplaceTavernStrength * multiplier,
+                 ReturnAgentTopStrenth = a.ReturnAgentTopStrenth * multiplier,
+                 ReturnTopStrength = a.ReturnTopStrength * multiplier,
+                 SummersetSackingStrength = a.SummersetSackingStrength * multiplier,
+                 TossStrength = a.TossStrength * multiplier
             };
         }
 
@@ -60,10 +82,23 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
         {
             return new CardStrengths()
             {
-                PrestigeStrength = a.PrestigeStrength / divisor,
-                PowerStrength = a.PowerStrength / divisor,
+                AquireTavernStrenth = a.AquireTavernStrenth / divisor,
+                DestroyCardStrength = a.DestroyCardStrength / divisor,
+                DonateStrength = a.DonateStrength / divisor,
+                DrawStrength = a.DrawStrength / divisor,
                 GoldStrength = a.GoldStrength / divisor,
-                MiscellaneousStrength = a.MiscellaneousStrength / divisor
+                HealStrength = a.HealStrength / divisor,
+                IncreasedPatronCallStrength = a.IncreasedPatronCallStrength / divisor,
+                KnockoutAllStrength = a.KnockoutAllStrength / divisor,
+                KnockoutStrength = a.KnockoutStrength / divisor,
+                OpponentDiscardStrength = a.OpponentDiscardStrength / divisor,
+                PowerStrength = a.PowerStrength / divisor,
+                PrestigeStrength = a.PrestigeStrength / divisor,
+                ReplaceTavernStrength = a.ReplaceTavernStrength / divisor,
+                ReturnAgentTopStrenth = a.ReturnAgentTopStrenth / divisor,
+                ReturnTopStrength = a.ReturnTopStrength / divisor,
+                SummersetSackingStrength = a.SummersetSackingStrength / divisor,
+                TossStrength = a.TossStrength / divisor
             };
         }
     }

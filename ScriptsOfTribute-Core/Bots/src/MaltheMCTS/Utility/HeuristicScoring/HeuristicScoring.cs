@@ -84,15 +84,8 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
 
         private static double ModelEvaluation(GameStateFeatureSet featureSet, PredictionEngine<GameStateFeatureSetCsvRow, ModelOutput> predictionEngine)
         {
-            if (predictionEngine == null)
-            {
-                return SimpleManualEvaluation.Evaluate(featureSet);
-            }
-            else
-            {
-                var csvFeatureSet = featureSet.ToCsvRow();
-                return predictionEngine.Predict(csvFeatureSet).WinProbability;
-            }
+            var csvFeatureSet = featureSet.ToCsvRow();
+            return predictionEngine.Predict(csvFeatureSet).WinProbability;
         }
 
         private static Dictionary<PatronId, double> GetPatronRatios(List<Card> deck, List<PatronId> patrons)
@@ -118,17 +111,24 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
             return patronToDeckRatio;
         }
 
-        private static CardStrengths ScoreStrengthsInDeck(List<SerializedAgent> agents, Dictionary<PatronId, double> patronToDeckRatio, int deckSize)
+        private static CardStrengths ScoreStrengthsInDeck(List<SerializedAgent> agents, Dictionary<PatronId, double> patronToDeckRatio, int deckSize, double availableMultiplier, double hpMultiplier, double tauntMultiplier, double choiceWeight)
         {
             var result = new CardStrengths();
 
             foreach (var agent in agents)
             {
-                var agentCardStrength = ScoreStrengthsInDeck(agent.RepresentingCard, patronToDeckRatio[agent.RepresentingCard.Deck], deckSize) * BASE_AGENT_STRENGTH_MULTIPLIER;
-                var agentStrength = agentCardStrength + agentCardStrength * AGENT_HP_VALUE_MULTIPLIER * agent.CurrentHp; // A way of contributing extra strengths to the agent, the more HP it has
-                if (agent.RepresentingCard.Taunt)
+                var agentCardStrength = ScoreStrengthsInDeck(agent.RepresentingCard, patronToDeckRatio[agent.RepresentingCard.Deck], deckSize, choiceWeight);
+                CardStrengths agentStrength = new CardStrengths();
+                if (!agent.Activated)
                 {
-                    agentStrength.PrestigeStrength += agent.CurrentHp;
+                    agentStrength += agentCardStrength * availableMultiplier;
+                }
+
+                agentStrength += agentCardStrength * agent.CurrentHp * hpMultiplier;
+
+                if(agent.RepresentingCard.Taunt)
+                {
+                    agentStrength += agentCardStrength * agent.CurrentHp * tauntMultiplier;
                 }
 
                 result += agentStrength;
@@ -137,20 +137,19 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
             return result;
         }
 
-        private static CardStrengths ScoreStrengthsInDeck(List<Card> deck, Dictionary<PatronId, double> patronToDeckRatio)
+        private static CardStrengths ScoreStrengthsInDeck(List<Card> deck, Dictionary<PatronId, double> patronToDeckRatio, double choiceWeight)
         {
             var summedStrengths = new CardStrengths();
 
             foreach (var currCard in deck)
             {
-                summedStrengths += ScoreStrengthsInDeck(currCard, patronToDeckRatio[currCard.Deck], deck.Count);
+                summedStrengths += ScoreStrengthsInDeck(currCard, patronToDeckRatio[currCard.Deck], deck.Count, choiceWeight);
             }
 
-            // FUTURE maybe this is where we need to look at draw effects afterwards
             return summedStrengths / deck.Count;
         }
 
-        private static CardStrengths ScoreStrengthsInDeck(Card card, double patronToDeckRatio, int deckSize)
+        public static CardStrengths ScoreStrengthsInDeck(Card card, double patronToDeckRatio, int deckSize, double choiceWeight)
         {
             var result = new CardStrengths();
             foreach (var effect in card.Effects)
@@ -161,30 +160,34 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
                 }
                 else
                 {
-                    result += ScoreComplexEffectStrengthsInDeck(effect, patronToDeckRatio, deckSize);
+                    var uniqueEffect = effect.MakeUniqueCopy(card.CreateUniqueCopy()); // TODO refactor to simply use left and right on effect if it gets readable
+                    result += ScoreComplexEffectStrengthsInDeck(uniqueEffect, patronToDeckRatio, deckSize, choiceWeight);
                 }
             }
 
             return result;
         }
 
-        private static CardStrengths ScoreComplexEffectStrengthsInDeck(ComplexEffect effect, double patronToDeckRatio, int deckSize)
+        /// <summary>
+        /// TODO refactor to not use unique effect, if effect definitions gets right and left readable
+        /// </summary>
+        private static CardStrengths ScoreComplexEffectStrengthsInDeck(UniqueComplexEffect effect, double patronToDeckRatio, int deckSize, double choiceWeight)
         {
             switch (effect)
             {
                 case Effect:
-                    return ScoreEffectStrengthsInDeck((effect as Effect)!, patronToDeckRatio, deckSize);
+                    return ScoreEffectStrengthsInDeck((effect as UniqueEffect)!, patronToDeckRatio, deckSize);
                 case EffectComposite:
-                    var effectComposite = (effect as EffectComposite)!;
-                    var effect1Strengths = ScoreEffectStrengthsInDeck(null, patronToDeckRatio, deckSize); //TODO remove null
-                    var effect2Strengths = ScoreEffectStrengthsInDeck(null, patronToDeckRatio, deckSize); //TODO remove null
+                    var effectComposite = (effect as UniqueEffectComposite)!;
+                    var effect1Strengths = ScoreEffectStrengthsInDeck(effectComposite.GetLeft(), patronToDeckRatio, deckSize);
+                    var effect2Strengths = ScoreEffectStrengthsInDeck(effectComposite.GetRight(), patronToDeckRatio, deckSize);
                     return effect1Strengths + effect2Strengths;
                 case EffectOr:
-                    var effectOr = (effect as EffectOr)!;
-                    var effectaStrengths = ScoreEffectStrengthsInDeck(null, patronToDeckRatio, deckSize); //TODO remove null
-                    var effectbStrengths = ScoreEffectStrengthsInDeck(null, patronToDeckRatio, deckSize); //TODO remove null
+                    var effectOr = (effect as UniqueEffectOr)!;
+                    var effectaStrengths = ScoreEffectStrengthsInDeck(effectOr.GetLeft(), patronToDeckRatio, deckSize);
+                    var effectbStrengths = ScoreEffectStrengthsInDeck(effectOr.GetRight(), patronToDeckRatio, deckSize);
                     // A way to give reward for both choices, but give a penalty for not being able to apply both
-                    return effectaStrengths * CHOICE_WEIGHT + effectbStrengths * CHOICE_WEIGHT;
+                    return effectaStrengths * choiceWeight + effectbStrengths * choiceWeight;
                 default:
                     throw new ArgumentException("Unexpected effect type: " + effect.GetType().Name);
             }
@@ -195,30 +198,57 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
             var result = new CardStrengths();
             switch (effect.Type)
             {
-                case EffectType.ACQUIRE_TAVERN:
-                case EffectType.CREATE_SUMMERSET_SACKING:
-                case EffectType.DESTROY_CARD:
-                case EffectType.DRAW:
-                // FUTURE use overall strengths of deck if possible
-                case EffectType.HEAL:
-                case EffectType.KNOCKOUT:
-                case EffectType.OPP_DISCARD:
-                case EffectType.PATRON_CALL:
-                case EffectType.REPLACE_TAVERN:
-                case EffectType.RETURN_TOP:
-                case EffectType.TOSS:
-                    // FUTURE Do something more sophisticated with these
-                    result.MiscellaneousStrength += 1;
-                    break;
                 case EffectType.GAIN_COIN:
                     result.GoldStrength += effect.Amount;
                     break;
                 case EffectType.GAIN_POWER:
                     result.PowerStrength += effect.Amount;
                     break;
-                case EffectType.GAIN_PRESTIGE:
+                case EffectType.GAIN_PRESTIGE: //TODO consider splitting
                 case EffectType.OPP_LOSE_PRESTIGE:
                     result.PrestigeStrength += effect.Amount;
+                    break;
+                case EffectType.REPLACE_TAVERN:
+                    result.ReplaceTavernStrength += effect.Amount;
+                    break;
+                case EffectType.ACQUIRE_TAVERN:
+                    result.AquireTavernStrenth += effect.Amount; // TODO debug how amount works here. Amount of cards, or amount of allowed gold cost for card
+                    break;
+                case EffectType.DESTROY_CARD:
+                    result.DestroyCardStrength += effect.Amount;
+                    break;
+                case EffectType.DRAW:
+                    result.DrawStrength += effect.Amount;
+                    break;
+                case EffectType.OPP_DISCARD:
+                    result.OpponentDiscardStrength += effect.Amount;
+                    break;
+                case EffectType.RETURN_TOP:
+                    result.ReturnTopStrength += effect.Amount;
+                    break;
+                case EffectType.RETURN_AGENT_TOP:
+                    result.ReturnAgentTopStrenth += effect.Amount;
+                    break;
+                case EffectType.TOSS:
+                    result.TossStrength += effect.Amount;
+                    break;
+                case EffectType.KNOCKOUT:
+                    result.KnockoutStrength += effect.Amount;
+                    break;
+                case EffectType.PATRON_CALL:
+                    result.IncreasedPatronCallStrength += effect.Amount;
+                    break;
+                case EffectType.CREATE_SUMMERSET_SACKING:
+                    result.SummersetSackingStrength += effect.Amount;
+                    break;
+                case EffectType.HEAL:
+                    result.HealStrength += effect.Amount;
+                    break;
+                case EffectType.KNOCKOUT_ALL:
+                    result.KnockoutAllStrength += 1;
+                    break;
+                case EffectType.DONATE:
+                    result.DonateStrength += effect.Amount;
                     break;
             }
 
@@ -232,7 +262,7 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
 
         private static double GetComboProbability(Effect effect, double patronToDeckRatio, int deckSize)
         {
-            // FUTURE consider replacing with bionomial calculation as this is inaccurate as every time you draw a card beside this patron, the probability of drawing
+            // TODO replace with bionomial calculation as this is inaccurate as every time you draw a card beside this patron, the probability of drawing
             // this patron is increased and vice versa (since you cant draw the same cards multiple times)
             double drawProbability = 5 * patronToDeckRatio; //We draw 5 cards at start of each turn
             return Math.Pow(drawProbability, effect.Combo);
