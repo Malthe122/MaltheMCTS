@@ -34,31 +34,6 @@ public static class Utility
             }
         }
     }
-    public static Move FindInstantPlayMove(List<Move> possibleMoves, GameState gameState)
-    {
-        return null; //TODO fix this block. Just added for debugging
-        var drawMove = FindCardPlayOrAgentDrawMove(possibleMoves, gameState);
-        if (drawMove != null)
-        {
-            return drawMove;
-        }
-        var donateMove = FindCardPlayOrAgentDonateMove(possibleMoves, gameState);
-        if (donateMove != null)
-        {
-            return donateMove;
-        }
-        var otherCardPlay = FindCardPlayOrAgentMove(possibleMoves, gameState);
-        if (otherCardPlay != null)
-        {
-            return otherCardPlay;
-        }
-
-        return null;
-    }
-    private static Move FindCardPlayOrAgentMove(List<Move> possibleMoves, GameState gameState)
-    {
-        throw new NotImplementedException();
-    }
 
     private static Move FindCardPlayOrAgentDonateMove(List<Move> possibleMoves, GameState gameState)
     {
@@ -186,15 +161,6 @@ public static class Utility
         currentPlayerCompleteDeck.AddRange(gameState.CurrentPlayer.Agents.Where(a => a.RepresentingCard.Type != CardType.CONTRACT_AGENT).Select(a => a.RepresentingCard));
 
         return currentPlayerCompleteDeck;
-    }
-
-    private static double CardStrengthsToScore(CardStrengths cardStrengths)
-    {
-        // TODO maybe there should be some logic here that prefers power and prestige later in the game and coins early in the game
-        return cardStrengths.GoldStrength
-            + cardStrengths.MiscellaneousStrength
-            + cardStrengths.PowerStrength
-            + cardStrengths.PrestigeStrength;
     }
 
     /// <returns>

@@ -59,17 +59,6 @@ public class MaltheMCTS : AI
     {
         try
         {
-            if (Settings.APPLY_INSTANT_MOVES)
-            {
-                // TODO consider Ayleid Quartermaster (and other Knock Out All) before playing any agents
-                // TODO consider removing instantplay as new effects such as knock out all, donate, etc. makes the logic to complicated to simplify 
-                var instantPlay = Utility.FindInstantPlayMove(possibleMoves, gameState);
-                if (instantPlay != null)
-                {
-                    return instantPlay;
-                }
-            }
-
             ulong randomSeed = (ulong)Utility.Rng.Next();
             var seededGameState = gameState.ToSeededGameState(randomSeed);
 

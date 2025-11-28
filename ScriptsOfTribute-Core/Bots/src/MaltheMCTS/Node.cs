@@ -219,7 +219,6 @@ public class Node
         var rolloutPlayerId = rolloutGameState.CurrentPlayer.PlayerID;
         var rolloutPossibleMoves = new List<Move>(PossibleMoves);
 
-        // TODO also apply the playing obvious moves in here, possibly
         while (rolloutGameState.GameEndState == null)
         {
             if (Bot.Settings.FORCE_DELAY_TURN_END_IN_ROLLOUT)

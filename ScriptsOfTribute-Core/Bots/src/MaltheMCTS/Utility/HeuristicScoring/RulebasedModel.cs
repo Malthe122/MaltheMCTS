@@ -48,6 +48,9 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
             var currentPlayerDeck = gameState.CurrentPlayer.GetCompleteDeck();
             var deckSize = currentPlayerDeck.Count;
             var patronRatios = FeatureSetUtility.GetPatronRatios(currentPlayerDeck, gameState.Patrons);
+            var opponentDeck = gameState.EnemyPlayer.GetCompleteDeck();
+            var opponentDeckSize = opponentDeck.Count;
+            var opponentPatronRatios = FeatureSetUtility.GetPatronRatios(opponentDeck, gameState.Patrons);
 
 
             //public double GoldWeight = 1;
@@ -85,13 +88,17 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
             
             var currentPlayerDeckComboProportion = ((double)currentPlayerDeck.Where(c => c.Deck != PatronId.TREASURY).Count()) / currentPlayerDeck.Count;
             var comboDeckProportianValue = currentPlayerDeckComboProportion * stageWeights.DeckComboProportionWeight;
-
-            var boardAgentsValue = GetAgentsValue(gameState.CurrentPlayer.Agents, patronRatios, deckSize, stageWeights, staticWeights) * stageWeights.AvailableBoardAgentWeight;
+            
+            var boardAgentsValue = GetAgentsValue(gameState.CurrentPlayer.Agents, patronRatios, deckSize, stageWeights, staticWeights) * stageWeights.BoardAgentsWeight;
+            var opponentAgentsValue = GetAgentsValue(gameState.EnemyPlayer.Agents, opponentPatronRatios, opponentDeckSize, stageWeights, staticWeights) * stageWeights.BoardAgentsWeight;
 
             var handValue = GetDeckValue(gameState.CurrentPlayer.Hand, patronRatios, stageWeights, staticWeights) * stageWeights.HandWeight;
-            // TODO add opponent deck value, as we can add curses to their deck (and maybe others)
+
             var deckValue = GetDeckValue(currentPlayerDeck, patronRatios, stageWeights, staticWeights) * stageWeights.DeckWeight;
-            var drawPileWeight = GetDeckValue(gameState.CurrentPlayer.DrawPile, patronRatios, stageWeights, staticWeights) * stageWeights.DrawpileWeight;
+            // As it is possible to affect opponents deck (through curses and maybe others)
+            var opponentDeckValue = GetDeckValue(gameState.EnemyPlayer.GetCompleteDeck(), patronRatios, stageWeights, staticWeights) * stageWeights.DeckWeight;
+
+            var drawPileValue = GetDeckValue(gameState.CurrentPlayer.DrawPile, patronRatios, stageWeights, staticWeights) * stageWeights.DrawpileWeight;
             var cooldownValue = GetDeckValue(gameState.CurrentPlayer.CooldownPile, patronRatios, stageWeights, staticWeights) * stageWeights.CoolDownWeight;
 
             // TOOD add opponent patron favour
@@ -109,9 +116,34 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
                 case 3:
                     patronFavourValue = stageWeights.ThreePatronFavourWeight;
                     break;
+                default:
+                    throw new Exception("Unexpexted Patron Favour count: " + gameState.GetPatronFavourCount(gameState.CurrentPlayer.PlayerID));
             }
 
-            throw new NotImplementedException(); // TODO make
+            double opponentPatronFavourValue = 0;
+            switch (gameState.GetPatronFavourCount(gameState.EnemyPlayer.PlayerID))
+            {
+                case 0:
+                    break;
+                case 1:
+                    opponentPatronFavourValue = stageWeights.OnePatronFavourWeight;
+                    break;
+                case 2:
+                    opponentPatronFavourValue = stageWeights.TwoPatronFavourWeight;
+                    break;
+                case 3:
+                    opponentPatronFavourValue = stageWeights.ThreePatronFavourWeight;
+                    break;
+                default:
+                    throw new Exception("Unexpexted Patron Favour count: " + gameState.GetPatronFavourCount(gameState.EnemyPlayer.PlayerID));
+            }
+
+            // TODO make for remaining features
+
+            return
+                (resourceValue + comboDeckProportianValue + boardAgentsValue + handValue + deckValue + drawPileValue + cooldownValue + patronFavourValue)
+                -
+                (opponentAgentsValue + opponentDeckValue + opponentPatronFavourValue);
         }
 
         private static double GetAgentsValue(List<SerializedAgent> agents, Dictionary<PatronId, double> patronRatios, int deckSize, StageWeights stageWeights, StaticWeights staticWeights)
@@ -131,10 +163,11 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
             var agentStrengths = ScoreStrengthsInDeck(agent.RepresentingCard, patronRatios[agent.RepresentingCard.Deck], deckSize, staticWeights.ChoiceWeight);
 
             var baseValue = GetStrengthsValue(agentStrengths, stageWeights.CardWeights);
-            var tauntValue = agent.RepresentingCard.Taunt ? agent.CurrentHp * stageWeights.AgentTauntWeight : 0;
-            var hpValue = baseValue * agent.CurrentHp * stageWeights.AgentHPWeight;
+            var tauntValue = agent.RepresentingCard.Taunt ? agent.CurrentHp * stageWeights.ActiveAgent_TauntWeight : 0;
+            var hpValue = baseValue * agent.CurrentHp * stageWeights.ActiveAgent_HPWeight;
+            var activeValue = agent.Activated ? 0 : baseValue * stageWeights.AvailableBoardAgentWeight;
 
-            return baseValue + tauntValue + hpValue;
+            return baseValue + tauntValue + hpValue + activeValue;
         }
 
         private static double GetStrengthsValue(CardStrengths strengths, CardStrengths weights)
@@ -159,35 +192,35 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
                 + strengths.TossStrength * weights.TossStrength; //TODO consider doing reflected foreach on properties instead
         }
 
-        private static double GetDeckValue(List<UniqueCard> cards, Dictionary<PatronId, double> patronRatios, StageWeights stageWeights, StaticWeights staticWeights)
+        private static double GetDeckValue(List<UniqueCard> cards, Dictionary<PatronId, double> patronRatios, int deckSize, StageWeights stageWeights, StaticWeights staticWeights)
         {
-            //var prestigeValue = (deckStrengths.PrestigeStrength + deckStrengths.PowerStrength) * lateGameMultiplier;
-            //var goldValue = deckStrengths.GoldStrength * earlyGameMultiplier;
-            //var miscValue = deckStrengths.MiscellaneousStrength * MISCELLANEOUS_MULTIPLIER;
+            double totalCardValue = 0;
+            foreach (var card in cards)
+            {
+                totalCardValue += GetCardValue(card, patronRatios[card.Deck], deckSize, stageWeights, staticWeights);
+            }
 
-
-            //return (prestigeValue + goldValue + miscValue) * DECK_MULTIPLIER * earlyGameMultiplier; // decks are more important early in the game, while near the end focus is on grinding prestige immediatly
-            throw new NotImplementedException(); // TODO make
+            return totalCardValue / deckSize;
         }
 
-        private static double GetCardValue(CardStrengths cardStrengths, StageWeights stageWeights, StaticWeights staticWeights)
+        private static double GetCardValue(Card card, double patronToDeckRatio, int deckSize, StageWeights stageWeights, StaticWeights staticWeights)
         {
-            throw new NotImplementedException(); // TODO make
+            var strengths = HeuristicScoring.ScoreStrengthsInDeck(card, patronToDeckRatio, deckSize, staticWeights.ChoiceWeight);
+            var strengthsValue = GetStrengthsValue(strengths, stageWeights.CardWeights);
+            if (card.Type == CardType.AGENT)
+            {
+                var agentBonusValue = strengthsValue * stageWeights.AgentCardWeight;
+                var hpBonusValue = strengthsValue * card.HP * stageWeights.AgentHPWeight;
+                var tauntBonusValue = card.HP * stageWeights.AgentTauntWeight;
+                strengthsValue += agentBonusValue + hpBonusValue + tauntBonusValue;
+            }
+            return strengthsValue;
         }
-
-        //private static double GetRawValue(CardStrengths strengths, RuleBasedModelSettings ruleBasedModelSettings)
-        //{
-        //    var value = 0;
-
-        //    0 + strengths.AquireTavernStrenth * ruleBasedModelSettings.
-        //}
-
     }
 
     public struct RuleBasedModelSettings
     {
         public RuleBasedModelSettings() { }
-        // TODO move some weights about card evaluation here, and use it when calculating feature set
         public StageWeights EarlyGameWeights = new StageWeights();
         public StageWeights LateGameWeights = new StageWeights();
         public StaticWeights StaticWeights = new StaticWeights();
@@ -215,10 +248,12 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
         public double CoolDownWeight = 1;
         public double BoardAgentsWeight = 1;
         public double AvailableBoardAgentWeight = 1;
+        public double ActiveAgent_TauntWeight = 1;
+        public double ActiveAgent_HPWeight = 1;
+        public double AgentCardWeight = 1;
         public double AgentTauntWeight = 1;
         public double AgentHPWeight = 1;
-        public double AgentCardWeight = 1;
-        public double DrawpileWeight = 1; // TODO make for played, draw, cooldown etc.
+        public double DrawpileWeight = 1;
         //public double KnownTopWeight = 1; Decided not to keep this for now, as it makes any state where any known card is put on top better even if its a bad card
         public double OnePatronFavourWeight = 1;
         public double TwoPatronFavourWeight = 1;

@@ -160,7 +160,7 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
                 }
                 else
                 {
-                    var uniqueEffect = effect.MakeUniqueCopy(card.CreateUniqueCopy()); // TODO refactor to simply use left and right on effect if it gets readable
+                    var uniqueEffect = effect.MakeUniqueCopy(card.CreateUniqueCopy()); // FUTURE refactor to simply use left and right on effect if it gets readable, instead of creating a unique instance of the effect
                     result += ScoreComplexEffectStrengthsInDeck(uniqueEffect, patronToDeckRatio, deckSize, choiceWeight);
                 }
             }
@@ -169,7 +169,7 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
         }
 
         /// <summary>
-        /// TODO refactor to not use unique effect, if effect definitions gets right and left readable
+        /// FUTURE refactor to not use unique effect, if effect definitions gets right and left readable
         /// </summary>
         private static CardStrengths ScoreComplexEffectStrengthsInDeck(UniqueComplexEffect effect, double patronToDeckRatio, int deckSize, double choiceWeight)
         {
