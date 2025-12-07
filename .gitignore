@@ -404,3 +404,6 @@ ScriptsOfTribute-Core/GameRunner/patronsMCTSBot.txt
 /ScriptsOfTribute-Core/benchmarking/ComputationBenchmarking/gamerunner-image.tar
 /ScriptsOfTribute-Core/GameRunner/gamerunner-image.tar
 /ScriptsOfTribute-Core/Benchmarking/ComputationBenchmarking/gamerunner-image.tar
+
+# Custom ignores
+/ScriptsOfTribute-Core/Bots/src/AauBot903/
