@@ -262,7 +262,7 @@ public static class IsIdenticalExtensions{
         return true;
     }
 
-    // TODO, make it so that targeting different agents of different kinds on the board is not considered indentical moves. This also need to be 
+    // TODO, make it so that targeting different agents of the same kinds on the board is not considered indentical moves. This also need to be 
     // handled in the FindOfficialMoves method. This is not super important as its a very rare occurence
     public static bool IsIdentical(this Move instance, Move other, SeededGameState gameState) {
         if(instance.GetType() != other.GetType()) {

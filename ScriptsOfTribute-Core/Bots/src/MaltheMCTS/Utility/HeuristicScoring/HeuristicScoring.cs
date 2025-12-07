@@ -1,4 +1,5 @@
 ﻿using EnsembleTreeModelBuilder;
+using MathNet.Numerics.Distributions;
 using Microsoft.ML;
 using Microsoft.ML.AutoML;
 using ScriptsOfTribute;
@@ -111,13 +112,13 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
             return patronToDeckRatio;
         }
 
-        private static CardStrengths ScoreStrengthsInDeck(List<SerializedAgent> agents, Dictionary<PatronId, double> patronToDeckRatio, int deckSize, double availableMultiplier, double hpMultiplier, double tauntMultiplier, double choiceWeight)
+        private static CardStrengths ScoreStrengthsInDeck(List<SerializedAgent> agents, Dictionary<PatronId, int> patronCardsInDeck, int deckSize, double availableMultiplier, double hpMultiplier, double tauntMultiplier, double choiceWeight)
         {
             var result = new CardStrengths();
 
             foreach (var agent in agents)
             {
-                var agentCardStrength = ScoreStrengthsInDeck(agent.RepresentingCard, patronToDeckRatio[agent.RepresentingCard.Deck], deckSize, choiceWeight);
+                var agentCardStrength = ScoreStrengthsInDeck(agent.RepresentingCard, patronCardsInDeck[agent.RepresentingCard.Deck], deckSize, choiceWeight);
                 CardStrengths agentStrength = new CardStrengths();
                 if (!agent.Activated)
                 {
@@ -137,19 +138,19 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
             return result;
         }
 
-        private static CardStrengths ScoreStrengthsInDeck(List<Card> deck, Dictionary<PatronId, double> patronToDeckRatio, double choiceWeight)
+        private static CardStrengths ScoreStrengthsInDeck(List<Card> deck, Dictionary<PatronId, int> patronCardsInDeck, double choiceWeight)
         {
             var summedStrengths = new CardStrengths();
 
             foreach (var currCard in deck)
             {
-                summedStrengths += ScoreStrengthsInDeck(currCard, patronToDeckRatio[currCard.Deck], deck.Count, choiceWeight);
+                summedStrengths += ScoreStrengthsInDeck(currCard, patronCardsInDeck[currCard.Deck], deck.Count, choiceWeight);
             }
 
             return summedStrengths / deck.Count;
         }
 
-        public static CardStrengths ScoreStrengthsInDeck(Card card, double patronToDeckRatio, int deckSize, double choiceWeight)
+        public static CardStrengths ScoreStrengthsInDeck(Card card, int patronCardsInDeck, int deckSize, double choiceWeight)
         {
             var result = new CardStrengths();
             foreach (var effect in card.Effects)
@@ -161,7 +162,7 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
                 else
                 {
                     var uniqueEffect = effect.MakeUniqueCopy(card.CreateUniqueCopy()); // FUTURE refactor to simply use left and right on effect if it gets readable, instead of creating a unique instance of the effect
-                    result += ScoreComplexEffectStrengthsInDeck(uniqueEffect, patronToDeckRatio, deckSize, choiceWeight);
+                    result += ScoreComplexEffectStrengthsInDeck(uniqueEffect, patronCardsInDeck, deckSize, choiceWeight);
                 }
             }
 
@@ -171,21 +172,21 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
         /// <summary>
         /// FUTURE refactor to not use unique effect, if effect definitions gets right and left readable
         /// </summary>
-        private static CardStrengths ScoreComplexEffectStrengthsInDeck(UniqueComplexEffect effect, double patronToDeckRatio, int deckSize, double choiceWeight)
+        private static CardStrengths ScoreComplexEffectStrengthsInDeck(UniqueComplexEffect effect, int patronCardsInDeck, int deckSize, double choiceWeight)
         {
             switch (effect)
             {
                 case Effect:
-                    return ScoreEffectStrengthsInDeck((effect as UniqueEffect)!, patronToDeckRatio, deckSize);
+                    return ScoreEffectStrengthsInDeck((effect as UniqueEffect)!, patronCardsInDeck, deckSize);
                 case EffectComposite:
                     var effectComposite = (effect as UniqueEffectComposite)!;
-                    var effect1Strengths = ScoreEffectStrengthsInDeck(effectComposite.GetLeft(), patronToDeckRatio, deckSize);
-                    var effect2Strengths = ScoreEffectStrengthsInDeck(effectComposite.GetRight(), patronToDeckRatio, deckSize);
+                    var effect1Strengths = ScoreEffectStrengthsInDeck(effectComposite.GetLeft(), patronCardsInDeck, deckSize);
+                    var effect2Strengths = ScoreEffectStrengthsInDeck(effectComposite.GetRight(), patronCardsInDeck, deckSize);
                     return effect1Strengths + effect2Strengths;
                 case EffectOr:
                     var effectOr = (effect as UniqueEffectOr)!;
-                    var effectaStrengths = ScoreEffectStrengthsInDeck(effectOr.GetLeft(), patronToDeckRatio, deckSize);
-                    var effectbStrengths = ScoreEffectStrengthsInDeck(effectOr.GetRight(), patronToDeckRatio, deckSize);
+                    var effectaStrengths = ScoreEffectStrengthsInDeck(effectOr.GetLeft(), patronCardsInDeck,deckSize);
+                    var effectbStrengths = ScoreEffectStrengthsInDeck(effectOr.GetRight(), patronCardsInDeck,deckSize);
                     // A way to give reward for both choices, but give a penalty for not being able to apply both
                     return effectaStrengths * choiceWeight + effectbStrengths * choiceWeight;
                 default:
@@ -193,7 +194,7 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
             }
         }
 
-        private static CardStrengths ScoreEffectStrengthsInDeck(Effect effect, double patronToDeckRatio, int deckSize)
+        private static CardStrengths ScoreEffectStrengthsInDeck(Effect effect, int patronCardsInDeck, int deckSize)
         {
             var result = new CardStrengths();
             switch (effect.Type)
@@ -254,18 +255,18 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
 
             if (effect.Combo > 1)
             {
-                result = result * GetComboProbability(effect, patronToDeckRatio, deckSize);
+                result = result * GetComboProbability(effect, patronCardsInDeck, deckSize);
             }
 
             return result;
         }
 
-        private static double GetComboProbability(Effect effect, double patronToDeckRatio, int deckSize)
+        private static double GetComboProbability(Effect effect, int matchingPatronCardsInDeck, int deckSize)
         {
-            // TODO replace with bionomial calculation as this is inaccurate as every time you draw a card beside this patron, the probability of drawing
-            // this patron is increased and vice versa (since you cant draw the same cards multiple times)
-            double drawProbability = 5 * patronToDeckRatio; //We draw 5 cards at start of each turn
-            return Math.Pow(drawProbability, effect.Combo);
+            // TODO test if gamerunner now allows C# bots to use libraries. Otherwise implement this logic locally 
+            // TODO debug if this match is correct
+            var hypergeometric = new Hypergeometric(deckSize, matchingPatronCardsInDeck, 5);
+            return hypergeometric.CumulativeDistribution(effect.Combo);
         }
     }
 }

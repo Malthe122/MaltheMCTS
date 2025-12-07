@@ -14,27 +14,6 @@ public static class Utility
     public static readonly List<CardId> INSTANT_EFFECT_PLAY_CARDS = new List<CardId>();
     public static List<CardId> PRIMITIVE_CARD_RANKING = new List<CardId>();
 
-    public static void CategorizeCards()
-    {
-        foreach (var card in GlobalCardDatabase.Instance.AllCards)
-        {
-            // Effect 0 is play/activation effect
-            // FUTURE handle combos
-            if (card.Effects[0].IsStochastic())
-            {
-                RANDOM_EFFECT_CARDS.Add(card.CommonId);
-            }
-
-            if (card.Effects.All(e =>
-            {
-                return e.IsInstantPlayEffect();
-            }))
-            {
-                INSTANT_EFFECT_PLAY_CARDS.Add(card.CommonId);
-            }
-        }
-    }
-
     private static Move FindCardPlayOrAgentDonateMove(List<Move> possibleMoves, GameState gameState)
     {
         throw new NotImplementedException();
@@ -121,34 +100,6 @@ public static class Utility
         }
 
         return uniqueMoves;
-    }
-
-    public static List<UniqueCard> RankCardsInGameState(SeededGameState gameState, IEnumerable<UniqueCard> cards)
-    {
-        // Add hashsets with common ids, so calculation only needs to be done ones for each type
-        var rankedCardTypes = new Dictionary<CardId, double>();
-        var completeDeck = GetCurrentPlayerCompleteDeck(gameState);
-        var patronRatios = FeatureSetUtility.GetPatronRatios(completeDeck, gameState.Patrons);
-
-        var orderedCards = cards.OrderByDescending(c =>
-        {
-            if (rankedCardTypes.ContainsKey(c.CommonId))
-            {
-                return rankedCardTypes[c.CommonId];
-            }
-            else
-            {
-                var score = CardStrengthsToScore(FeatureSetUtility.ScoreStrengthsInDeck(c, patronRatios[c.Deck], completeDeck.Count));
-                if (c.Deck != PatronId.TREASURY)
-                {
-                    score += 0.1 * patronRatios[c.Deck]; // To favor cards that fit into the deck, if their effects are equal
-                }
-                rankedCardTypes.Add(c.CommonId, score);
-                return score;
-            }
-        });
-
-        return orderedCards.ToList();
     }
 
     private static List<Card> GetCurrentPlayerCompleteDeck(SeededGameState gameState)

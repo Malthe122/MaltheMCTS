@@ -11,6 +11,7 @@ using static SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring.ModelEvaluation.
 
 namespace MaltheMCTS;
 
+//TODO move to own library
 public class MaltheMCTS : AI
 {
     public Dictionary<int, List<Node>> NodeGameStateHashMap = new Dictionary<int, List<Node>>();
@@ -43,7 +44,6 @@ public class MaltheMCTS : AI
 
     public override void PregamePrepare()
     {
-        Utility.CategorizeCards();
         NodeGameStateHashMap = new Dictionary<int, List<Node>>();
     }
 
@@ -164,13 +164,7 @@ public class MaltheMCTS : AI
 
         while (currentPossibleMoves.Count > 0)
         {
-
-            var instantPlay = Utility.FindInstantPlayMove(currentPossibleMoves, null); //TODO refactor to use seeded gamestate or insert gamestate here
-            if (instantPlay != null)
-            {
-                (currentState, currentPossibleMoves) = currentState.ApplyMove(instantPlay);
-            }
-            else if (currentPossibleMoves.Count == 1)
+            if (currentPossibleMoves.Count == 1)
             {
                 (currentState, currentPossibleMoves) = currentState.ApplyMove(currentPossibleMoves[0]);
             }

@@ -215,8 +215,6 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
                 summedStrengths += ScoreStrengthsInDeck(currCard, patronToDeckRatio[currCard.Deck], deck.Count);
             }
 
-            // FUTURE maybe this is where we need to look at draw effects afterwards
-
             return summedStrengths / deck.Count;
         }
 
@@ -346,6 +344,23 @@ namespace SimpleBots.src.MaltheMCTS.Utility.HeuristicScoring
             // FUTURE replace with bionomial calculation as this is inaccurate as every time you draw a card beside this patron, the probability of drawing this patron is increased and vice versa (since you cant draw the same cards multiple times)
             double drawProbability = 5 * patronToDeckRatio; //We draw 5 cards at start of each turn
             return Math.Pow(drawProbability, effect.Combo);
+        }
+
+        internal static Dictionary<PatronId, int> GetPatronCardCounts(List<UniqueCard> deck, List<PatronId> patrons)
+        {
+            var patronToDeckCount = new Dictionary<PatronId, int>();
+
+            foreach (var patron in patrons)
+            {
+                patronToDeckCount.Add(patron, 0);
+            }
+
+            foreach (var currCard in deck)
+            {
+                patronToDeckCount[currCard.Deck] += 1;
+            }
+
+            return patronToDeckCount;
         }
     }
 
